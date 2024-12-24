@@ -2,19 +2,7 @@
 
 #include <iostream>
 #include <cstdint>
-
-struct bit_board
-{
-    std::uint64_t white_pieces;
-    std::uint64_t black_pieces;
-
-    std::uint64_t kings;
-    std::uint64_t queens;
-    std::uint64_t rooks;
-    std::uint64_t bishops;
-    std::uint64_t knights;
-    std::uint64_t pawns;
-};
+#include <bit>
 
 // We index the ranks starting at 0 (i.e. the white first rank has index 0).
 constexpr std::uint64_t get_rank_squares(std::size_t i) noexcept
@@ -22,7 +10,7 @@ constexpr std::uint64_t get_rank_squares(std::size_t i) noexcept
     return 0xffull << 8*i;
 }
 
-// We index the files starting at 0 (i.e. the a file has index 0)
+// We index the files starting at 0 (i.e. the a file has index 0).
 constexpr std::uint64_t get_file_squares(std::size_t i) noexcept
 {
     return 0x0101010101010101ull << i;
@@ -38,3 +26,9 @@ constexpr std::uint64_t CENTRE_16_SQUARES { (get_rank_squares(2) | get_rank_squa
 constexpr std::uint64_t RIM_SQUARES { get_file_squares(0) | get_file_squares(7) };
 
 std::ostream& display(std::ostream& os, std::uint64_t v);
+
+constexpr std::uint64_t ls1b_isolate(std::uint64_t x) noexcept { return (~x+1) & x; }
+constexpr std::uint64_t ls1b_reset(std::uint64_t x)  noexcept{ return (x-1) & x; }
+constexpr std::size_t bitscan_forward(std::uint64_t x) noexcept { return std::countr_zero(x); }
+constexpr std::size_t bitscan_backward(std::uint64_t x) noexcept { return std::countl_zero(x); }
+constexpr std::size_t popcount(std::uint64_t x) noexcept { return std::popcount(x); }
