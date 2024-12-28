@@ -1,6 +1,6 @@
-#include "position.hpp"
+#include "bitboard.hpp"
 
-std::ostream& display(std::ostream& os, std::uint64_t v)
+std::ostream& display(std::ostream& os, bitboard v)
 {
     for (std::size_t rank = 0; rank < 8; rank++)
     {
