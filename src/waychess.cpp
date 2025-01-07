@@ -2,7 +2,7 @@
 
 #include "bitboard.hpp"
 #include "hashmap.hpp"
-#include "pieces.hpp"
+#include "pieces/pieces.hpp"
 
 int main()
 {
