@@ -1,7 +1,7 @@
 #pragma once
 
-#include "jumping_pieces.hpp"
+#include "piece.hpp"
 
 bitboard get_king_attacked_squares(bitboard b) noexcept;
 
-extern const attack_table attack_table_king;
+extern const bitboard_table attack_table_king;

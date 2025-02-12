@@ -3,11 +3,11 @@
 namespace
 {
 
-attack_table create_attack_table_king()
+bitboard_table create_attack_table_king()
 {
-    attack_table ret;
+    bitboard_table ret;
 
-    for (std::size_t i = 0; i < ret.size(); i++)
+    for (mailbox i = 0; i < ret.size(); i++)
         ret[i] = get_king_attacked_squares(1ull << i);
 
     return ret;
@@ -39,4 +39,4 @@ bitboard get_king_attacked_squares(bitboard b) noexcept
     return ret;
 }
 
-const attack_table attack_table_king { create_attack_table_king() };
+const bitboard_table attack_table_king { create_attack_table_king() };

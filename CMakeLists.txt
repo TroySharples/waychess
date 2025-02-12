@@ -5,3 +5,4 @@ project(waychess VERSION 1.0.0)
 add_compile_options(-Wall -Wextra -Wpedantic)
 
 add_subdirectory(src)
+add_subdirectory(apps)

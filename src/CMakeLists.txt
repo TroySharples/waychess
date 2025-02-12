@@ -1,13 +1,12 @@
 add_library(lib-waychess STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/bitboard.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/hashmap.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/board.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/hashtable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/piece.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/knight.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/king.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/pawn.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/rook.cpp
 )
 target_include_directories(lib-waychess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(lib-waychess PUBLIC cxx_std_23)
-
-add_executable(waychess ${CMAKE_CURRENT_SOURCE_DIR}/waychess.cpp)
-target_link_libraries(waychess PRIVATE lib-waychess)
-
+target_compile_options(lib-waychess PUBLIC -march=native)

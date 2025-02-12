@@ -1,53 +1,49 @@
-#include "hashmap.hpp"
+#include "hashtable.hpp"
+
+#include <immintrin.h>
 
 #include <stdexcept>
 #include <set>
 #include <cmath>
-#include <random>
 #include <bit>
 
-void hashmap::insert(std::uint64_t key, std::uint64_t value)
+// A quick non-secure way of generating 64-bit random numbers.
+static std::uint64_t random_u64()
 {
-    if (!_map.insert({ key, value }).second)
-        throw std::runtime_error("Unable to insert element into map");
+    const std::int64_t ret = (static_cast<std::int64_t>(rand()) << 32) | static_cast<std::int64_t>(rand());
+    return reinterpret_cast<const std::uint64_t&>(ret);
 }
 
-void hashmap::fix_map(std::uint64_t max_index_bits)
+hashtable::hashtable(std::vector<std::uint64_t>& buf, const std::map<std::uint64_t, std::uint64_t>& map)
 {
     // We try to take advantage of hash collisions to decrease the size of lookup table, so what we
     // are actually interested in is the number of unique values in the table.
     std::set<std::uint64_t> values;
-    for (auto i : _map)
+    for (auto i : map)
         values.insert(i.second);
     const std::size_t unique_values_n = values.size();
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<unsigned long long> dis(
-        std::numeric_limits<std::uint64_t>::min(),
-        std::numeric_limits<std::uint64_t>::max()
-    );
-
-    _rshift = std::countl_zero(unique_values_n);
-    for (; get_index_bits() < max_index_bits; _rshift--)
+    _rshift = std::countl_zero(unique_values_n)+1;
+    for (; _rshift > 0; _rshift--)
     {
-        _table.resize(1 << get_index_bits());
+        buf.resize(1 << get_index_bits());
 
         // We try for a number of times before giving up and increasing the number of index-bits.
-        constexpr std::size_t MAX_ATTEMPTS { 5000 };
+        constexpr std::size_t MAX_ATTEMPTS { 1000000 };
         for (std::size_t _ = 0; _ < MAX_ATTEMPTS; _++)
         {
-            _magic = dis(gen);
+            _magic = random_u64();
 
             // Load up the vector.
-            for (auto [ key, value ] : _map)
-                _table[(key * _magic) >> _rshift] = value;
+            for (auto [ key, value ] : map)
+                buf[(key * _magic) >> _rshift] = value;
 
             // Check to see if this magic works.
             bool success { true };
-            for (auto [ key, value ] : _map)
+            _table = buf;
+            for (auto [ key, value ] : map)
             {
-                if (this->operator()(key) != value)
+                if (operator[](key) != value)
                 {
                     success = false;
                     break;

@@ -1,5 +1,8 @@
 #pragma once
 
-#include "knight.hpp"
-#include "pawn.hpp"
 #include "king.hpp"
+#include "pawn.hpp"
+#include "knight.hpp"
+#include "rook.hpp"
+#include "bishop.hpp"
+#include "queen.hpp"
