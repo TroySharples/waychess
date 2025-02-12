@@ -1,6 +1,7 @@
 add_library(lib-waychess STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/board.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/hashtable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/details/ram.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/piece.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/knight.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/king.cpp

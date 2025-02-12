@@ -1,6 +1,6 @@
 #include "rook.hpp"
 #include "board.hpp"
-#include "hashtable.hpp"
+#include "details/ram.hpp"
 #include "pieces/piece.hpp"
 
 namespace
@@ -22,19 +22,16 @@ sliding_attack_table create_attack_table_rook()
 
     for (mailbox i = 0; i < ret.size(); i++)
     {
-        const bitboard xrayed_squares { get_rook_xrayed_squares(i) };
-        const auto combinations = get_1s_combinations(xrayed_squares);
+        const bitboard blocker_squares { get_rook_blocker_squares(i) };
+        const auto combinations = get_1s_combinations(blocker_squares);
 
-        // Create our standard C++ map we can then use to create our magic bitboard table. We set all the bits in the key that we
-        // don't care about to one (the black-magic bitboards trick). In simple fancy bitboards we would instead mask these off,
-        // but doing it this way ends up reducing the size of the hash table we'll eventually have to calculate.
-        ret[i].notmask = ~xrayed_squares;
-        std::map<std::uint64_t, std::uint64_t> map;
+        // Get a span from the shared RAM that is the correct size for this.
+        ret[i].mask  = blocker_squares;
+        ret[i].table = details::get_ram_slice(combinations.size());
+
+        // Fill out the LUT properly.
         for (const auto comb : combinations)
-            map[comb | ret[i].notmask] = get_rook_attacked_squares(i, comb);
-        
-        // Actually calculate our magic bitboard tables.
-        // ret[i].table = hashtable(map, 18);
+            ret[i][comb] = get_rook_attacked_squares(i, comb);
     }
 
     return ret;

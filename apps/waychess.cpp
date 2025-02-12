@@ -96,10 +96,10 @@ int main()
     }
     std::cout << '\n';
 
-    std::cout << "rook-blockers\n";
+    std::cout << "rook-attacks\n";
     for (mailbox i = 0; i < 64; i++)
     {
-        display(std::cout, get_rook_blocker_squares(i));
+        display(std::cout, get_rook_attacked_squares(i, CENTRE_16_SQUARES));
         std::cout << '\n';
     }
     std::cout << '\n';
