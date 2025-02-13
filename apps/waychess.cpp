@@ -73,22 +73,6 @@ int main()
     }
     std::cout << '\n';
 
-    std::cout << "ne-diagonal\n";
-    for (mailbox i = 0; i < 64; i++)
-    {
-        display(std::cout, get_bitboard_mailbox_ne_diagonal(i));
-        std::cout << '\n';
-    }
-    std::cout << '\n';
-
-    // std::cout << "nw-diagonal\n";
-    // for (mailbox i = 0; i < 16; i++)
-    // {
-    //     display(std::cout, get_bitboard_mailbox_nw_diagonal(i));
-    //     std::cout << '\n';
-    // }
-    // std::cout << '\n';
-
     std::cout << "centre-combinations\n";
     const auto centre_combinations = get_1s_combinations(CENTRE_4_SQUARES);
     for (const auto comb : centre_combinations)
@@ -102,6 +86,30 @@ int main()
     for (mailbox i = 0; i < 64; i++)
     {
         display(std::cout, get_rook_attacked_squares_from_mailbox(i, CENTRE_16_SQUARES));
+        std::cout << '\n';
+    }
+    std::cout << '\n';
+
+    std::cout << "bishop-xrays\n";
+    for (mailbox i = 0; i < 64; i++)
+    {
+        display(std::cout, get_bishop_xrayed_squares_from_mailbox(i));
+        std::cout << '\n';
+    }
+    std::cout << '\n';
+
+    std::cout << "bishop-blockers\n";
+    for (mailbox i = 0; i < 64; i++)
+    {
+        display(std::cout, get_bishop_blocker_squares_from_mailbox(i));
+        std::cout << '\n';
+    }
+    std::cout << '\n';
+
+    std::cout << "bishop-attacks\n";
+    for (mailbox i = 0; i < 64; i++)
+    {
+        display(std::cout, get_bishop_attacked_squares_from_mailbox(i, CENTRE_16_SQUARES));
         std::cout << '\n';
     }
     std::cout << '\n';

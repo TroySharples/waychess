@@ -47,16 +47,12 @@ bitboard get_rook_attacked_squares_from_mailbox_impl(mailbox x, bitboard pos)
     // Mask off the position of the rook itself in the bitboard - the presence of this screws with the blocking-piece calculation.
     pos &= ~rook;
 
-    // West.
     for (bitboard candidate = rook; (candidate & (FILE_A | pos)) == 0; candidate = shift_west(candidate) )
         ret |= shift_west(candidate);
-    // North.
     for (bitboard candidate = rook; (candidate & (RANK_8 | pos)) == 0; candidate = shift_north(candidate) )
         ret |= shift_north(candidate);
-    // East.
     for (bitboard candidate = rook; (candidate & (FILE_H | pos)) == 0; candidate = shift_east(candidate) )
         ret |= shift_east(candidate);
-    // South.
     for (bitboard candidate = rook; (candidate & (RANK_1 | pos)) == 0; candidate = shift_south(candidate) )
         ret |= shift_south(candidate);
 
@@ -96,7 +92,7 @@ bitboard get_rook_blocker_squares_from_mailbox(mailbox x) noexcept
     return blocker_table_rook[x];
 }
 
-bitboard get_rook_attacked_squares_from_mailbox(mailbox x, bitboard pos)
+bitboard get_rook_attacked_squares_from_mailbox(mailbox x, bitboard pos) noexcept
 {
     return attack_table_rook[x][pos];
 }

@@ -9,43 +9,19 @@ using mailbox = std::size_t;
 using bitboard = std::uint64_t;
 
 // We index the ranks starting at 0 (i.e. the white first rank has index 0).
-constexpr bitboard get_bitboard_rank(std::size_t i) noexcept { return 0xffull << 8*i; }
+constexpr bitboard get_bitboard_rank(std::size_t i) noexcept { return 0xffULL << 8*i; }
 
 // We index the files starting at 0 (i.e. the a file has index 0).
-constexpr bitboard get_bitboard_file(std::size_t i) noexcept { return 0x0101010101010101ull << i; }
+constexpr bitboard get_bitboard_file(std::size_t i) noexcept { return 0x0101010101010101ULL << i; }
 
 // Get the bitboard represented by a single piece at this mailbox address.
-constexpr bitboard get_bitboard_mailbox_piece(mailbox x) noexcept {  return 0b1ull << x; }
+constexpr bitboard get_bitboard_mailbox_piece(mailbox x) noexcept {  return 0b1ULL << x; }
 
 // Get the bitboard represented by the rank of the square at this mailbox address.
-constexpr bitboard get_bitboard_mailbox_rank(mailbox x) noexcept { return 0xffull << (x & ~0x7ull); }
+constexpr bitboard get_bitboard_mailbox_rank(mailbox x) noexcept { return 0xffULL << (x & ~0x7ULL); }
 
 // Get the bitboard represented by the file of the square at this mailbox address.
-constexpr bitboard get_bitboard_mailbox_file(mailbox x) noexcept { return std::rotl(0x0101010101010101ull, x); }
-
-// Get the bitboard represented by the north-east diagonal of the square at this mailbox address.
-constexpr bitboard get_bitboard_mailbox_ne_diagonal(mailbox x) noexcept
-{
-    const int offset = (x >> 3) + (x & 0x7ull) - 7;
-    bitboard ret = std::rotl(0x0102040810204080ull, offset);
-    if (offset < 0)
-        ret &= 0x000103070f1f3f7full;
-    if (offset > 0)
-        ret &= 0xfefcf8f0e0c08000ull;
-    return ret;
-}
-
-// Get the bitboard represented by the north-west diagonal of the square at this mailbox address.
-constexpr bitboard get_bitboard_mailbox_nw_diagonal(mailbox x) noexcept
-{
-    const int offset = (x & 0x7ull) - (x >> 3);
-    bitboard ret = std::rotl(0x0102040810204080ull, offset);
-    if (offset < 0)
-        ret &= 0x000103070f1f3f7full;
-    if (offset > 0)
-        ret &= 0xfefcf8f0e0c08000ull;
-    return ret;
-}
+constexpr bitboard get_bitboard_mailbox_file(mailbox x) noexcept { return std::rotl(0x0101010101010101ULL, x); }
 
 constexpr bitboard WHITE_SQUARES { 0x55aa55aa55aa55aa };
 constexpr bitboard BLACK_SQUARES { ~WHITE_SQUARES };
@@ -75,9 +51,13 @@ constexpr bitboard CENTRE_16_SQUARES { (FILE_C | FILE_D | FILE_E | FILE_F)
 constexpr bitboard RIM_SQUARES { FILE_A | FILE_H };
 
 
+constexpr bitboard shift_south_west(bitboard x) noexcept { return (x >> 9) & ~FILE_H; }
 constexpr bitboard shift_west(bitboard x) noexcept { return (x >> 1) & ~FILE_H; }
+constexpr bitboard shift_north_west(bitboard x) noexcept { return (x << 7) & ~FILE_H; }
 constexpr bitboard shift_north(bitboard x) noexcept { return x << 8; }
+constexpr bitboard shift_north_east(bitboard x) noexcept { return (x << 9) & ~FILE_A; }
 constexpr bitboard shift_east(bitboard x) noexcept { return (x << 1) & ~FILE_A; }
+constexpr bitboard shift_south_east(bitboard x) noexcept { return (x >> 7) & ~FILE_A; }
 constexpr bitboard shift_south(bitboard x) noexcept { return x >> 8; }
 
 std::ostream& display(std::ostream& os, bitboard v);

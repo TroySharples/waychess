@@ -21,22 +21,14 @@ bitboard get_king_attacked_squares_from_bitboard(bitboard b) noexcept
 {
     bitboard ret {};
 
-    // South-West.
-    ret |= ((b >> 9) & ~FILE_H);
-    // West.
-    ret |= ((b >> 1) & ~FILE_H);
-    // North-West.
-    ret |= ((b << 7) & ~FILE_H);
-    // North.
-    ret |= (b << 8);
-    // North-East.
-    ret |= ((b << 9) & ~FILE_A);
-    // East.
-    ret |= ((b << 1) & ~FILE_A);
-    // South-East.
-    ret |= ((b >> 7) & ~FILE_A);
-    // South.
-    ret |= (b >> 8);
+    ret |= shift_south_west(b);
+    ret |= shift_west(b);
+    ret |= shift_north_west(b);
+    ret |= shift_north(b);
+    ret |= shift_north_east(b);
+    ret |= shift_east(b);
+    ret |= shift_south_east(b);
+    ret |= shift_south(b);
 
     return ret;
 }
