@@ -114,5 +114,29 @@ int main()
     }
     std::cout << '\n';
 
+    std::cout << "queen-xrays\n";
+    for (mailbox i = 0; i < 64; i++)
+    {
+        display(std::cout, get_queen_xrayed_squares_from_mailbox(i));
+        std::cout << '\n';
+    }
+    std::cout << '\n';
+
+    std::cout << "queen-blockers\n";
+    for (mailbox i = 0; i < 64; i++)
+    {
+        display(std::cout, get_queen_blocker_squares_from_mailbox(i));
+        std::cout << '\n';
+    }
+    std::cout << '\n';
+
+    std::cout << "queen-attacks\n";
+    for (mailbox i = 0; i < 64; i++)
+    {
+        display(std::cout, get_queen_attacked_squares_from_mailbox(i, CENTRE_16_SQUARES));
+        std::cout << '\n';
+    }
+    std::cout << '\n';
+
     return EXIT_SUCCESS;
 }
