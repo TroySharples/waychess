@@ -1,6 +1,8 @@
 #include <cstdlib>
 
 #include "board.hpp"
+#include "pieces/king.hpp"
+#include "pieces/knight.hpp"
 #include "pieces/pieces.hpp"
 #include "pieces/rook.hpp"
 
@@ -50,7 +52,7 @@ int main()
     std::cout << "knight-attacks\n";
     for (mailbox i = 0; i < 64; i++)
     {
-        display(std::cout, attack_table_knight[i]);
+        display(std::cout, get_knight_attacked_squares_from_mailbox(i));
         std::cout << '\n';
     }
     std::cout << '\n';
@@ -58,7 +60,7 @@ int main()
     std::cout << "king-attacks\n";
     for (mailbox i = 0; i < 64; i++)
     {
-        display(std::cout, attack_table_king[i]);
+        display(std::cout, get_king_attacked_squares_from_mailbox(i));
         std::cout << '\n';
     }
     std::cout << '\n';
@@ -66,7 +68,7 @@ int main()
     std::cout << "rook-xrays\n";
     for (mailbox i = 0; i < 64; i++)
     {
-        display(std::cout, get_rook_xrayed_squares(i));
+        display(std::cout, get_rook_xrayed_squares_from_mailbox(i));
         std::cout << '\n';
     }
     std::cout << '\n';
@@ -99,7 +101,7 @@ int main()
     std::cout << "rook-attacks\n";
     for (mailbox i = 0; i < 64; i++)
     {
-        display(std::cout, get_rook_attacked_squares(i, CENTRE_16_SQUARES));
+        display(std::cout, get_rook_attacked_squares_from_mailbox(i, CENTRE_16_SQUARES));
         std::cout << '\n';
     }
     std::cout << '\n';

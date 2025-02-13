@@ -1,31 +1,33 @@
 #include "pawn.hpp"
 
+#include "details/ram.hpp"
+
 namespace
 {
 
-bitboard_table create_attack_table_white_pawn()
+const std::span<std::uint64_t> attack_table_white_pawn = [] ()
 {
-    bitboard_table ret;
+    auto ret = details::get_ram_slice(64);
 
     for (mailbox i = 0; i < ret.size(); i++)
-        ret[i] = get_white_pawn_attacked_squares(1ull << i);
+        ret[i] = get_white_pawn_attacked_squares_from_bitboard(1ULL << i);
 
     return ret;
-}
+} ();
 
-bitboard_table create_attack_table_black_pawn()
+const std::span<std::uint64_t> attack_table_black_pawn = [] ()
 {
-    bitboard_table ret;
+    auto ret = details::get_ram_slice(64);
 
     for (mailbox i = 0; i < ret.size(); i++)
-        ret[i] = get_black_pawn_attacked_squares(1ull << i);
+        ret[i] = get_black_pawn_attacked_squares_from_bitboard(1ULL << i);
 
     return ret;
-}
+} ();
 
 }
 
-bitboard get_white_pawn_attacked_squares(bitboard b) noexcept
+bitboard get_white_pawn_attacked_squares_from_bitboard(bitboard b) noexcept
 {
     bitboard ret {};
 
@@ -37,7 +39,12 @@ bitboard get_white_pawn_attacked_squares(bitboard b) noexcept
     return ret;
 }
 
-bitboard get_black_pawn_attacked_squares(bitboard b) noexcept
+bitboard get_white_pawn_attacked_squares_from_mailbox(mailbox x) noexcept
+{
+    return attack_table_white_pawn[x];
+}
+
+bitboard get_black_pawn_attacked_squares_from_bitboard(bitboard b) noexcept
 {
     bitboard ret {};
 
@@ -49,5 +56,7 @@ bitboard get_black_pawn_attacked_squares(bitboard b) noexcept
     return ret;
 }
 
-const bitboard_table attack_table_white_pawn { create_attack_table_white_pawn() };
-const bitboard_table attack_table_black_pawn { create_attack_table_black_pawn() };
+bitboard get_black_pawn_attacked_squares_from_mailbox(mailbox x) noexcept
+{
+    return attack_table_black_pawn[x];
+}

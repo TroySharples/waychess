@@ -1,7 +1,6 @@
 #pragma once
 
-#include "piece.hpp"
+#include "board.hpp"
 
-bitboard get_king_attacked_squares(bitboard b) noexcept;
-
-extern const bitboard_table attack_table_king;
+bitboard get_king_attacked_squares_from_bitboard(bitboard b) noexcept;
+bitboard get_king_attacked_squares_from_mailbox(mailbox b) noexcept;

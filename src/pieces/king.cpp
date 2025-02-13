@@ -1,21 +1,23 @@
 #include "king.hpp"
 
+#include "details/ram.hpp"
+
 namespace
 {
 
-bitboard_table create_attack_table_king()
+const std::span<std::uint64_t> attack_table_king = [] ()
 {
-    bitboard_table ret;
+    auto ret = details::get_ram_slice(64);
 
     for (mailbox i = 0; i < ret.size(); i++)
-        ret[i] = get_king_attacked_squares(1ull << i);
+        ret[i] = get_king_attacked_squares_from_bitboard(1ULL << i);
 
     return ret;
-}
+} ();
 
 }
 
-bitboard get_king_attacked_squares(bitboard b) noexcept
+bitboard get_king_attacked_squares_from_bitboard(bitboard b) noexcept
 {
     bitboard ret {};
 
@@ -39,4 +41,7 @@ bitboard get_king_attacked_squares(bitboard b) noexcept
     return ret;
 }
 
-const bitboard_table attack_table_king { create_attack_table_king() };
+bitboard get_king_attacked_squares_from_mailbox(mailbox x) noexcept
+{
+    return attack_table_king[x];
+}

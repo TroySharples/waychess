@@ -1,57 +1,44 @@
 #include "rook.hpp"
-#include "board.hpp"
+
 #include "details/ram.hpp"
-#include "pieces/piece.hpp"
+#include "details/pext_bitboard.hpp"
+
+#include <array>
 
 namespace
 {
 
-bitboard_table create_xray_table_rook()
-{
-    bitboard_table ret;
-
-    for (mailbox i = 0; i < ret.size(); i++)
-        ret[i] = get_rook_xrayed_squares(1ull << i);
-
-    return ret;
-}
-
-sliding_attack_table create_attack_table_rook()
-{
-    sliding_attack_table ret;
-
-    for (mailbox i = 0; i < ret.size(); i++)
-    {
-        const bitboard blocker_squares { get_rook_blocker_squares(i) };
-        const auto combinations = get_1s_combinations(blocker_squares);
-
-        // Get a span from the shared RAM that is the correct size for this.
-        ret[i].mask  = blocker_squares;
-        ret[i].table = details::get_ram_slice(combinations.size());
-
-        // Fill out the LUT properly.
-        for (const auto comb : combinations)
-            ret[i][comb] = get_rook_attacked_squares(i, comb);
-    }
-
-    return ret;
-}
-
-}
-
-bitboard get_rook_xrayed_squares(mailbox x) noexcept
+bitboard get_rook_xrayed_squares_from_mailbox_impl(mailbox x) noexcept
 {
     return (get_bitboard_mailbox_rank(x) | get_bitboard_mailbox_file(x)) & ~get_bitboard_mailbox_piece(x);
 }
 
-bitboard get_rook_blocker_squares(mailbox x) noexcept
+const std::span<std::uint64_t> xray_table_rook = [] ()
+{
+    auto ret = details::get_ram_slice(64);
+
+    for (mailbox i = 0; i < ret.size(); i++)
+        ret[i] = get_rook_xrayed_squares_from_mailbox_impl(i);
+
+    return ret;
+} ();
+
+bitboard get_rook_blocker_squares_from_mailbox_impl(mailbox x) noexcept
 {
     return ((get_bitboard_mailbox_rank(x) & ~FILE_A & ~FILE_H) | (get_bitboard_mailbox_file(x) & ~RANK_1 & ~RANK_8)) & ~get_bitboard_mailbox_piece(x);
 }
 
-const bitboard_table xray_table_rook { create_xray_table_rook() };
+const std::span<std::uint64_t> blocker_table_rook = [] ()
+{
+    auto ret = details::get_ram_slice(64);
 
-bitboard get_rook_attacked_squares(mailbox x, bitboard pos)
+    for (mailbox i = 0; i < ret.size(); i++)
+        ret[i] = get_rook_blocker_squares_from_mailbox_impl(i);
+
+    return ret;
+} ();
+
+bitboard get_rook_attacked_squares_from_mailbox_impl(mailbox x, bitboard pos)
 {
     bitboard ret {};
 
@@ -76,4 +63,40 @@ bitboard get_rook_attacked_squares(mailbox x, bitboard pos)
     return ret;
 }
 
-const sliding_attack_table attack_table_rook { create_attack_table_rook() };
+const std::array<details::pext_bitboard, 64>  attack_table_rook = [] ()
+{
+    std::array<details::pext_bitboard, 64>  ret;
+
+    for (mailbox i = 0; i < ret.size(); i++)
+    {
+        const bitboard blocker_squares { get_rook_blocker_squares_from_mailbox_impl(i) };
+        const auto combinations = get_1s_combinations(blocker_squares);
+
+        // Get a span from the shared RAM that is the correct size for this.
+        ret[i].mask  = blocker_squares;
+        ret[i].table = details::get_ram_slice(combinations.size());
+
+        // Fill out the LUT properly.
+        for (const auto comb : combinations)
+            ret[i][comb] = get_rook_attacked_squares_from_mailbox_impl(i, comb);
+    }
+
+    return ret;
+} ();
+
+}
+
+bitboard get_rook_xrayed_squares_from_mailbox(mailbox x) noexcept
+{
+    return xray_table_rook[x];
+}
+
+bitboard get_rook_blocker_squares_from_mailbox(mailbox x) noexcept
+{
+    return blocker_table_rook[x];
+}
+
+bitboard get_rook_attacked_squares_from_mailbox(mailbox x, bitboard pos)
+{
+    return attack_table_rook[x][pos];
+}
