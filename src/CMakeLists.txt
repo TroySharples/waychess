@@ -1,6 +1,5 @@
 add_library(lib-waychess STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/board.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/hashtable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/details/ram.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/details/pext_bitboard.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/knight.cpp
@@ -9,6 +8,7 @@ add_library(lib-waychess STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/rook.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/bishop.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/queen.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/position/position.cpp
 )
 target_include_directories(lib-waychess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(lib-waychess PUBLIC cxx_std_23)

@@ -5,6 +5,7 @@
 #include "pieces/knight.hpp"
 #include "pieces/pieces.hpp"
 #include "pieces/rook.hpp"
+#include "position/position.hpp"
 
 int main()
 {
@@ -136,6 +137,10 @@ int main()
         display(std::cout, get_queen_attacked_squares_from_mailbox(i, CENTRE_16_SQUARES));
         std::cout << '\n';
     }
+    std::cout << '\n';
+
+    std::cout << "starting-position\n";
+    std::cout << STARTING_POSITION;
     std::cout << '\n';
 
     return EXIT_SUCCESS;

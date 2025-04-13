@@ -50,7 +50,6 @@ constexpr bitboard CENTRE_16_SQUARES { (FILE_C | FILE_D | FILE_E | FILE_F)
                                           & (RANK_3 | RANK_4 | RANK_5 | RANK_6) };
 constexpr bitboard RIM_SQUARES { FILE_A | FILE_H };
 
-
 constexpr bitboard shift_south_west(bitboard x) noexcept { return (x >> 9) & ~FILE_H; }
 constexpr bitboard shift_west(bitboard x) noexcept { return (x >> 1) & ~FILE_H; }
 constexpr bitboard shift_north_west(bitboard x) noexcept { return (x << 7) & ~FILE_H; }
