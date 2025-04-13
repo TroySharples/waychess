@@ -23,7 +23,7 @@ bitboard get_white_pawn_all_attacked_squares_from_bitboard(bitboard b) noexcept;
 bitboard get_white_pawn_single_attacked_squares_from_bitboard(bitboard b) noexcept;
 bitboard get_white_pawn_double_attacked_squares_from_bitboard(bitboard b) noexcept;
 
-bitboard get_white_pawn_attacked_squares_from_mailbox(mailbox b) noexcept;
+bitboard get_white_pawn_all_attacked_squares_from_mailbox(mailbox x) noexcept;
 
 bitboard get_black_pawn_west_attacked_squares_from_bitboard(bitboard b) noexcept;
 bitboard get_black_pawn_east_attacked_squares_from_bitboard(bitboard b) noexcept;
@@ -31,7 +31,7 @@ bitboard get_black_pawn_all_attacked_squares_from_bitboard(bitboard b) noexcept;
 bitboard get_black_pawn_single_attacked_squares_from_bitboard(bitboard b) noexcept;
 bitboard get_black_pawn_double_attacked_squares_from_bitboard(bitboard b) noexcept;
 
-bitboard get_black_pawn_attacked_squares_from_mailbox(mailbox b) noexcept;
+bitboard get_black_pawn_all_attacked_squares_from_mailbox(mailbox x) noexcept;
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // PUSHES
@@ -39,6 +39,16 @@ bitboard get_black_pawn_attacked_squares_from_mailbox(mailbox b) noexcept;
 
 bitboard get_white_pawn_single_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
 bitboard get_white_pawn_double_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
+bitboard get_white_pawn_all_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
+
+bitboard get_white_pawn_single_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;
+bitboard get_white_pawn_double_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;
+bitboard get_white_pawn_all_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;
 
 bitboard get_black_pawn_single_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
 bitboard get_black_pawn_double_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
+bitboard get_black_pawn_all_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
+
+bitboard get_black_pawn_single_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;
+bitboard get_black_pawn_double_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;
+bitboard get_black_pawn_all_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;

@@ -53,7 +53,7 @@ bitboard get_white_pawn_double_attacked_squares_from_bitboard(bitboard b) noexce
     return get_white_pawn_west_attacked_squares_from_bitboard(b) & get_white_pawn_east_attacked_squares_from_bitboard(b);
 }
 
-bitboard get_white_pawn_attacked_squares_from_mailbox(mailbox x) noexcept
+bitboard get_white_pawn_all_attacked_squares_from_mailbox(mailbox x) noexcept
 {
     return attack_table_white_pawn[x];
 }
@@ -83,7 +83,7 @@ bitboard get_black_pawn_double_attacked_squares_from_bitboard(bitboard b) noexce
     return get_black_pawn_west_attacked_squares_from_bitboard(b) & get_black_pawn_east_attacked_squares_from_bitboard(b);
 }
 
-bitboard get_black_pawn_attacked_squares_from_mailbox(mailbox x) noexcept
+bitboard get_black_pawn_all_attacked_squares_from_mailbox(mailbox x) noexcept
 {
     return attack_table_black_pawn[x];
 }
@@ -98,6 +98,26 @@ bitboard get_white_pawn_double_push_squares_from_bitboard(bitboard b, bitboard n
     return (get_white_pawn_single_push_squares_from_bitboard(b, npos) << 8) & npos & RANK_4;
 }
 
+bitboard get_white_pawn_all_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept
+{
+    return get_white_pawn_single_push_squares_from_bitboard(b, npos) | get_white_pawn_double_push_squares_from_bitboard(b, npos);
+}
+
+bitboard get_white_pawn_single_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept
+{
+    return get_white_pawn_single_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
+}
+
+bitboard get_white_pawn_double_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept
+{
+    return get_white_pawn_double_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
+}
+
+bitboard get_white_pawn_all_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept
+{
+    return get_white_pawn_all_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
+}
+
 bitboard get_black_pawn_single_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept
 {
     return (b << 8) & npos;
@@ -106,4 +126,24 @@ bitboard get_black_pawn_single_push_squares_from_bitboard(bitboard b, bitboard n
 bitboard get_black_pawn_double_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept
 {
     return (get_black_pawn_single_push_squares_from_bitboard(b, npos) << 8) & npos & RANK_4;
+}
+
+bitboard get_black_pawn_all_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept
+{
+    return get_black_pawn_single_push_squares_from_bitboard(b, npos) | get_black_pawn_double_push_squares_from_bitboard(b, npos);
+}
+
+bitboard get_black_pawn_single_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept
+{
+    return get_black_pawn_single_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
+}
+
+bitboard get_black_pawn_double_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept
+{
+    return get_black_pawn_double_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
+}
+
+bitboard get_black_pawn_all_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept
+{
+    return get_black_pawn_all_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
 }
