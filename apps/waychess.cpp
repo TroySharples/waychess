@@ -143,5 +143,9 @@ int main()
     std::cout << STARTING_POSITION;
     std::cout << '\n';
 
+    std::cout << "First moves\n";
+    for (const auto& pos : get_next_positions(STARTING_POSITION))
+        std::cout << pos << '\n';
+
     return EXIT_SUCCESS;
 }
