@@ -1,6 +1,6 @@
 #pragma once
 
-#include "board.hpp"
+#include "bitboard.hpp"
 
 // There are a few properties of pawns that make then a pain to code:
 // * Their attack squares are not the same as their push squares.

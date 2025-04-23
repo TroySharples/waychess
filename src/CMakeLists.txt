@@ -1,5 +1,5 @@
 add_library(lib-waychess STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/board.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bitboard.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/details/ram.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/details/pext_bitboard.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/knight.cpp

@@ -1,4 +1,4 @@
-#include "board.hpp"
+#include "bitboard.hpp"
 
 std::ostream& display(std::ostream& os, bitboard v)
 {

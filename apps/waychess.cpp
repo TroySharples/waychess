@@ -1,6 +1,6 @@
 #include <cstdlib>
 
-#include "board.hpp"
+#include "bitboard.hpp"
 #include "pieces/king.hpp"
 #include "pieces/knight.hpp"
 #include "pieces/pieces.hpp"

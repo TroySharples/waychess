@@ -1,6 +1,6 @@
 #include "pawn.hpp"
 
-#include "board.hpp"
+#include "bitboard.hpp"
 #include "details/ram.hpp"
 
 namespace

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "board.hpp"
+#include "bitboard.hpp"
 
 struct position
 {
@@ -48,7 +48,7 @@ constexpr position STARTING_POSITION {
 constexpr bitboard& to_move_pieces(position& pos) noexcept { return pos.white_to_move ? pos.white_pieces : pos.black_pieces; }
 constexpr bitboard& opponent_pieces(position& pos) noexcept { return pos.white_to_move ? pos.black_pieces : pos.white_pieces; }
 
-constexpr const bitboard& to_move_pieces(const position& pos) noexcept { return pos.white_to_move ? pos.white_pieces : pos.black_pieces; }
+constexpr const bitboard& to_move_pieces(const position& pos)  noexcept { return pos.white_to_move ? pos.white_pieces : pos.black_pieces; }
 constexpr const bitboard& opponent_pieces(const position& pos) noexcept { return pos.white_to_move ? pos.black_pieces : pos.black_pieces; }
 
 std::vector<position> get_next_positions(position pos);

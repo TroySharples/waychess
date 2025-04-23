@@ -1,8 +1,7 @@
 #include "position.hpp"
-#include "board.hpp"
+#include "bitboard.hpp"
 
-#include "pieces/pawn.hpp"
-#include "pieces/knight.hpp"
+#include "pieces/pieces.hpp"
 
 #include <array>
 

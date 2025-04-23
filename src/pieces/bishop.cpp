@@ -1,6 +1,6 @@
 #include "bishop.hpp"
 
-#include "board.hpp"
+#include "bitboard.hpp"
 #include "details/ram.hpp"
 #include "details/pext_bitboard.hpp"
 
