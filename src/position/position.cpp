@@ -29,18 +29,18 @@ std::ostream& operator<<(std::ostream& os, piece v)
 {
     switch (v)
     {
-        case white_pawn:   return os << ANSI_BOLD_WHITE << "P ";
-        case white_knight: return os << ANSI_BOLD_WHITE << "Kn";
-        case white_king:   return os << ANSI_BOLD_WHITE << "K ";
-        case white_rook:   return os << ANSI_BOLD_WHITE << "R ";
-        case white_queen:  return os << ANSI_BOLD_WHITE << "Q ";
-        case white_bishop: return os << ANSI_BOLD_WHITE << "B ";
-        case black_pawn:   return os << ANSI_BOLD_BLACK << "P ";
-        case black_knight: return os << ANSI_BOLD_BLACK << "Kn";
-        case black_king:   return os << ANSI_BOLD_BLACK << "K ";
-        case black_rook:   return os << ANSI_BOLD_BLACK << "R ";
-        case black_queen:  return os << ANSI_BOLD_BLACK << "Q ";
-        case black_bishop: return os << ANSI_BOLD_BLACK << "B ";
+        case white_pawn:   return os << ANSI_BOLD_WHITE << "\u2659 ";
+        case white_knight: return os << ANSI_BOLD_WHITE << "\u2658 ";
+        case white_king:   return os << ANSI_BOLD_WHITE << "\u2654 ";
+        case white_rook:   return os << ANSI_BOLD_WHITE << "\u2656 ";
+        case white_queen:  return os << ANSI_BOLD_WHITE << "\u265b ";
+        case white_bishop: return os << ANSI_BOLD_WHITE << "\u265d ";
+        case black_pawn:   return os << ANSI_BOLD_BLACK << "\u265f ";
+        case black_knight: return os << ANSI_BOLD_BLACK << "\u265e ";
+        case black_king:   return os << ANSI_BOLD_BLACK << "\u265a ";
+        case black_rook:   return os << ANSI_BOLD_BLACK << "\u265c ";
+        case black_queen:  return os << ANSI_BOLD_BLACK << "\u265b ";
+        case black_bishop: return os << ANSI_BOLD_BLACK << "\u265d ";
         default: return os << "  ";
     }
 }
