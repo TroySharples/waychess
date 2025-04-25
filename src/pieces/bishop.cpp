@@ -1,6 +1,5 @@
 #include "bishop.hpp"
 
-#include "bitboard.hpp"
 #include "details/ram.hpp"
 #include "details/pext_bitboard.hpp"
 
@@ -9,11 +8,11 @@
 namespace 
 {
 
-bitboard get_bishop_xrayed_squares_from_mailbox_impl(mailbox x) noexcept
+std::uint64_t get_bishop_xrayed_squares_from_mailbox_impl(std::size_t x) noexcept
 {
-    const bitboard b { get_bitboard_mailbox_piece(x) };
+    const std::uint64_t b { get_bitboard_mailbox_piece(x) };
 
-    bitboard sw_ray {b}, nw_ray {b}, ne_ray {b}, se_ray {b};
+    std::uint64_t sw_ray {b}, nw_ray {b}, ne_ray {b}, se_ray {b};
     for (std::size_t i = 0; i < 7; i++)
     {
         sw_ray = get_bitboard_mailbox_piece(x) | shift_south_west(sw_ray);
@@ -29,13 +28,13 @@ const std::span<std::uint64_t> xray_table_bishop = [] ()
 {
     auto ret = details::get_ram_slice(64);
 
-    for (mailbox i = 0; i < ret.size(); i++)
+    for (std::size_t i = 0; i < ret.size(); i++)
         ret[i] = get_bishop_xrayed_squares_from_mailbox_impl(i);
 
     return ret;
 } ();
 
-bitboard get_bishop_blocker_squares_from_mailbox_impl(mailbox x) noexcept
+std::uint64_t get_bishop_blocker_squares_from_mailbox_impl(std::size_t x) noexcept
 {
     return get_bishop_xrayed_squares_from_mailbox_impl(x) & ~(FILE_A | FILE_H | RANK_1 | RANK_8);
 }
@@ -44,28 +43,28 @@ const std::span<std::uint64_t> blocker_table_bishop = [] ()
 {
     auto ret = details::get_ram_slice(64);
 
-    for (mailbox i = 0; i < ret.size(); i++)
+    for (std::size_t i = 0; i < ret.size(); i++)
         ret[i] = get_bishop_blocker_squares_from_mailbox_impl(i);
 
     return ret;
 } ();
 
-bitboard get_bishop_attacked_squares_from_mailbox_impl(mailbox x, bitboard pos)
+std::uint64_t get_bishop_attacked_squares_from_mailbox_impl(std::size_t x, std::uint64_t pos)
 {
-    bitboard ret {};
+    std::uint64_t ret {};
 
-    const bitboard bishop { get_bitboard_mailbox_piece(x) };
+    const std::uint64_t bishop { get_bitboard_mailbox_piece(x) };
     
     // Mask off the position of the bishop itself in the bitboard - the presence of this screws with the blocking-piece calculation.
     pos &= ~bishop;
 
-    for (bitboard candidate = bishop; (candidate & (FILE_A | RANK_1 | pos)) == 0; candidate = shift_south_west(candidate) )
+    for (std::uint64_t candidate = bishop; (candidate & (FILE_A | RANK_1 | pos)) == 0; candidate = shift_south_west(candidate) )
         ret |= shift_south_west(candidate);
-    for (bitboard candidate = bishop; (candidate & (FILE_A | RANK_8 | pos)) == 0; candidate = shift_north_west(candidate) )
+    for (std::uint64_t candidate = bishop; (candidate & (FILE_A | RANK_8 | pos)) == 0; candidate = shift_north_west(candidate) )
         ret |= shift_north_west(candidate);
-    for (bitboard candidate = bishop; (candidate & (FILE_H | RANK_8 | pos)) == 0; candidate = shift_north_east(candidate) )
+    for (std::uint64_t candidate = bishop; (candidate & (FILE_H | RANK_8 | pos)) == 0; candidate = shift_north_east(candidate) )
         ret |= shift_north_east(candidate);
-    for (bitboard candidate = bishop; (candidate & (FILE_H | RANK_1 | pos)) == 0; candidate = shift_south_east(candidate) )
+    for (std::uint64_t candidate = bishop; (candidate & (FILE_H | RANK_1 | pos)) == 0; candidate = shift_south_east(candidate) )
         ret |= shift_south_east(candidate);
 
     return ret;
@@ -75,9 +74,9 @@ const std::array<details::pext_bitboard, 64>  attack_table_bishop = [] ()
 {
     std::array<details::pext_bitboard, 64>  ret;
 
-    for (mailbox i = 0; i < ret.size(); i++)
+    for (std::size_t i = 0; i < ret.size(); i++)
     {
-        const bitboard blocker_squares { get_bishop_blocker_squares_from_mailbox_impl(i) };
+        const std::uint64_t blocker_squares { get_bishop_blocker_squares_from_mailbox_impl(i) };
         const auto combinations = get_1s_combinations(blocker_squares);
 
         // Get a span from the shared RAM that is the correct size for this.
@@ -94,17 +93,17 @@ const std::array<details::pext_bitboard, 64>  attack_table_bishop = [] ()
 
 }
 
-bitboard get_bishop_xrayed_squares_from_mailbox(mailbox x) noexcept
+std::uint64_t get_bishop_xrayed_squares_from_mailbox(std::size_t x) noexcept
 {
     return xray_table_bishop[x];
 }
 
-bitboard get_bishop_blocker_squares_from_mailbox(mailbox x) noexcept
+std::uint64_t get_bishop_blocker_squares_from_mailbox(std::size_t x) noexcept
 {
     return blocker_table_bishop[x];
 }
 
-bitboard get_bishop_attacked_squares_from_mailbox(mailbox x, bitboard pos) noexcept
+std::uint64_t get_bishop_attacked_squares_from_mailbox(std::size_t x, std::uint64_t pos) noexcept
 {
     return attack_table_bishop[x][pos];
 }

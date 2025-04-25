@@ -9,7 +9,7 @@ const std::span<std::uint64_t> attack_table_king = [] ()
 {
     auto ret = details::get_ram_slice(64);
 
-    for (mailbox i = 0; i < ret.size(); i++)
+    for (std::size_t i = 0; i < ret.size(); i++)
         ret[i] = get_king_attacked_squares_from_bitboard(1ULL << i);
 
     return ret;
@@ -17,9 +17,9 @@ const std::span<std::uint64_t> attack_table_king = [] ()
 
 }
 
-bitboard get_king_attacked_squares_from_bitboard(bitboard b) noexcept
+std::uint64_t get_king_attacked_squares_from_bitboard(std::uint64_t b) noexcept
 {
-    bitboard ret {};
+    std::uint64_t ret {};
 
     ret |= shift_south_west(b);
     ret |= shift_west(b);
@@ -33,7 +33,7 @@ bitboard get_king_attacked_squares_from_bitboard(bitboard b) noexcept
     return ret;
 }
 
-bitboard get_king_attacked_squares_from_mailbox(mailbox x) noexcept
+std::uint64_t get_king_attacked_squares_from_mailbox(std::size_t x) noexcept
 {
     return attack_table_king[x];
 }

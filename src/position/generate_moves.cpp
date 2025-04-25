@@ -1,107 +1,4 @@
-#include "position.hpp"
-#include "bitboard.hpp"
 
-#include "pieces/pieces.hpp"
-
-#include <array>
-
-namespace 
-{
-
-constexpr const char* ANSI_RESET = "\e[0m";
-
-constexpr const char* ANSI_BOLD_BLACK = "\e[1;30m";
-constexpr const char* ANSI_BOLD_WHITE = "\e[1;37m";
-
-constexpr const char* ANSI_BACKGROUND_BLACK = "\e[40m";
-constexpr const char* ANSI_BACKGROUND_WHITE = "\e[47m";
-
-enum piece
-{
-    white_pawn, white_knight, white_king, white_rook, white_queen, white_bishop,
-    black_pawn, black_knight, black_king, black_rook, black_queen, black_bishop,
-    empty
-};
-
-using mailbox_board = std::array<piece, 64>;
-
-std::ostream& operator<<(std::ostream& os, piece v)
-{
-    switch (v)
-    {
-        case white_pawn:   return os << ANSI_BOLD_WHITE << "\u2659 ";
-        case white_knight: return os << ANSI_BOLD_WHITE << "\u2658 ";
-        case white_king:   return os << ANSI_BOLD_WHITE << "\u2654 ";
-        case white_rook:   return os << ANSI_BOLD_WHITE << "\u2656 ";
-        case white_queen:  return os << ANSI_BOLD_WHITE << "\u265b ";
-        case white_bishop: return os << ANSI_BOLD_WHITE << "\u265d ";
-        case black_pawn:   return os << ANSI_BOLD_BLACK << "\u265f ";
-        case black_knight: return os << ANSI_BOLD_BLACK << "\u265e ";
-        case black_king:   return os << ANSI_BOLD_BLACK << "\u265a ";
-        case black_rook:   return os << ANSI_BOLD_BLACK << "\u265c ";
-        case black_queen:  return os << ANSI_BOLD_BLACK << "\u265b ";
-        case black_bishop: return os << ANSI_BOLD_BLACK << "\u265d ";
-        default: return os << "  ";
-    }
-}
-
-std::ostream& operator<<(std::ostream& os, const mailbox_board& v)
-{
-    os << ANSI_RESET;
-    for (std::size_t rank = 0; rank < 8; rank++)
-    {
-        for (std::size_t file = 0; file < 8; file++)
-            os << (WHITE_SQUARES & get_bitboard_mailbox_piece(rank*8+file) ? ANSI_BACKGROUND_BLACK : ANSI_BACKGROUND_WHITE) << v[(7-rank)*8+file];
-        os << ANSI_RESET << '\n';
-    }
-    return os;
-}
-
-mailbox_board get_mailbox_board_from_position(const position& v)
-{
-    mailbox_board ret;
-
-    for (std::size_t i = 0; i < ret.size(); i++)
-    {
-        const bitboard b { 1ULL << i };
-
-        if (b & v.white_pieces & v.pawns)
-            ret[i] = white_pawn;
-        else if (b & v.white_pieces & v.knights)
-            ret[i] = white_knight;
-        else if (b & v.white_pieces & v.kings)
-            ret[i] = white_king;
-        else if (b & v.white_pieces & v.queens)
-            ret[i] = white_queen;
-        else if (b & v.white_pieces & v.rooks)
-            ret[i] = white_rook;
-        else if (b & v.white_pieces & v.bishops)
-            ret[i] = white_bishop;
-        else if (b & v.black_pieces & v.pawns)
-            ret[i] = black_pawn;
-        else if (b & v.black_pieces & v.knights)
-            ret[i] = black_knight;
-        else if (b & v.black_pieces & v.kings)
-            ret[i] = black_king;
-        else if (b & v.black_pieces & v.queens)
-            ret[i] = black_queen;
-        else if (b & v.black_pieces & v.rooks)
-            ret[i] = black_rook;
-        else if (b & v.black_pieces & v.bishops)
-            ret[i] = black_bishop;
-        else
-            ret[i] = empty;
-    }
-
-    return ret;
-}
-
-}
-
-std::ostream& operator<<(std::ostream& os, const position& v)
-{
-    return os << get_mailbox_board_from_position(v);
-}
 
 void get_white_pawn_moves(position current_position, std::vector<position>& next_positions)
 {
@@ -172,6 +69,11 @@ void get_white_pawn_moves(position current_position, std::vector<position>& next
     }
 }
 
+void get_black_pawn_moves(position current_position, std::vector<position>& next_positions)
+{
+
+}
+
 void get_knight_moves(position current_position, std::vector<position>& next_positions)
 {
     position next_position = current_position;
@@ -202,14 +104,44 @@ void get_knight_moves(position current_position, std::vector<position>& next_pos
     }
 }
 
+void get_rook_moves(position current_position, std::vector<position>& next_positions)
+{
+    position next_position = current_position;
+    next_position.white_to_move = !current_position.white_to_move;
+    next_position.en_passent_square = 0;
+    
+    for (bitboard to_move_rooks { to_move_pieces(current_position) & current_position.rooks }; to_move_rooks; )
+    {
+        const bitboard rook_bitboard { ls1b_isolate(to_move_rooks) };
+        const mailbox rook_mailbox { bitscan_forward( to_move_rooks) };
+
+        for (bitboard moves { get_rook_attacked_squares_from_mailbox(rook_mailbox, current_position.white_pieces | current_position.black_pieces) & ~to_move_pieces(current_position) }; moves; )
+        {
+            const bitboard move { ls1b_isolate(moves) };
+            
+            {
+                next_position.rooks = (current_position.rooks ^ rook_bitboard) | move;
+                opponent_pieces(next_position) = (to_move_pieces(current_position) ^ rook_bitboard) | move;
+                to_move_pieces(next_position)  = opponent_pieces(current_position) & ~move;
+
+                next_positions.push_back(next_position);
+            }
+
+            moves ^= move;
+        }
+
+        to_move_rooks ^= rook_bitboard;
+    }
+}
+
 std::vector<position> get_next_positions(position pos)
 {
     std::vector<position> ret;
 
-    if (pos.white_to_move)
-        get_white_pawn_moves(pos, ret);
+    pos.white_to_move ? get_white_pawn_moves(pos, ret) : get_black_pawn_moves(pos, ret);
 
     get_knight_moves(pos, ret);
+    get_rook_moves(pos, ret);
 
     return ret;
 }

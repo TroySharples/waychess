@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bitboard.hpp"
+#include "utility/binary.hpp"
 
-bitboard get_rook_xrayed_squares_from_mailbox(mailbox x) noexcept;
-bitboard get_rook_blocker_squares_from_mailbox(mailbox x) noexcept;
-bitboard get_rook_attacked_squares_from_mailbox(mailbox x, bitboard pos) noexcept;
+std::uint64_t get_rook_xrayed_squares_from_mailbox(std::size_t x) noexcept;
+std::uint64_t get_rook_blocker_squares_from_mailbox(std::size_t x) noexcept;
+std::uint64_t get_rook_attacked_squares_from_mailbox(std::size_t x, std::uint64_t pos) noexcept;

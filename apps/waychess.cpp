@@ -1,11 +1,12 @@
 #include <cstdlib>
+#include <stdexcept>
 
-#include "bitboard.hpp"
 #include "pieces/king.hpp"
 #include "pieces/knight.hpp"
 #include "pieces/pieces.hpp"
 #include "pieces/rook.hpp"
-#include "position/position.hpp"
+#include "position/bitboard.hpp"
+#include "position/mailbox.hpp"
 
 int main()
 {
@@ -18,14 +19,14 @@ int main()
     std::cout << '\n';
 
     std::cout << "files\n";
-    for (mailbox i = 0; i < 8; i++)
+    for (std::size_t i = 0; i < 8; i++)
     {
         display(std::cout, get_bitboard_file(i));
         std::cout << '\n';
     }
     
     std::cout << "ranks\n";
-    for (mailbox i = 0; i < 8; i++)
+    for (std::size_t i = 0; i < 8; i++)
     {
         display(std::cout, get_bitboard_rank(i));
         std::cout << '\n';
@@ -51,7 +52,7 @@ int main()
     std::cout << '\n';
 
     std::cout << "knight-attacks\n";
-    for (mailbox i = 0; i < 64; i++)
+    for (std::size_t i = 0; i < 64; i++)
     {
         display(std::cout, get_knight_attacked_squares_from_mailbox(i));
         std::cout << '\n';
@@ -59,7 +60,7 @@ int main()
     std::cout << '\n';
 
     std::cout << "king-attacks\n";
-    for (mailbox i = 0; i < 64; i++)
+    for (std::size_t i = 0; i < 64; i++)
     {
         display(std::cout, get_king_attacked_squares_from_mailbox(i));
         std::cout << '\n';
@@ -67,7 +68,7 @@ int main()
     std::cout << '\n';
 
     std::cout << "rook-xrays\n";
-    for (mailbox i = 0; i < 64; i++)
+    for (std::size_t i = 0; i < 64; i++)
     {
         display(std::cout, get_rook_xrayed_squares_from_mailbox(i));
         std::cout << '\n';
@@ -84,7 +85,7 @@ int main()
     std::cout << '\n';
 
     std::cout << "rook-attacks\n";
-    for (mailbox i = 0; i < 64; i++)
+    for (std::size_t i = 0; i < 64; i++)
     {
         display(std::cout, get_rook_attacked_squares_from_mailbox(i, CENTRE_16_SQUARES));
         std::cout << '\n';
@@ -92,7 +93,7 @@ int main()
     std::cout << '\n';
 
     std::cout << "bishop-xrays\n";
-    for (mailbox i = 0; i < 64; i++)
+    for (std::size_t i = 0; i < 64; i++)
     {
         display(std::cout, get_bishop_xrayed_squares_from_mailbox(i));
         std::cout << '\n';
@@ -100,7 +101,7 @@ int main()
     std::cout << '\n';
 
     std::cout << "bishop-blockers\n";
-    for (mailbox i = 0; i < 64; i++)
+    for (std::size_t i = 0; i < 64; i++)
     {
         display(std::cout, get_bishop_blocker_squares_from_mailbox(i));
         std::cout << '\n';
@@ -108,7 +109,7 @@ int main()
     std::cout << '\n';
 
     std::cout << "bishop-attacks\n";
-    for (mailbox i = 0; i < 64; i++)
+    for (std::size_t i = 0; i < 64; i++)
     {
         display(std::cout, get_bishop_attacked_squares_from_mailbox(i, CENTRE_16_SQUARES));
         std::cout << '\n';
@@ -116,7 +117,7 @@ int main()
     std::cout << '\n';
 
     std::cout << "queen-xrays\n";
-    for (mailbox i = 0; i < 64; i++)
+    for (std::size_t i = 0; i < 64; i++)
     {
         display(std::cout, get_queen_xrayed_squares_from_mailbox(i));
         std::cout << '\n';
@@ -124,7 +125,7 @@ int main()
     std::cout << '\n';
 
     std::cout << "queen-blockers\n";
-    for (mailbox i = 0; i < 64; i++)
+    for (std::size_t i = 0; i < 64; i++)
     {
         display(std::cout, get_queen_blocker_squares_from_mailbox(i));
         std::cout << '\n';
@@ -132,20 +133,28 @@ int main()
     std::cout << '\n';
 
     std::cout << "queen-attacks\n";
-    for (mailbox i = 0; i < 64; i++)
+    for (std::size_t i = 0; i < 64; i++)
     {
         display(std::cout, get_queen_attacked_squares_from_mailbox(i, CENTRE_16_SQUARES));
         std::cout << '\n';
     }
     std::cout << '\n';
 
+    const std::string STARTING_FEN { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
     std::cout << "starting-position\n";
-    std::cout << STARTING_POSITION;
+    std::cout << bitboard(STARTING_FEN);
     std::cout << '\n';
 
-    std::cout << "First moves\n";
-    for (const auto& pos : get_next_positions(STARTING_POSITION))
-        std::cout << pos << '\n';
+    const std::string COMPLICATED_FEN { "r3k2r/pp1n2pp/2p2q2/b2p1n2/BP1Pp3/P1N2P2/2PB2PP/R2Q1RK1 w kq b3 0 13" };
+    std::cout << "complicated-position\n";
+    std::cout << bitboard(COMPLICATED_FEN);
+    if (const auto fen = bitboard(COMPLICATED_FEN).get_fen_string(); fen != COMPLICATED_FEN)
+        throw std::logic_error("Invalid fen serialisation - " + fen);
+    std::cout << '\n';
+
+    // std::cout << "First moves\n";
+    // for (const auto& pos : get_next_positions(STARTING_POSITION))
+    //     std::cout << pos << '\n';
 
     return EXIT_SUCCESS;
 }

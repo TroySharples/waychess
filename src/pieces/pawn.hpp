@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bitboard.hpp"
+#include "utility/binary.hpp"
 
 // There are a few properties of pawns that make then a pain to code:
 // * Their attack squares are not the same as their push squares.
@@ -17,38 +17,38 @@
 // ATTACKS
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-bitboard get_white_pawn_west_attacked_squares_from_bitboard(bitboard b) noexcept;
-bitboard get_white_pawn_east_attacked_squares_from_bitboard(bitboard b) noexcept;
-bitboard get_white_pawn_all_attacked_squares_from_bitboard(bitboard b) noexcept;
-bitboard get_white_pawn_single_attacked_squares_from_bitboard(bitboard b) noexcept;
-bitboard get_white_pawn_double_attacked_squares_from_bitboard(bitboard b) noexcept;
+std::uint64_t get_white_pawn_west_attacked_squares_from_bitboard(std::uint64_t b) noexcept;
+std::uint64_t get_white_pawn_east_attacked_squares_from_bitboard(std::uint64_t b) noexcept;
+std::uint64_t get_white_pawn_all_attacked_squares_from_bitboard(std::uint64_t b) noexcept;
+std::uint64_t get_white_pawn_single_attacked_squares_from_bitboard(std::uint64_t b) noexcept;
+std::uint64_t get_white_pawn_double_attacked_squares_from_bitboard(std::uint64_t b) noexcept;
 
-bitboard get_white_pawn_all_attacked_squares_from_mailbox(mailbox x) noexcept;
+std::uint64_t get_white_pawn_all_attacked_squares_from_mailbox(std::size_t x) noexcept;
 
-bitboard get_black_pawn_west_attacked_squares_from_bitboard(bitboard b) noexcept;
-bitboard get_black_pawn_east_attacked_squares_from_bitboard(bitboard b) noexcept;
-bitboard get_black_pawn_all_attacked_squares_from_bitboard(bitboard b) noexcept;
-bitboard get_black_pawn_single_attacked_squares_from_bitboard(bitboard b) noexcept;
-bitboard get_black_pawn_double_attacked_squares_from_bitboard(bitboard b) noexcept;
+std::uint64_t get_black_pawn_west_attacked_squares_from_bitboard(std::uint64_t b) noexcept;
+std::uint64_t get_black_pawn_east_attacked_squares_from_bitboard(std::uint64_t b) noexcept;
+std::uint64_t get_black_pawn_all_attacked_squares_from_bitboard(std::uint64_t b) noexcept;
+std::uint64_t get_black_pawn_single_attacked_squares_from_bitboard(std::uint64_t b) noexcept;
+std::uint64_t get_black_pawn_double_attacked_squares_from_bitboard(std::uint64_t b) noexcept;
 
-bitboard get_black_pawn_all_attacked_squares_from_mailbox(mailbox x) noexcept;
+std::uint64_t get_black_pawn_all_attacked_squares_from_mailbox(std::size_t x) noexcept;
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // PUSHES
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-bitboard get_white_pawn_single_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
-bitboard get_white_pawn_double_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
-bitboard get_white_pawn_all_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
+std::uint64_t get_white_pawn_single_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept;
+std::uint64_t get_white_pawn_double_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept;
+std::uint64_t get_white_pawn_all_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept;
 
-bitboard get_white_pawn_single_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;
-bitboard get_white_pawn_double_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;
-bitboard get_white_pawn_all_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;
+std::uint64_t get_white_pawn_single_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept;
+std::uint64_t get_white_pawn_double_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept;
+std::uint64_t get_white_pawn_all_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept;
 
-bitboard get_black_pawn_single_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
-bitboard get_black_pawn_double_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
-bitboard get_black_pawn_all_push_squares_from_bitboard(bitboard b, bitboard npos) noexcept;
+std::uint64_t get_black_pawn_single_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept;
+std::uint64_t get_black_pawn_double_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept;
+std::uint64_t get_black_pawn_all_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept;
 
-bitboard get_black_pawn_single_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;
-bitboard get_black_pawn_double_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;
-bitboard get_black_pawn_all_push_squares_from_mailbox(mailbox x, bitboard npos) noexcept;
+std::uint64_t get_black_pawn_single_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept;
+std::uint64_t get_black_pawn_double_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept;
+std::uint64_t get_black_pawn_all_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept;
