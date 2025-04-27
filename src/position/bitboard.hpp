@@ -41,8 +41,11 @@ struct bitboard
     // positions where black starts, this should be initialised to 1.
     std::uint16_t ply_counter;
 
-    // The number of ply since the last pawn-push or capture (used to )
+    // The number of ply since the last pawn-push or capture (used for 50 move drawing rule).
     std::uint16_t ply_50m;
+
+    bool is_black_to_play() const noexcept { return ply_counter & 1; }
+    bool is_white_to_play() const noexcept { return !is_black_to_play(); }
 
     // Print the corresponding fen string.
     std::string get_fen_string() const noexcept;
