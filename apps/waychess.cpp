@@ -7,6 +7,8 @@
 #include "pieces/rook.hpp"
 #include "position/bitboard.hpp"
 #include "position/mailbox.hpp"
+#include "position/generate_moves.hpp"
+#include "position/make_move.hpp"
 
 int main()
 {
@@ -140,21 +142,28 @@ int main()
     }
     std::cout << '\n';
 
-    const std::string STARTING_FEN { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
+    constexpr const char* STARTING_FEN { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
     std::cout << "starting-position\n";
     std::cout << bitboard(STARTING_FEN);
     std::cout << '\n';
 
-    const std::string COMPLICATED_FEN { "r3k2r/pp1n2pp/2p2q2/b2p1n2/BP1Pp3/P1N2P2/2PB2PP/R2Q1RK1 w kq b3 0 13" };
+    constexpr const char* COMPLICATED_FEN { "r3k2r/pp1n2pp/2p2q2/b2p1n2/BP1Pp3/P1N2P2/2PB2PP/R2Q1RK1 w kq b3 0 13" };
     std::cout << "complicated-position\n";
     std::cout << bitboard(COMPLICATED_FEN);
     if (const auto fen = bitboard(COMPLICATED_FEN).get_fen_string(); fen != COMPLICATED_FEN)
         throw std::logic_error("Invalid fen serialisation - " + fen);
     std::cout << '\n';
 
-    // std::cout << "First moves\n";
-    // for (const auto& pos : get_next_positions(STARTING_POSITION))
-    //     std::cout << pos << '\n';
+    std::cout << "First moves\n";
+    {
+        bitboard start(COMPLICATED_FEN);
+        for (auto move : generate_pseudo_legal_moves(start))
+        {
+            bitboard next_position = start;
+            make_move(next_position, move);
+            std::cout << next_position << '\n';
+        }
+    }
 
     return EXIT_SUCCESS;
 }
