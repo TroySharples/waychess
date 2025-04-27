@@ -13,7 +13,7 @@ std::string to_coordinates(std::size_t v)
 {
     std::string ret(2, ' ');
 
-    // Some hacky ASCII arithmatic.
+    // Some hacky ASCII arithmetic.
     ret[0] = 'a' + static_cast<char>((v & 070ULL) >> 3);
     ret[1] = '1' + static_cast<char>(v & 007ULL);
 
@@ -22,7 +22,7 @@ std::string to_coordinates(std::size_t v)
 
 std::size_t from_coordinates(std::string_view v)
 {
-    // Some hacky ASCII arithmatic.
+    // Some hacky ASCII arithmetic.
     return ((v[0] - 'a') << 3) + (v[1] - '1');
 }
 
@@ -92,7 +92,7 @@ mailbox::mailbox(std::string_view fen)
         {
             const char c = fen.at(pos++);
             
-            // If it's a number between 1 and 1 + j (more horrible ASCII arithmatic)
+            // If it's a number between 1 and 1 + j (more horrible ASCII arithmetic)
             // we insert that many empty squares.
             if ('1' <= c and c <= '1' + static_cast<char>(8-j))
                 j += (c - '0');
