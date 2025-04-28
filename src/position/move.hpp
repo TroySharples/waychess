@@ -37,33 +37,27 @@ namespace move_type
 {
 
 // Bitmasks.
-constexpr std::uint16_t DOUBLE_PAWN { 0x0010 };
-constexpr std::uint16_t CAPTURE     { 0x0020 };
-constexpr std::uint16_t CASTLE      { 0x0040 };
-constexpr std::uint16_t PROMOTION   { 0x0080 };
-
-// En-passent related moves.
-constexpr std::uint16_t DOUBLE_PAWN_PUSH   { DOUBLE_PAWN };
-constexpr std::uint16_t EN_PASSENT_CAPTURE { CAPTURE | DOUBLE_PAWN };
+constexpr std::uint16_t CAPTURE            { 0x0010 };
+constexpr std::uint16_t CASTLE             { 0x0020 };
+constexpr std::uint16_t PROMOTION          { 0x0040 };
+constexpr std::uint16_t SINGLE_PAWN_PUSH   { 0x0080 };
+constexpr std::uint16_t DOUBLE_PAWN_PUSH   { 0x0100 };
+constexpr std::uint16_t EN_PASSENT_CAPTURE { 0x0200 };
 
 // Castles.
-constexpr std::uint16_t CASTLE_KS { CASTLE | 0x0001 };
-constexpr std::uint16_t CASTLE_QS { CASTLE | 0x0002 };
+constexpr std::uint16_t CASTLE_KS { 0x0001 };
+constexpr std::uint16_t CASTLE_QS { 0x0002 };
 
 // Promotions.
-constexpr std::uint16_t PROMOTION_KNIGHT         { PROMOTION | 0x0001 };
-constexpr std::uint16_t PROMOTION_BISHOP         { PROMOTION | 0x0002 };
-constexpr std::uint16_t PROMOTION_ROOK           { PROMOTION | 0x0004 };
-constexpr std::uint16_t PROMOTION_QUEEN          { PROMOTION | 0x0008 };
-constexpr std::uint16_t PROMOTION_CAPTURE_KNIGHT { CAPTURE | PROMOTION_KNIGHT };
-constexpr std::uint16_t PROMOTION_CAPTURE_BISHOP { CAPTURE | PROMOTION_BISHOP };
-constexpr std::uint16_t PROMOTION_CAPTURE_ROOK   { CAPTURE | PROMOTION_ROOK };
-constexpr std::uint16_t PROMOTION_CAPTURE_QUEEN  { CAPTURE | PROMOTION_QUEEN };
+constexpr std::uint16_t PROMOTION_KNIGHT { 0x0001 };
+constexpr std::uint16_t PROMOTION_BISHOP { 0x0002 };
+constexpr std::uint16_t PROMOTION_ROOK   { 0x0004 };
+constexpr std::uint16_t PROMOTION_QUEEN  { 0x0008 };
 
 // Additional bitmask meta (rarely used).
-constexpr std::uint16_t KNOWN_CHECK     { 0x0100 };
-constexpr std::uint16_t KNOWN_NOT_CHECK { 0x0200 };
-constexpr std::uint16_t REPETITION      { 0x0400 };
+constexpr std::uint16_t KNOWN_CHECK     { 0x1000 };
+constexpr std::uint16_t KNOWN_NOT_CHECK { 0x2000 };
+constexpr std::uint16_t REPETITION      { 0x4000 };
 
 }
 
