@@ -1,0 +1,4 @@
+{
+    // We print our chess boards to the console, and the unicode pieces are hard to see unless we use a big font.
+    "terminal.integrated.fontSize": 30
+}
