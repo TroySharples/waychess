@@ -119,7 +119,7 @@ mailbox::mailbox(std::string_view fen)
         }
     }
 
-    // En passent target square - this one's easy.
+    // En-passent target square - this one's easy.
     if (const char c = fen.at(pos); c == '-')
     {
         pos++;
@@ -197,7 +197,7 @@ std::string mailbox::get_fen_string() const noexcept
     }
     ss << ' ';
 
-    // En passent target square.
+    // En-passent target square.
     if (en_passent_square.has_value())
         ss << to_coordinates_str(*en_passent_square);
     else

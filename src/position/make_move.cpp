@@ -22,7 +22,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     const std::uint64_t to_bb      { 1ULL << to_mb };
     const std::uint64_t from_to_bb { from_bb | to_bb };
 
-    // Increment the ply counter and reset the en passent square.
+    // Increment the ply counter and reset the en-passent square.
     bb.en_passent_mb = 0;
     bb.ply_counter++;
 
@@ -94,7 +94,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     {
         std::uint64_t& opponent_pieces { is_black_to_play ? bb.w_pieces : bb.b_pieces };
 
-        // En passent captures are special - the piece to be taken off the board isn't the target move square.
+        // En-passent captures are special - the piece to be taken off the board isn't the target move square.
         if (type & move::move_type::EN_PASSENT_CAPTURE)
         {
             const std::uint64_t capture_bb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
@@ -119,7 +119,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
 
         bb.ply_50m = 0;
     }
-    // If the move was a double pawn push we have to update the en passent target square for the next move.
+    // If the move was a double pawn push we have to update the en-passent target square for the next move.
     else if (type & move::move_type::DOUBLE_PAWN_PUSH)
     {
         bb.en_passent_mb = (is_black_to_play ? to_bb : from_bb) << 8;

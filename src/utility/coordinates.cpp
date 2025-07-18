@@ -1,18 +1,18 @@
 #include "coordinates.hpp"
 
-std::string to_coordinates_str(std::uint8_t v)
+std::string to_coordinates_str(std::uint8_t mb)
 {
     std::string ret(2, ' ');
 
     // Some hacky ASCII arithmetic.
-    ret[0] = 'a' + static_cast<char>(v & 07);
-    ret[1] = '1' + static_cast<char>(v >> 3);
+    ret[0] = 'a' + static_cast<char>(mb & 07);
+    ret[1] = '1' + static_cast<char>(mb >> 3);
 
     return ret;
 }
 
-std::uint8_t from_coordinates_str(std::string_view v)
+std::uint8_t from_coordinates_str(std::string_view str)
 {
     // Some hacky ASCII arithmetic.
-    return (v[0] - 'a') + ((v[1] - '1') << 3);
+    return (str[0] - 'a') + ((str[1] - '1') << 3);
 }

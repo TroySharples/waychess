@@ -59,7 +59,7 @@ int main()
 
         for (const auto& position : positions)
         {
-            std::cout << "#####################################################################\n" << std::endl;;
+            std::cout << "#####################################################################\n" << std::endl;
             std::cout << "fen - " << position << "\n" << std::endl;
             display_pseudo_legal_moves_from_position(bitboard(position));
         }
@@ -85,7 +85,7 @@ int main()
 
         for (const auto& position : positions)
         {
-            std::cout << "#####################################################################\n" << std::endl;;
+            std::cout << "#####################################################################\n" << std::endl;
             std::cout << "fen - " << position << "\n" << std::endl;
             display_strictly_legal_moves_from_position(bitboard(position));
         }

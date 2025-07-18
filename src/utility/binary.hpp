@@ -12,13 +12,13 @@ constexpr std::uint64_t get_bitboard_rank(std::uint8_t i) noexcept { return 0xff
 constexpr std::uint64_t get_bitboard_file(std::uint8_t i) noexcept { return 0x0101010101010101ULL << i; }
 
 // Get the bitboard represented by a single piece at this mailbox address.
-constexpr std::uint64_t get_bitboard_mailbox_piece(std::uint8_t x) noexcept {  return 0b1ULL << x; }
+constexpr std::uint64_t get_bitboard_mailbox_piece(std::uint8_t mb) noexcept {  return 0b1ULL << mb; }
 
 // Get the bitboard represented by the rank of the square at this mailbox address.
-constexpr std::uint64_t get_bitboard_mailbox_rank(std::uint8_t x) noexcept { return 0xffULL << (x & ~0x7ULL); }
+constexpr std::uint64_t get_bitboard_mailbox_rank(std::uint8_t mb) noexcept { return 0xffULL << (mb & ~0x7ULL); }
 
 // Get the bitboard represented by the file of the square at this mailbox address.
-constexpr std::uint64_t get_bitboard_mailbox_file(std::uint8_t x) noexcept { return std::rotl(0x0101010101010101ULL, x); }
+constexpr std::uint64_t get_bitboard_mailbox_file(std::uint8_t mb) noexcept { return std::rotl(0x0101010101010101ULL, mb); }
 
 constexpr std::uint64_t WHITE_SQUARES { 0x55aa55aa55aa55aa };
 constexpr std::uint64_t BLACK_SQUARES { ~WHITE_SQUARES };
