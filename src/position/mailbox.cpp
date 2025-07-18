@@ -50,7 +50,7 @@ mailbox::mailbox(const bitboard& bb)
     }
 
     if (bb.en_passent_mb)
-        en_passent_square.emplace(bitscan_forward(bb.en_passent_mb));
+        en_passent_square.emplace(std::countr_zero(bb.en_passent_mb));
 
     castling_w_ks = bb.castling & bitboard::CASTLING_W_KS;
     castling_w_qs = bb.castling & bitboard::CASTLING_W_QS;
