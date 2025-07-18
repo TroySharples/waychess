@@ -8,3 +8,5 @@ Diagnostics:
                 readability-identifier-length, readability-function-cognitive-complexity, readability-implicit-bool-conversion ]
     CheckOptions:
       cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor: true
+InlayHints:
+  ParameterNames: false
