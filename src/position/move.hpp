@@ -9,26 +9,26 @@
 //     12 - 15 : piece-idx
 //     16 - 31 : move-type
 
-constexpr std::uint32_t serialise_move(std::uint8_t from_square, std::uint8_t to_square, piece_idx p, std::uint16_t move_type = 0)
+namespace move
 {
-    return from_square | (to_square << 6) | (static_cast<std::uint32_t>(p) << 12) | (move_type << 16);
+
+constexpr std::uint32_t serialise_from_square(std::uint8_t from_square) noexcept { return from_square; } 
+constexpr std::uint32_t serialise_to_square(std::uint8_t to_square)     noexcept { return to_square << 6; }
+constexpr std::uint32_t serialise_piece_idx(piece_idx p)                noexcept { return static_cast<std::uint32_t>(p) << 12; }
+constexpr std::uint32_t serialise_move_type(std::uint16_t move_type)    noexcept { return move_type << 16; }
+
+constexpr std::uint32_t serialise(std::uint8_t from_square, std::uint8_t to_square, piece_idx p, std::uint16_t move_type = 0)
+{
+    return serialise_from_square(from_square)
+         | serialise_to_square(to_square)
+         | serialise_piece_idx(p)
+         | serialise_move_type(move_type);
 }
 
-constexpr std::uint8_t  get_from_square(std::uint32_t move) noexcept { return move & 0x3f; }
-constexpr std::uint8_t  get_to_square(std::uint32_t move)   noexcept { return move >> 6 & 0x3f; }
-constexpr piece_idx     get_piece_idx(std::uint32_t move)   noexcept { return static_cast<piece_idx>(move >> 12 & 0x0f); }
-constexpr std::uint16_t get_move_type(std::uint32_t move)   noexcept { return move >> 16; }
-
-// The move must have zero-initialised fields for these set functions to work. Otherwise, you need to call clear first.
-constexpr std::uint32_t set_from_square(std::uint32_t move, std::uint8_t from_square) noexcept { return move | from_square; }
-constexpr std::uint32_t set_to_square(std::uint32_t move,   std::uint8_t to_square)   noexcept { return move | to_square << 6; }
-constexpr std::uint32_t set_piece_idx(std::uint32_t move,   piece_idx p)              noexcept { return move | static_cast<std::uint32_t>(p) << 12; }
-constexpr std::uint32_t set_move_type(std::uint32_t move,   std::uint16_t move_type)  noexcept { return move | move_type << 16; }
-
-constexpr std::uint32_t clear_from_square(std::uint32_t move) noexcept { return move & ~0x3f; }
-constexpr std::uint32_t clear_to_square(std::uint32_t move)   noexcept { return move & ~(0x3f << 6); }
-constexpr std::uint32_t clear_piece_idx(std::uint32_t move)   noexcept { return move & ~(0x0f << 12); }
-constexpr std::uint32_t clear_move_type(std::uint32_t move)   noexcept { return move & ~(0xff00 << 16); }
+constexpr std::uint8_t  deserialise_from_square(std::uint32_t move) noexcept { return move & 0x3f; }
+constexpr std::uint8_t  deserialise_to_square(std::uint32_t move)   noexcept { return move >> 6 & 0x3f; }
+constexpr piece_idx     deserialise_piece_idx(std::uint32_t move)   noexcept { return static_cast<piece_idx>(move >> 12 & 0x0f); }
+constexpr std::uint16_t deserialise_type(std::uint32_t move)        noexcept { return move >> 16 & 0xff; } 
 
 // We use a bitmasks of various (not necessarily orthagonal) move information to form the move type. The only
 // ones technically needed to specify all possible moves from standard chess positions are the pawn-promotion
