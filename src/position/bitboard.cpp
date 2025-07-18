@@ -1,9 +1,6 @@
 #include "bitboard.hpp"
 
 #include "mailbox.hpp"
-#include "pieces/pieces.hpp"
-#include <string_view>
-#include <type_traits>
 
 bitboard::bitboard(const mailbox& mb)
 {

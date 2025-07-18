@@ -1,11 +1,6 @@
 #include "generate_moves.hpp"
 
 #include "move.hpp"
-#include "pieces/pawn.hpp"
-#include "pieces/pieces.hpp"
-#include "position/bitboard.hpp"
-#include "utility/binary.hpp"
-#include <bit>
 
 namespace
 {

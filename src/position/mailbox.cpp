@@ -1,11 +1,9 @@
 #include "mailbox.hpp"
 
 #include "bitboard.hpp"
-#include "pieces/pieces.hpp"
 #include "utility/coordinates.hpp"
 
 #include <sstream>
-#include <stdexcept>
 
 namespace
 {

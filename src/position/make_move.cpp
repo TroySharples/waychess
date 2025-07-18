@@ -1,20 +1,19 @@
 #include "make_move.hpp"
 
 #include "move.hpp"
-#include "pieces/pieces.hpp"
 
 void make_move(bitboard& bb, std::uint32_t move)
 {
-    const bool is_black_to_play { bb.is_black_to_play() };
-    std::uint64_t& to_move_pieces  { is_black_to_play ? bb.b_pieces : bb.w_pieces };
+    const bool is_black_to_play   { bb.is_black_to_play() };
+    std::uint64_t& to_move_pieces { is_black_to_play ? bb.b_pieces : bb.w_pieces };
 
     const std::uint8_t from_mb { move::deserialise_from_mb(move) };
-    const std::uint8_t to_mb { move::deserialise_to_mb(move) };
-    const piece_idx piece { move::deserialise_piece_idx(move) };
-    const std::uint16_t type { move::deserialise_type(move) };
+    const std::uint8_t to_mb   { move::deserialise_to_mb(move) };
+    const piece_idx piece      { move::deserialise_piece_idx(move) };
+    const std::uint16_t type   { move::deserialise_type(move) };
 
-    const std::uint64_t from_bb { 1ULL << from_mb };
-    const std::uint64_t to_bb   { 1ULL << to_mb };
+    const std::uint64_t from_bb    { 1ULL << from_mb };
+    const std::uint64_t to_bb      { 1ULL << to_mb };
     const std::uint64_t from_to_bb { from_bb | to_bb };
 
     // Increment the ply counter and reset the en passent square.
