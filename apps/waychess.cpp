@@ -41,26 +41,54 @@ static void display_strictly_legal_moves_from_position(const bitboard& start)
 
 int main()
 {
-    std::cout << "move-generation-testing:\n\n";
-
-    std::vector<std::string> positions {
-        // Starting position.
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        // Complicated middlegame.
-        "r3k2r/pp1n2pp/2p2q2/b2p1n2/BP1Pp3/P1N2P2/2PB2PP/R2Q1RK1 w kq - 0 13",
-        // En-passent.
-        "rnbqkbnr/1pppp1pp/p7/4Pp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 1",
-        // Promotion.
-        "1r2k3/2P5/8/8/8/8/8/5K2 w - - 0 1",
-        // Castling.
-        "rnbqkbnr/pppppppp/8/8/8/8/P6P/R3K2R w KQkq - 0 1"
-    };
-
-    for (const auto& position : positions)
     {
-        std::cout << "#####################################################################\n" << std::endl;;
-        std::cout << "fen - " << position << "\n" << std::endl;
-        display_pseudo_legal_moves_from_position(bitboard(position));
+        std::cout << "pseudo-legal move-generation:\n\n";
+
+        std::vector<std::string> positions {
+            // Starting position.
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            // Complicated middlegame.
+            "r3k2r/pp1n2pp/2p2q2/b2p1n2/BP1Pp3/P1N2P2/2PB2PP/R2Q1RK1 w kq - 0 13",
+            // En-passent.
+            "rnbqkbnr/1pppp1pp/p7/4Pp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 1",
+            // Promotion.
+            "1r2k3/2P5/8/8/8/8/8/5K2 w - - 0 1",
+            // Castling.
+            "rnbqkbnr/pppppppp/8/8/8/8/P6P/R3K2R w KQkq - 0 1"
+        };
+
+        for (const auto& position : positions)
+        {
+            std::cout << "#####################################################################\n" << std::endl;;
+            std::cout << "fen - " << position << "\n" << std::endl;
+            display_pseudo_legal_moves_from_position(bitboard(position));
+        }
+    }
+
+    {
+        std::cout << "strictly-legal move-generation:\n\n";
+
+        std::vector<std::string> positions {
+            // Starting position.
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            // Checks everywhere.
+            "8/2K5/R7/4k3/6B1/2N5/8/8 b - - 0 1",
+            // Castling from check.
+            "r3k2r/p6p/8/3K3B/8/8/8/8 b kq - 0 1",
+            // Castling into check.
+            "r3k2r/p6p/8/3K4/6B1/8/8/8 b kq - 0 1",
+            // Castling through check king-side.
+            "r3k2r/p6p/8/2BK4/8/8/8/8 b kq - 0 1",
+            // Castling through check queen-side.
+            "r3k2r/p6p/5B2/3K4/8/8/8/8 b kq - 0 1"
+        };
+
+        for (const auto& position : positions)
+        {
+            std::cout << "#####################################################################\n" << std::endl;;
+            std::cout << "fen - " << position << "\n" << std::endl;
+            display_strictly_legal_moves_from_position(bitboard(position));
+        }
     }
 
     return EXIT_SUCCESS;
