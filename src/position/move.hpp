@@ -61,6 +61,7 @@ constexpr std::uint16_t REPETITION      { 0x4000 };
 
 }
 
-// We have an independent move-type test on the serialised move in the hope that the compiler
-// might be able to make some optimisation.
-constexpr bool is_move_type(std::uint32_t move, std::uint16_t move_type_mask) noexcept { return move & move_type_mask << 16; }
+// A variant of algebraic long notation that is used by UCI.
+std::string to_algebraic_long(std::uint32_t move);
+
+}

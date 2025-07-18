@@ -32,3 +32,6 @@ std::ostream& operator<<(std::ostream& os, piece_idx v);
 
 char to_fen_char(piece_idx idx);
 piece_idx from_fen_char(char c);
+
+// A to-function is only possible here, as the algebraic notation does not distinguish colours.
+char to_algebraic_char(piece_idx idx);

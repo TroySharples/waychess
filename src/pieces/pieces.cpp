@@ -62,3 +62,23 @@ piece_idx from_fen_char(char c)
         default: throw std::invalid_argument("Unknown fen char " + std::to_string(c));
     }
 }
+
+char to_algebraic_char(piece_idx idx)
+{
+    switch (idx)
+    {
+        case w_pawn:
+        case b_pawn:   throw std::invalid_argument("Pawns are not represented by a char in algebraic notation");
+        case w_knight:
+        case b_knight: return 'N';
+        case w_king:
+        case b_king:   return 'K';
+        case w_rook:
+        case b_rook:   return 'R';
+        case w_queen:
+        case b_queen:  return 'Q';
+        case w_bishop:
+        case b_bishop: return 'B';
+        default: throw std::invalid_argument("Cannot convert piece-idx " + std::to_string(static_cast<int>(idx)) + " to algebraic char");
+    }
+}
