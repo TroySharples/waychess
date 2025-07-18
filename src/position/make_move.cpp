@@ -176,18 +176,18 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     switch (piece)
     {
         case piece_idx::w_king:
-            bb.castling &= 0b1100;
+            bb.castling &= ~(bitboard::CASTLING_W_KS | bitboard::CASTLING_W_QS);
             break;
         case piece_idx::b_king:
-            bb.castling &= 0b0011;
+            bb.castling &= (bitboard::CASTLING_B_KS | bitboard::CASTLING_B_QS);
             break;
         case piece_idx::w_rook:
-            if (!(bb.boards[w_rook] & FILE_A & RANK_1)) bb.castling &= 0b1101;
-            if (!(bb.boards[w_rook] & FILE_H & RANK_1)) bb.castling &= 0b1110;
+            if (!(bb.boards[w_rook] & FILE_A & RANK_1)) bb.castling &= bitboard::CASTLING_W_QS;
+            if (!(bb.boards[w_rook] & FILE_H & RANK_1)) bb.castling &= bitboard::CASTLING_W_KS;
             break;
         case piece_idx::b_rook:
-            if (!(bb.boards[w_rook] & FILE_A & RANK_8)) bb.castling &= 0b0111;
-            if (!(bb.boards[w_rook] & FILE_H & RANK_8)) bb.castling &= 0b1011;
+            if (!(bb.boards[w_rook] & FILE_A & RANK_8)) bb.castling &= bitboard::CASTLING_B_QS;
+            if (!(bb.boards[w_rook] & FILE_H & RANK_8)) bb.castling &= bitboard::CASTLING_B_KS;
             break;
         default:
             NULL;
