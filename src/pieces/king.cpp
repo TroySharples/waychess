@@ -17,23 +17,23 @@ const std::span<std::uint64_t> attack_table_king = [] ()
 
 }
 
-std::uint64_t get_king_attacked_squares_from_bitboard(std::uint64_t b) noexcept
+std::uint64_t get_king_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
     std::uint64_t ret {};
 
-    ret |= shift_south_west(b);
-    ret |= shift_west(b);
-    ret |= shift_north_west(b);
-    ret |= shift_north(b);
-    ret |= shift_north_east(b);
-    ret |= shift_east(b);
-    ret |= shift_south_east(b);
-    ret |= shift_south(b);
+    ret |= shift_south_west(bb);
+    ret |= shift_west(bb);
+    ret |= shift_north_west(bb);
+    ret |= shift_north(bb);
+    ret |= shift_north_east(bb);
+    ret |= shift_east(bb);
+    ret |= shift_south_east(bb);
+    ret |= shift_south(bb);
 
     return ret;
 }
 
-std::uint64_t get_king_attacked_squares_from_mailbox(std::size_t x) noexcept
+std::uint64_t get_king_attacked_squares_from_mailbox(std::uint8_t mb) noexcept
 {
-    return attack_table_king[x];
+    return attack_table_king[mb];
 }

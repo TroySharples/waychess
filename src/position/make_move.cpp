@@ -8,8 +8,8 @@ void make_move(bitboard& bb, std::uint32_t move)
     const bool is_black_to_play { bb.is_black_to_play() };
     std::uint64_t& to_move_pieces  { is_black_to_play ? bb.b_pieces : bb.w_pieces };
 
-    const std::uint8_t from_mb { move::deserialise_from_square(move) };
-    const std::uint8_t to_mb { move::deserialise_to_square(move) };
+    const std::uint8_t from_mb { move::deserialise_from_mb(move) };
+    const std::uint8_t to_mb { move::deserialise_to_mb(move) };
     const piece_idx piece { move::deserialise_piece_idx(move) };
     const std::uint16_t type { move::deserialise_type(move) };
 
@@ -18,7 +18,7 @@ void make_move(bitboard& bb, std::uint32_t move)
     const std::uint64_t from_to_bb { from_bb | to_bb };
 
     // Increment the ply counter and reset the en passent square.
-    bb.en_passent_square = 0;
+    bb.en_passent_mb = 0;
     bb.ply_counter++;
 
     // Handle mechanically moving the side-to-plays piece. We have to be careful about the special case of
@@ -74,7 +74,7 @@ void make_move(bitboard& bb, std::uint32_t move)
     // If the move was a double pawn push we have to update the en passent target square for the next move.
     else if (type & move::move_type::DOUBLE_PAWN_PUSH)
     {
-        bb.en_passent_square = (is_black_to_play ? to_bb : from_bb) << 8;
+        bb.en_passent_mb = (is_black_to_play ? to_bb : from_bb) << 8;
 
         bb.ply_50m = 0;
     }

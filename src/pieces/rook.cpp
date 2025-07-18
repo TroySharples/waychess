@@ -8,9 +8,9 @@
 namespace
 {
 
-std::uint64_t get_rook_xrayed_squares_from_mailbox_impl(std::size_t x) noexcept
+std::uint64_t get_rook_xrayed_squares_from_mailbox_impl(std::uint8_t mb) noexcept
 {
-    return (get_bitboard_mailbox_rank(x) | get_bitboard_mailbox_file(x)) & ~get_bitboard_mailbox_piece(x);
+    return (get_bitboard_mailbox_rank(mb) | get_bitboard_mailbox_file(mb)) & ~get_bitboard_mailbox_piece(mb);
 }
 
 const std::span<std::uint64_t> xray_table_rook = [] ()
@@ -23,9 +23,9 @@ const std::span<std::uint64_t> xray_table_rook = [] ()
     return ret;
 } ();
 
-std::uint64_t get_rook_blocker_squares_from_mailbox_impl(std::size_t x) noexcept
+std::uint64_t get_rook_blocker_squares_from_mailbox_impl(std::uint8_t mb) noexcept
 {
-    return ((get_bitboard_mailbox_rank(x) & ~FILE_A & ~FILE_H) | (get_bitboard_mailbox_file(x) & ~RANK_1 & ~RANK_8)) & ~get_bitboard_mailbox_piece(x);
+    return ((get_bitboard_mailbox_rank(mb) & ~FILE_A & ~FILE_H) | (get_bitboard_mailbox_file(mb) & ~RANK_1 & ~RANK_8)) & ~get_bitboard_mailbox_piece(mb);
 }
 
 const std::span<std::uint64_t> blocker_table_rook = [] ()
@@ -38,11 +38,11 @@ const std::span<std::uint64_t> blocker_table_rook = [] ()
     return ret;
 } ();
 
-std::uint64_t get_rook_attacked_squares_from_mailbox_impl(std::size_t x, std::uint64_t pos)
+std::uint64_t get_rook_attacked_squares_from_mailbox_impl(std::uint8_t mb, std::uint64_t pos)
 {
     std::uint64_t ret {};
 
-    const std::uint64_t rook { get_bitboard_mailbox_piece(x) };
+    const std::uint64_t rook { get_bitboard_mailbox_piece(mb) };
     
     // Mask off the position of the rook itself in the bitboard - the presence of this screws with the blocking-piece calculation.
     pos &= ~rook;
@@ -82,17 +82,17 @@ const std::array<details::pext_bitboard, 64>  attack_table_rook = [] ()
 
 }
 
-std::uint64_t get_rook_xrayed_squares_from_mailbox(std::size_t x) noexcept
+std::uint64_t get_rook_xrayed_squares_from_mailbox(std::uint8_t mb) noexcept
 {
-    return xray_table_rook[x];
+    return xray_table_rook[mb];
 }
 
-std::uint64_t get_rook_blocker_squares_from_mailbox(std::size_t x) noexcept
+std::uint64_t get_rook_blocker_squares_from_mailbox(std::uint8_t mb) noexcept
 {
-    return blocker_table_rook[x];
+    return blocker_table_rook[mb];
 }
 
-std::uint64_t get_rook_attacked_squares_from_mailbox(std::size_t x, std::uint64_t pos) noexcept
+std::uint64_t get_rook_attacked_squares_from_mailbox(std::uint8_t mb, std::uint64_t pos) noexcept
 {
-    return attack_table_rook[x][pos];
+    return attack_table_rook[mb][pos];
 }

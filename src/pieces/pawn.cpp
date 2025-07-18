@@ -27,122 +27,122 @@ const std::span<std::uint64_t> attack_table_black_pawn = [] ()
 
 }
 
-std::uint64_t get_white_pawn_west_attacked_squares_from_bitboard(std::uint64_t b) noexcept
+std::uint64_t get_white_pawn_west_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
-    return shift_north_west(b);
+    return shift_north_west(bb);
 }
 
-std::uint64_t get_white_pawn_east_attacked_squares_from_bitboard(std::uint64_t b) noexcept
+std::uint64_t get_white_pawn_east_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
-    return shift_north_east(b);
+    return shift_north_east(bb);
 }
 
-std::uint64_t get_white_pawn_all_attacked_squares_from_bitboard(std::uint64_t b) noexcept
+std::uint64_t get_white_pawn_all_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
-    return get_white_pawn_west_attacked_squares_from_bitboard(b) | get_white_pawn_east_attacked_squares_from_bitboard(b);
+    return get_white_pawn_west_attacked_squares_from_bitboard(bb) | get_white_pawn_east_attacked_squares_from_bitboard(bb);
 }
 
-std::uint64_t get_white_pawn_single_attacked_squares_from_bitboard(std::uint64_t b) noexcept
+std::uint64_t get_white_pawn_single_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
-    return get_white_pawn_west_attacked_squares_from_bitboard(b) ^ get_white_pawn_east_attacked_squares_from_bitboard(b);
+    return get_white_pawn_west_attacked_squares_from_bitboard(bb) ^ get_white_pawn_east_attacked_squares_from_bitboard(bb);
 }
 
-std::uint64_t get_white_pawn_double_attacked_squares_from_bitboard(std::uint64_t b) noexcept
+std::uint64_t get_white_pawn_double_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
-    return get_white_pawn_west_attacked_squares_from_bitboard(b) & get_white_pawn_east_attacked_squares_from_bitboard(b);
+    return get_white_pawn_west_attacked_squares_from_bitboard(bb) & get_white_pawn_east_attacked_squares_from_bitboard(bb);
 }
 
-std::uint64_t get_white_pawn_all_attacked_squares_from_mailbox(std::size_t x) noexcept
+std::uint64_t get_white_pawn_all_attacked_squares_from_mailbox(std::uint8_t mb) noexcept
 {
-    return attack_table_white_pawn[x];
+    return attack_table_white_pawn[mb];
 }
 
-std::uint64_t get_black_pawn_west_attacked_squares_from_bitboard(std::uint64_t b) noexcept
+std::uint64_t get_black_pawn_west_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
-    return shift_north_west(b);
+    return shift_north_west(bb);
 }
 
-std::uint64_t get_black_pawn_east_attacked_squares_from_bitboard(std::uint64_t b) noexcept
+std::uint64_t get_black_pawn_east_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
-    return shift_north_east(b);
+    return shift_north_east(bb);
 }
 
-std::uint64_t get_black_pawn_all_attacked_squares_from_bitboard(std::uint64_t b) noexcept
+std::uint64_t get_black_pawn_all_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
-    return get_black_pawn_west_attacked_squares_from_bitboard(b) | get_black_pawn_east_attacked_squares_from_bitboard(b);
+    return get_black_pawn_west_attacked_squares_from_bitboard(bb) | get_black_pawn_east_attacked_squares_from_bitboard(bb);
 }
 
-std::uint64_t get_black_pawn_single_attacked_squares_from_bitboard(std::uint64_t b) noexcept
+std::uint64_t get_black_pawn_single_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
-    return get_black_pawn_west_attacked_squares_from_bitboard(b) ^ get_black_pawn_east_attacked_squares_from_bitboard(b);
+    return get_black_pawn_west_attacked_squares_from_bitboard(bb) ^ get_black_pawn_east_attacked_squares_from_bitboard(bb);
 }
 
-std::uint64_t get_black_pawn_double_attacked_squares_from_bitboard(std::uint64_t b) noexcept
+std::uint64_t get_black_pawn_double_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
-    return get_black_pawn_west_attacked_squares_from_bitboard(b) & get_black_pawn_east_attacked_squares_from_bitboard(b);
+    return get_black_pawn_west_attacked_squares_from_bitboard(bb) & get_black_pawn_east_attacked_squares_from_bitboard(bb);
 }
 
-std::uint64_t get_black_pawn_all_attacked_squares_from_mailbox(std::size_t x) noexcept
+std::uint64_t get_black_pawn_all_attacked_squares_from_mailbox(std::uint8_t mb) noexcept
 {
-    return attack_table_black_pawn[x];
+    return attack_table_black_pawn[mb];
 }
 
-std::uint64_t get_white_pawn_single_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept
+std::uint64_t get_white_pawn_single_push_squares_from_bitboard(std::uint64_t bb, std::uint64_t npos) noexcept
 {
-    return (b << 8) & npos;
+    return (bb << 8) & npos;
 }
 
-std::uint64_t get_white_pawn_double_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept
+std::uint64_t get_white_pawn_double_push_squares_from_bitboard(std::uint64_t bb, std::uint64_t npos) noexcept
 {
-    return (get_white_pawn_single_push_squares_from_bitboard(b, npos) << 8) & npos & RANK_4;
+    return (get_white_pawn_single_push_squares_from_bitboard(bb, npos) << 8) & npos & RANK_4;
 }
 
-std::uint64_t get_white_pawn_all_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept
+std::uint64_t get_white_pawn_all_push_squares_from_bitboard(std::uint64_t bb, std::uint64_t npos) noexcept
 {
-    return get_white_pawn_single_push_squares_from_bitboard(b, npos) | get_white_pawn_double_push_squares_from_bitboard(b, npos);
+    return get_white_pawn_single_push_squares_from_bitboard(bb, npos) | get_white_pawn_double_push_squares_from_bitboard(bb, npos);
 }
 
-std::uint64_t get_white_pawn_single_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept
+std::uint64_t get_white_pawn_single_push_squares_from_mailbox(std::uint8_t mb, std::uint64_t npos) noexcept
 {
-    return get_white_pawn_single_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
+    return get_white_pawn_single_push_squares_from_bitboard(get_bitboard_mailbox_piece(mb), npos);
 }
 
-std::uint64_t get_white_pawn_double_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept
+std::uint64_t get_white_pawn_double_push_squares_from_mailbox(std::uint8_t mb, std::uint64_t npos) noexcept
 {
-    return get_white_pawn_double_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
+    return get_white_pawn_double_push_squares_from_bitboard(get_bitboard_mailbox_piece(mb), npos);
 }
 
-std::uint64_t get_white_pawn_all_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept
+std::uint64_t get_white_pawn_all_push_squares_from_mailbox(std::uint8_t mb, std::uint64_t npos) noexcept
 {
-    return get_white_pawn_all_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
+    return get_white_pawn_all_push_squares_from_bitboard(get_bitboard_mailbox_piece(mb), npos);
 }
 
-std::uint64_t get_black_pawn_single_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept
+std::uint64_t get_black_pawn_single_push_squares_from_bitboard(std::uint64_t bb, std::uint64_t npos) noexcept
 {
-    return (b << 8) & npos;
+    return (bb << 8) & npos;
 }
 
-std::uint64_t get_black_pawn_double_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept
+std::uint64_t get_black_pawn_double_push_squares_from_bitboard(std::uint64_t bb, std::uint64_t npos) noexcept
 {
-    return (get_black_pawn_single_push_squares_from_bitboard(b, npos) << 8) & npos & RANK_4;
+    return (get_black_pawn_single_push_squares_from_bitboard(bb, npos) << 8) & npos & RANK_4;
 }
 
-std::uint64_t get_black_pawn_all_push_squares_from_bitboard(std::uint64_t b, std::uint64_t npos) noexcept
+std::uint64_t get_black_pawn_all_push_squares_from_bitboard(std::uint64_t bb, std::uint64_t npos) noexcept
 {
-    return get_black_pawn_single_push_squares_from_bitboard(b, npos) | get_black_pawn_double_push_squares_from_bitboard(b, npos);
+    return get_black_pawn_single_push_squares_from_bitboard(bb, npos) | get_black_pawn_double_push_squares_from_bitboard(bb, npos);
 }
 
-std::uint64_t get_black_pawn_single_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept
+std::uint64_t get_black_pawn_single_push_squares_from_mailbox(std::uint8_t mb, std::uint64_t npos) noexcept
 {
-    return get_black_pawn_single_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
+    return get_black_pawn_single_push_squares_from_bitboard(get_bitboard_mailbox_piece(mb), npos);
 }
 
-std::uint64_t get_black_pawn_double_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept
+std::uint64_t get_black_pawn_double_push_squares_from_mailbox(std::uint8_t mb, std::uint64_t npos) noexcept
 {
-    return get_black_pawn_double_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
+    return get_black_pawn_double_push_squares_from_bitboard(get_bitboard_mailbox_piece(mb), npos);
 }
 
-std::uint64_t get_black_pawn_all_push_squares_from_mailbox(std::size_t x, std::uint64_t npos) noexcept
+std::uint64_t get_black_pawn_all_push_squares_from_mailbox(std::uint8_t mb, std::uint64_t npos) noexcept
 {
-    return get_black_pawn_all_push_squares_from_bitboard(get_bitboard_mailbox_piece(x), npos);
+    return get_black_pawn_all_push_squares_from_bitboard(get_bitboard_mailbox_piece(mb), npos);
 }

@@ -6,19 +6,19 @@
 #include <vector>
 
 // We index the ranks starting at 0 (i.e. the white first rank has index 0).
-constexpr std::uint64_t get_bitboard_rank(std::size_t i) noexcept { return 0xffULL << 8*i; }
+constexpr std::uint64_t get_bitboard_rank(std::uint8_t i) noexcept { return 0xffULL << 8*i; }
 
 // We index the files starting at 0 (i.e. the a file has index 0).
-constexpr std::uint64_t get_bitboard_file(std::size_t i) noexcept { return 0x0101010101010101ULL << i; }
+constexpr std::uint64_t get_bitboard_file(std::uint8_t i) noexcept { return 0x0101010101010101ULL << i; }
 
 // Get the bitboard represented by a single piece at this mailbox address.
-constexpr std::uint64_t get_bitboard_mailbox_piece(std::size_t x) noexcept {  return 0b1ULL << x; }
+constexpr std::uint64_t get_bitboard_mailbox_piece(std::uint8_t x) noexcept {  return 0b1ULL << x; }
 
 // Get the bitboard represented by the rank of the square at this mailbox address.
-constexpr std::uint64_t get_bitboard_mailbox_rank(std::size_t x) noexcept { return 0xffULL << (x & ~0x7ULL); }
+constexpr std::uint64_t get_bitboard_mailbox_rank(std::uint8_t x) noexcept { return 0xffULL << (x & ~0x7ULL); }
 
 // Get the bitboard represented by the file of the square at this mailbox address.
-constexpr std::uint64_t get_bitboard_mailbox_file(std::size_t x) noexcept { return std::rotl(0x0101010101010101ULL, x); }
+constexpr std::uint64_t get_bitboard_mailbox_file(std::uint8_t x) noexcept { return std::rotl(0x0101010101010101ULL, x); }
 
 constexpr std::uint64_t WHITE_SQUARES { 0x55aa55aa55aa55aa };
 constexpr std::uint64_t BLACK_SQUARES { ~WHITE_SQUARES };
@@ -60,9 +60,9 @@ std::ostream& display(std::ostream& os, std::uint64_t v);
 
 constexpr std::uint64_t ls1b_isolate(std::uint64_t x) noexcept { return (~x+1) & x; }
 constexpr std::uint64_t ls1b_reset(std::uint64_t x)  noexcept{ return (x-1) & x; }
-constexpr std::size_t bitscan_forward(std::uint64_t x) noexcept { return std::countr_zero(x); }
-constexpr std::size_t bitscan_backward(std::uint64_t x) noexcept { return std::countl_zero(x); }
-constexpr std::size_t popcount(std::uint64_t x) noexcept { return std::popcount(x); }
+constexpr std::uint8_t bitscan_forward(std::uint64_t x) noexcept { return std::countr_zero(x); }
+constexpr std::uint8_t bitscan_backward(std::uint64_t x) noexcept { return std::countl_zero(x); }
+constexpr std::uint8_t popcount(std::uint64_t x) noexcept { return std::popcount(x); }
 
 // Takes a bitboard and emits a vector of size 2**popcount(x) containing all possible
 // 0 and 1 combinations of the elements of the bitboard with set bits.

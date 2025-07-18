@@ -11,7 +11,7 @@ namespace
 // The major components that are designed to be stored in this section are the sliding piece PEXT bitboard
 // tables. These are at most 12-bits deep for rooks, and 9-bits deep for bishops, which ends up pessimistically
 // as 64*(2**12 + 2**9) = 294912, which is just over 2**18. We allocate 2*19 bytes for safety - allocation
-// errors are thrown at runtime if there isn't enough space anywy.
+// errors are thrown at runtime if there isn't enough space anyway.
 constexpr std::size_t RAM_ENTRIES { 1ULL << 20 };
 
 std::array<std::uint64_t, RAM_ENTRIES> ram;

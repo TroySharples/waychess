@@ -24,7 +24,7 @@ void get_pawn_moves(const bitboard& bb, std::vector<std::uint32_t>& moves)
         const std::uint8_t pawn_mailbox = std::countr_zero(pawn_bitboard);
 
         // Handle attacking moves.
-        for (std::uint64_t attacks { (is_black_to_play ? get_black_pawn_all_attacked_squares_from_mailbox(pawn_mailbox) : get_white_pawn_all_attacked_squares_from_mailbox(pawn_mailbox)) & (opponent_pieces | bb.en_passent_square) }; attacks; )
+        for (std::uint64_t attacks { (is_black_to_play ? get_black_pawn_all_attacked_squares_from_mailbox(pawn_mailbox) : get_white_pawn_all_attacked_squares_from_mailbox(pawn_mailbox)) & (opponent_pieces | bb.en_passent_mb) }; attacks; )
         {
             const std::uint64_t attack { ls1b_isolate(attacks) };
 
@@ -42,7 +42,7 @@ void get_pawn_moves(const bitboard& bb, std::vector<std::uint32_t>& moves)
                 else
                 {
                     // Remember to set the en-passent meta-bit if necessary (note this is mutually-exclusive with promotion).
-                    moves.push_back(move | (attack & bb.en_passent_square ? move::serialise_move_type(move::move_type::EN_PASSENT_CAPTURE) : 0));
+                    moves.push_back(move | (attack & bb.en_passent_mb ? move::serialise_move_type(move::move_type::EN_PASSENT_CAPTURE) : 0));
                 }
             }
 
@@ -123,15 +123,15 @@ void get_king_moves(const bitboard& bb, std::vector<std::uint32_t>& moves)
 
         if (bb.castling & bitboard::CASTLING_B_KS && !(all_pieces & RANK_8 & (FILE_F | FILE_G)))
         {
-            constexpr std::uint8_t to_square { std::countr_zero(FILE_G & RANK_8) };
-            constexpr std::uint32_t move { move::serialise(from_squre, to_square, piece_idx::b_king, move::move_type::CASTLE | move::move_type::CASTLE_KS) };
+            constexpr std::uint8_t to_mb { std::countr_zero(FILE_G & RANK_8) };
+            constexpr std::uint32_t move { move::serialise(from_squre, to_mb, piece_idx::b_king, move::move_type::CASTLE | move::move_type::CASTLE_KS) };
 
             moves.push_back(move);
         }
         if (bb.castling & bitboard::CASTLING_B_QS && !(all_pieces & RANK_8 & (FILE_B | FILE_C | FILE_D)))
         {
-            constexpr std::uint8_t to_square { std::countr_zero(FILE_C & RANK_8) };
-            constexpr std::uint32_t move { move::serialise(from_squre, to_square, piece_idx::b_king, move::move_type::CASTLE | move::move_type::CASTLE_QS) };
+            constexpr std::uint8_t to_mb { std::countr_zero(FILE_C & RANK_8) };
+            constexpr std::uint32_t move { move::serialise(from_squre, to_mb, piece_idx::b_king, move::move_type::CASTLE | move::move_type::CASTLE_QS) };
 
             moves.push_back(move);
         }
@@ -142,15 +142,15 @@ void get_king_moves(const bitboard& bb, std::vector<std::uint32_t>& moves)
 
         if (bb.castling & bitboard::CASTLING_B_KS && !(all_pieces & RANK_1 & (FILE_F | FILE_G)))
         {
-            constexpr std::uint8_t to_square { std::countr_zero(FILE_G & RANK_1) };
-            constexpr std::uint32_t move { move::serialise(from_squre, to_square, piece_idx::w_king, move::move_type::CASTLE | move::move_type::CASTLE_KS) };
+            constexpr std::uint8_t to_mb { std::countr_zero(FILE_G & RANK_1) };
+            constexpr std::uint32_t move { move::serialise(from_squre, to_mb, piece_idx::w_king, move::move_type::CASTLE | move::move_type::CASTLE_KS) };
 
             moves.push_back(move);
         }
         if (bb.castling & bitboard::CASTLING_B_QS && !(all_pieces & RANK_1 & (FILE_B | FILE_C | FILE_D)))
         {
-            constexpr std::uint8_t to_square { std::countr_zero(FILE_C & RANK_1) };
-            constexpr std::uint32_t move { move::serialise(from_squre, to_square, piece_idx::w_king, move::move_type::CASTLE | move::move_type::CASTLE_QS) };
+            constexpr std::uint8_t to_mb { std::countr_zero(FILE_C & RANK_1) };
+            constexpr std::uint32_t move { move::serialise(from_squre, to_mb, piece_idx::w_king, move::move_type::CASTLE | move::move_type::CASTLE_QS) };
 
             moves.push_back(move);
         }

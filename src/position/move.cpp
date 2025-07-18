@@ -9,8 +9,8 @@ std::string to_algebraic_long(std::uint32_t move)
 {
     std::string ret;
 
-    const std::uint8_t from_mb { move::deserialise_from_square(move) };
-    const std::uint8_t to_mb { move::deserialise_to_square(move) };
+    const std::uint8_t from_mb { move::deserialise_from_mb(move) };
+    const std::uint8_t to_mb { move::deserialise_to_mb(move) };
     const std::uint16_t type { move::deserialise_type(move) };
 
     ret.append(to_coordinates_str(from_mb));

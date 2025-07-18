@@ -14,7 +14,7 @@ struct mailbox
     mailbox() = default;
 
     // Construct from bitboard representation.
-    mailbox(const bitboard& mb);
+    mailbox(const bitboard& bb);
 
     // Construct from fen-string.
     mailbox(std::string_view fen);
@@ -24,7 +24,7 @@ struct mailbox
     std::array<piece_idx, 64> squares;
 
     // The location (if any) of the en-passent target square.
-    std::optional<std::size_t> en_passent_square;
+    std::optional<std::uint8_t> en_passent_square;
 
     // Castling options.
     bool castling_w_ks;

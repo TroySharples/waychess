@@ -28,7 +28,7 @@ struct bitboard
     
     // Contains at most a single one-bit, which is the en-passent target square created
     // by a possible double-pawn push on the last ply.
-    std::uint64_t en_passent_square;
+    std::uint64_t en_passent_mb;
 
     // Castling nibble.
     std::uint8_t castling;

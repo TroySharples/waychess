@@ -10,9 +10,9 @@
 namespace
 {
 
-std::uint64_t get_queen_xrayed_squares_from_mailbox_impl(std::size_t x) noexcept
+std::uint64_t get_queen_xrayed_squares_from_mailbox_impl(std::uint8_t mb) noexcept
 {
-    return get_rook_xrayed_squares_from_mailbox(x) | get_bishop_xrayed_squares_from_mailbox(x);
+    return get_rook_xrayed_squares_from_mailbox(mb) | get_bishop_xrayed_squares_from_mailbox(mb);
 }
 
 const std::span<std::uint64_t> xray_table_queen = [] ()
@@ -25,9 +25,9 @@ const std::span<std::uint64_t> xray_table_queen = [] ()
     return ret;
 } ();
 
-std::uint64_t get_queen_blocker_squares_from_mailbox_impl(std::size_t x) noexcept
+std::uint64_t get_queen_blocker_squares_from_mailbox_impl(std::uint8_t mb) noexcept
 {
-    return get_rook_blocker_squares_from_mailbox(x) | get_bishop_blocker_squares_from_mailbox(x);
+    return get_rook_blocker_squares_from_mailbox(mb) | get_bishop_blocker_squares_from_mailbox(mb);
 }
 
 const std::span<std::uint64_t> blocker_table_queen = [] ()
@@ -42,17 +42,17 @@ const std::span<std::uint64_t> blocker_table_queen = [] ()
 
 }
 
-std::uint64_t get_queen_xrayed_squares_from_mailbox(std::size_t x) noexcept
+std::uint64_t get_queen_xrayed_squares_from_mailbox(std::uint8_t mb) noexcept
 {
-    return xray_table_queen[x];
+    return xray_table_queen[mb];
 }
 
-std::uint64_t get_queen_blocker_squares_from_mailbox(std::size_t x) noexcept
+std::uint64_t get_queen_blocker_squares_from_mailbox(std::uint8_t mb) noexcept
 {
-    return blocker_table_queen[x];
+    return blocker_table_queen[mb];
 }
 
-std::uint64_t get_queen_attacked_squares_from_mailbox(std::size_t x, std::uint64_t pos) noexcept
+std::uint64_t get_queen_attacked_squares_from_mailbox(std::uint8_t mb, std::uint64_t pos) noexcept
 {
-    return get_rook_attacked_squares_from_mailbox(x, pos) | get_bishop_attacked_squares_from_mailbox(x, pos);
+    return get_rook_attacked_squares_from_mailbox(mb, pos) | get_bishop_attacked_squares_from_mailbox(mb, pos);
 }
