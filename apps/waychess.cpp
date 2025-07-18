@@ -9,11 +9,32 @@ static void display_pseudo_legal_moves_from_position(const bitboard& start)
     std::cout << "starting-position:" << std::endl;
     std::cout << start << std::endl;
 
+    constexpr make_move_args args { .check_legality = false };
+
     for (auto move : generate_pseudo_legal_moves(start))
     {
-        std::cout << "move: " << move::to_algebraic_long(move) << ":" << std::endl;
         bitboard next_position = start;
-        make_move(next_position, move);
+        make_move(args, next_position, move);
+
+        std::cout << "move: " << move::to_algebraic_long(move) << ":" << std::endl;
+        std::cout << next_position << std::endl;
+    }
+}
+
+static void display_strictly_legal_moves_from_position(const bitboard& start)
+{
+    std::cout << "starting-position:" << std::endl;
+    std::cout << start << std::endl;
+
+    constexpr make_move_args args { .check_legality = true };
+
+    for (auto move : generate_pseudo_legal_moves(start))
+    {
+        bitboard next_position = start;
+        if (!make_move(args, next_position, move))
+            continue;
+
+        std::cout << "move: " << move::to_algebraic_long(move) << ":" << std::endl;
         std::cout << next_position << std::endl;
     }
 }

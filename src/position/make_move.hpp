@@ -2,5 +2,10 @@
 
 #include "bitboard.hpp"
 
+struct make_move_args
+{
+    bool check_legality;
+};
+
 // We'll change this signature in the future when we come to implementing Zobrist hashing.
-void make_move(bitboard& bb, std::uint32_t move);
+bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move);

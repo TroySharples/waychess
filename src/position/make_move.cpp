@@ -1,9 +1,15 @@
 #include "make_move.hpp"
 
 #include "move.hpp"
+#include "pieces/pieces.hpp"
+#include "position.hpp"
+#include "position/generate_moves.hpp"
+#include <bit>
 
-void make_move(bitboard& bb, std::uint32_t move)
+bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
 {
+    bool ret { true };
+
     const bool is_black_to_play   { bb.is_black_to_play() };
     std::uint64_t& to_move_pieces { is_black_to_play ? bb.b_pieces : bb.w_pieces };
 
@@ -20,7 +26,50 @@ void make_move(bitboard& bb, std::uint32_t move)
     bb.en_passent_mb = 0;
     bb.ply_counter++;
 
-    // Handle mechanically moving the side-to-plays piece. We have to be careful about the special case of
+    // We first check the legality of castling from and through check. It's clearest (I haven't
+    // decided if it's necessary) to do this first before any pieces have moved as not to influence
+    // the attacked-square calculation. This comes at the expense of duplicating the code tree
+    // structure of the rook-moving logic, but oh well.
+    if (args.check_legality && type & move::move_type::CASTLE)
+    {
+        // The stratagy here is to keep track of the bitboard of attackers attacking the from and
+        // through castling squares attacked by the relevant side.
+        std::uint64_t attacked_squares {};
+
+        if (type & move::move_type::CASTLE_KS)
+        {
+            if (is_black_to_play)
+            {
+                attacked_squares |= get_attackers_white(bb, std::countr_zero(FILE_E & RANK_8))
+                                  | get_attackers_white(bb, std::countr_zero(FILE_F & RANK_8));
+            }
+            else
+            {
+                attacked_squares |= get_attackers_black(bb, std::countr_zero(FILE_E & RANK_1))
+                                  | get_attackers_black(bb, std::countr_zero(FILE_F & RANK_1));
+            }
+        }
+        else
+        {
+            if (is_black_to_play)
+            {
+                attacked_squares |= get_attackers_white(bb, std::countr_zero(FILE_E & RANK_8))
+                                  | get_attackers_white(bb, std::countr_zero(FILE_D & RANK_8))
+                                  | get_attackers_white(bb, std::countr_zero(FILE_C & RANK_8));
+            }
+            else
+            {
+                attacked_squares |= get_attackers_black(bb, std::countr_zero(FILE_E & RANK_1))
+                                  | get_attackers_black(bb, std::countr_zero(FILE_D & RANK_1))
+                                  | get_attackers_black(bb, std::countr_zero(FILE_C & RANK_1));
+            }
+        }
+
+        if (attacked_squares)
+            ret = false;
+    }
+
+    // Next we handle mechanically moving the side-to-plays piece. We have to be careful about the special case of
     // pawn promotions when updating the piece-specific bitboard.
     to_move_pieces ^= from_to_bb;
     if (type & move::move_type::PROMOTION)
@@ -49,7 +98,7 @@ void make_move(bitboard& bb, std::uint32_t move)
         if (type & move::move_type::EN_PASSENT_CAPTURE)
         {
             const std::uint64_t capture_bb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
-            
+
             opponent_pieces ^= capture_bb;
             bb.boards[is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn] ^= capture_bb;
         }
@@ -67,7 +116,7 @@ void make_move(bitboard& bb, std::uint32_t move)
                 }
             }
         }
-        
+
         bb.ply_50m = 0;
     }
     // If the move was a double pawn push we have to update the en passent target square for the next move.
@@ -88,7 +137,7 @@ void make_move(bitboard& bb, std::uint32_t move)
         bb.ply_50m++;
     }
 
-    // Handle moving the rook for castling (we don't check castling-through-check legality at the moment).
+    // Handle moving the rook for castling (legality is checked above).
     if (type & move::move_type::CASTLE)
     {
         if (type & move::move_type::CASTLE_KS)
@@ -115,6 +164,14 @@ void make_move(bitboard& bb, std::uint32_t move)
         }
     }
 
+    // Handle left-in-check legality checking.
+    if (args.check_legality && (
+            (is_black_to_play  && get_attackers_white(bb, std::countr_zero(bb.boards[piece_idx::b_king])))
+         || (!is_black_to_play && get_attackers_black(bb, std::countr_zero(bb.boards[piece_idx::w_king])))
+        ))
+        ret = false;
+
+
     // Handle the removal of castling rights.
     switch (piece)
     {
@@ -135,4 +192,6 @@ void make_move(bitboard& bb, std::uint32_t move)
         default:
             NULL;
     }
+
+    return ret;
 }
