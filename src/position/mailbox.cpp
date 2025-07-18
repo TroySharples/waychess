@@ -2,29 +2,13 @@
 
 #include "bitboard.hpp"
 #include "pieces/pieces.hpp"
+#include "utility/coordinates.hpp"
 
 #include <sstream>
 #include <stdexcept>
 
 namespace
 {
-
-std::string to_coordinates(std::size_t v)
-{
-    std::string ret(2, ' ');
-
-    // Some hacky ASCII arithmetic.
-    ret[0] = 'a' + static_cast<char>((v & 070ULL) >> 3);
-    ret[1] = '1' + static_cast<char>(v & 007ULL);
-
-    return ret;
-}
-
-std::size_t from_coordinates(std::string_view v)
-{
-    // Some hacky ASCII arithmetic.
-    return ((v[0] - 'a') << 3) + (v[1] - '1');
-}
 
 constexpr const char* ANSI_RESET = "\e[0m";
 
@@ -144,7 +128,7 @@ mailbox::mailbox(std::string_view fen)
     }
     else
     {
-        en_passent_square.emplace(from_coordinates(fen.substr(pos, 2)));
+        en_passent_square.emplace(from_coordinates_str(fen.substr(pos, 2)));
         pos+=2;
     }
     if (fen.at(pos++) != ' ')
@@ -217,7 +201,7 @@ std::string mailbox::get_fen_string() const noexcept
 
     // En passent target square.
     if (en_passent_square.has_value())
-        ss << to_coordinates(*en_passent_square);
+        ss << to_coordinates_str(*en_passent_square);
     else
         ss << '-';
     ss << ' ';
