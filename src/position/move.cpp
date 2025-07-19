@@ -18,13 +18,13 @@ std::string to_algebraic_long(std::uint32_t move)
     if (type & move::move_type::PROMOTION)
     {
         if (type & move::move_type::PROMOTION_BISHOP)
-            ret.push_back('B');
+            ret.push_back('b');
         else if (type & move::move_type::PROMOTION_KNIGHT)
-            ret.push_back('N');
+            ret.push_back('n');
         else if (type & move::move_type::PROMOTION_QUEEN)
-            ret.push_back('Q');
+            ret.push_back('q');
         else if (type & move::move_type::PROMOTION_ROOK)
-            ret.push_back('R');
+            ret.push_back('r');
     }
 
     return ret;
