@@ -156,7 +156,7 @@ std::string mailbox::get_fen_string() const noexcept
     // The endianness is back-to-front with FEN - we have to start from A8 and work down to H1.
     for (std::uint8_t i = 0; i < 8; i++)
     {
-        std::uint8_t empty_counter { 0 };
+        std::size_t empty_counter { 0 };
         for (std::uint8_t j = 0; j < 8; j++)
         {
             const auto p = squares[8*(8-i-1)+j];
