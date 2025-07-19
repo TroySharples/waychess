@@ -45,41 +45,29 @@ void get_pawn_moves(const bitboard& bb, std::vector<std::uint32_t>& moves)
         }
 
         // Handle single pawn pushes.
-        for (std::uint64_t pushes { is_black_to_play ? get_black_pawn_single_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) : get_white_pawn_single_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) }; pushes; )
+        if (std::uint64_t push { is_black_to_play ? get_black_pawn_single_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) : get_white_pawn_single_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) }; push)
         {
-            const std::uint64_t push { ls1b_isolate(pushes) };
+            const std::uint32_t move { move::serialise(pawn_mailbox, std::countr_zero(push), to_move_idx, move::move_type::SINGLE_PAWN_PUSH) };
 
+            // Test if this pawn move will result in promotion.
+            if (push & (is_black_to_play ? RANK_1 : RANK_8))
             {
-                const std::uint32_t move { move::serialise(pawn_mailbox, std::countr_zero(push), to_move_idx, move::move_type::SINGLE_PAWN_PUSH) };
-
-                // Test if this pawn move will result in promotion.
-                if (push & (is_black_to_play ? RANK_1 : RANK_8))
-                {
-                    moves.push_back(move | move::serialise_move_type(move::move_type::PROMOTION | move::move_type::PROMOTION_QUEEN));
-                    moves.push_back(move | move::serialise_move_type(move::move_type::PROMOTION | move::move_type::PROMOTION_KNIGHT));
-                    moves.push_back(move | move::serialise_move_type(move::move_type::PROMOTION | move::move_type::PROMOTION_ROOK));
-                    moves.push_back(move | move::serialise_move_type(move::move_type::PROMOTION | move::move_type::PROMOTION_BISHOP));
-                }
-                else
-                {
-                    moves.push_back(move);
-                }
+                moves.push_back(move | move::serialise_move_type(move::move_type::PROMOTION | move::move_type::PROMOTION_QUEEN));
+                moves.push_back(move | move::serialise_move_type(move::move_type::PROMOTION | move::move_type::PROMOTION_KNIGHT));
+                moves.push_back(move | move::serialise_move_type(move::move_type::PROMOTION | move::move_type::PROMOTION_ROOK));
+                moves.push_back(move | move::serialise_move_type(move::move_type::PROMOTION | move::move_type::PROMOTION_BISHOP));
             }
-
-            pushes ^= push;
+            else
+            {
+                moves.push_back(move);
+            }
         }
 
         // Handle double pawn pushes.
-        for (std::uint64_t pushes { is_black_to_play ? get_black_pawn_double_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) : get_white_pawn_double_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) }; pushes; )
+        if (const std::uint64_t push { is_black_to_play ? get_black_pawn_double_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) : get_white_pawn_double_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) }; push)
         {
-            const std::uint64_t push { ls1b_isolate(pushes) };
-
-            {
-                const std::uint32_t move { move::serialise(pawn_mailbox, std::countr_zero(push), to_move_idx, move::move_type::DOUBLE_PAWN_PUSH) };
-                moves.push_back(move);
-            }
-
-            pushes ^= push;
+            const std::uint32_t move { move::serialise(pawn_mailbox, std::countr_zero(push), to_move_idx, move::move_type::DOUBLE_PAWN_PUSH) };
+            moves.push_back(move);
         }
 
         to_move_pawns ^= pawn_bitboard;
