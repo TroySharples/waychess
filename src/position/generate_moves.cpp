@@ -102,38 +102,38 @@ void get_king_moves(const bitboard& bb, std::vector<std::uint32_t>& moves)
     // Generate pseudo-legal castling moves (we test for castling-through-check legality in make_move).
     if (is_black_to_play)
     {
-        constexpr std::uint8_t from_squre { std::countr_zero(FILE_E & RANK_8) };
+        constexpr std::uint8_t from_square { std::countr_zero(FILE_E & RANK_8) };
 
         if (bb.castling & bitboard::CASTLING_B_KS && !(all_pieces & RANK_8 & (FILE_F | FILE_G)))
         {
             constexpr std::uint8_t to_mb { std::countr_zero(FILE_G & RANK_8) };
-            constexpr std::uint32_t move { move::serialise(from_squre, to_mb, piece_idx::b_king, move::move_type::CASTLE | move::move_type::CASTLE_KS) };
+            constexpr std::uint32_t move { move::serialise(from_square, to_mb, piece_idx::b_king, move::move_type::CASTLE | move::move_type::CASTLE_KS) };
 
             moves.push_back(move);
         }
         if (bb.castling & bitboard::CASTLING_B_QS && !(all_pieces & RANK_8 & (FILE_B | FILE_C | FILE_D)))
         {
             constexpr std::uint8_t to_mb { std::countr_zero(FILE_C & RANK_8) };
-            constexpr std::uint32_t move { move::serialise(from_squre, to_mb, piece_idx::b_king, move::move_type::CASTLE | move::move_type::CASTLE_QS) };
+            constexpr std::uint32_t move { move::serialise(from_square, to_mb, piece_idx::b_king, move::move_type::CASTLE | move::move_type::CASTLE_QS) };
 
             moves.push_back(move);
         }
     }
     else
     {
-        constexpr std::uint8_t from_squre { std::countr_zero(FILE_E & RANK_1) };
+        constexpr std::uint8_t from_square { std::countr_zero(FILE_E & RANK_1) };
 
-        if (bb.castling & bitboard::CASTLING_B_KS && !(all_pieces & RANK_1 & (FILE_F | FILE_G)))
+        if (bb.castling & bitboard::CASTLING_W_KS && !(all_pieces & RANK_1 & (FILE_F | FILE_G)))
         {
             constexpr std::uint8_t to_mb { std::countr_zero(FILE_G & RANK_1) };
-            constexpr std::uint32_t move { move::serialise(from_squre, to_mb, piece_idx::w_king, move::move_type::CASTLE | move::move_type::CASTLE_KS) };
+            constexpr std::uint32_t move { move::serialise(from_square, to_mb, piece_idx::w_king, move::move_type::CASTLE | move::move_type::CASTLE_KS) };
 
             moves.push_back(move);
         }
-        if (bb.castling & bitboard::CASTLING_B_QS && !(all_pieces & RANK_1 & (FILE_B | FILE_C | FILE_D)))
+        if (bb.castling & bitboard::CASTLING_W_QS && !(all_pieces & RANK_1 & (FILE_B | FILE_C | FILE_D)))
         {
             constexpr std::uint8_t to_mb { std::countr_zero(FILE_C & RANK_1) };
-            constexpr std::uint32_t move { move::serialise(from_squre, to_mb, piece_idx::w_king, move::move_type::CASTLE | move::move_type::CASTLE_QS) };
+            constexpr std::uint32_t move { move::serialise(from_square, to_mb, piece_idx::w_king, move::move_type::CASTLE | move::move_type::CASTLE_QS) };
 
             moves.push_back(move);
         }
