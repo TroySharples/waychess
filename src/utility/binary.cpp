@@ -32,6 +32,6 @@ std::vector<std::uint64_t> get_1s_combinations(std::uint64_t x)
         for (std::size_t j = 0; j < addrs_bits; j++)
             if ((i >> j) & 0b1)
                 ret[i] |= (0b1ULL << addrs[j]);
-    
+
     return ret;
 }
