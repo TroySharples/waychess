@@ -54,14 +54,12 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
             if (is_black_to_play)
             {
                 attacked_squares |= get_attackers_white(bb, std::countr_zero(FILE_E & RANK_8))
-                                  | get_attackers_white(bb, std::countr_zero(FILE_D & RANK_8))
-                                  | get_attackers_white(bb, std::countr_zero(FILE_C & RANK_8));
+                                  | get_attackers_white(bb, std::countr_zero(FILE_D & RANK_8));
             }
             else
             {
                 attacked_squares |= get_attackers_black(bb, std::countr_zero(FILE_E & RANK_1))
-                                  | get_attackers_black(bb, std::countr_zero(FILE_D & RANK_1))
-                                  | get_attackers_black(bb, std::countr_zero(FILE_C & RANK_1));
+                                  | get_attackers_black(bb, std::countr_zero(FILE_D & RANK_1));
             }
         }
 
