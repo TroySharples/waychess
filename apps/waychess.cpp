@@ -35,7 +35,8 @@ static void display_strictly_legal_moves_from_position(const bitboard& start)
             continue;
 
         std::cout << "move: " << move::to_algebraic_long(move) << ":" << std::endl;
-        std::cout << next_position << std::endl;
+        std::cout << next_position;
+        std::cout << next_position.get_fen_string() << '\n' << std::endl;
     }
 }
 
@@ -80,7 +81,11 @@ int main()
             // Castling through check king-side.
             "r3k2r/p6p/8/2BK4/8/8/8/8 b kq - 0 1",
             // Castling through check queen-side.
-            "r3k2r/p6p/5B2/3K4/8/8/8/8 b kq - 0 1"
+            "r3k2r/p6p/5B2/3K4/8/8/8/8 b kq - 0 1",
+            // Talkchess gotcha.
+            "r3k2r/Pppp1ppp/1b3nbN/nPB5/B1P1P3/q4N2/Pp1P2PP/R2Q1RK1 b kq - 1 1",
+            // Kiwipete gotcha.
+            "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/2KR3R b kq - 1 1"
         };
 
         for (const auto& position : positions)
