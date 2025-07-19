@@ -173,26 +173,26 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
         ))
         ret = false;
 
-
-    // Handle the removal of castling rights.
+    // Handle the removal of castling rights. We also have to remember to remove castling rights in the event one of our rooks gets
+    // captured - this is actually quite subtle... There might be a more efficient way of doing this (e.g. only filtering on rook / king
+    // moves and captures).
     switch (piece)
     {
         case piece_idx::w_king:
             bb.castling &= ~(bitboard::CASTLING_W_KS | bitboard::CASTLING_W_QS);
             break;
         case piece_idx::b_king:
-            bb.castling &= (bitboard::CASTLING_B_KS | bitboard::CASTLING_B_QS);
-            break;
-        case piece_idx::w_rook:
-            if (!(bb.boards[w_rook] & FILE_A & RANK_1)) bb.castling &= bitboard::CASTLING_W_QS;
-            if (!(bb.boards[w_rook] & FILE_H & RANK_1)) bb.castling &= bitboard::CASTLING_W_KS;
-            break;
-        case piece_idx::b_rook:
-            if (!(bb.boards[w_rook] & FILE_A & RANK_8)) bb.castling &= bitboard::CASTLING_B_QS;
-            if (!(bb.boards[w_rook] & FILE_H & RANK_8)) bb.castling &= bitboard::CASTLING_B_KS;
+            bb.castling &= ~(bitboard::CASTLING_B_KS | bitboard::CASTLING_B_QS);
             break;
         default:
             NULL;
+    }
+    if ((type & move::move_type::CAPTURE) || piece == piece_idx::w_rook || piece == piece_idx::b_rook)
+    {
+        if (from_to_bb & (FILE_A & RANK_1)) bb.castling &= ~bitboard::CASTLING_W_QS;
+        if (from_to_bb & (FILE_H & RANK_1)) bb.castling &= ~bitboard::CASTLING_W_KS;
+        if (from_to_bb & (FILE_A & RANK_8)) bb.castling &= ~bitboard::CASTLING_B_QS;
+        if (from_to_bb & (FILE_H & RANK_8)) bb.castling &= ~bitboard::CASTLING_B_KS;
     }
 
     return ret;
