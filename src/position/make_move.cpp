@@ -120,7 +120,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     // If the move was a double pawn push we have to update the en-passent target square for the next move.
     else if (type & move::move_type::DOUBLE_PAWN_PUSH)
     {
-        bb.en_passent_mb = (is_black_to_play ? to_bb : from_bb) << 8;
+        bb.en_passent_mb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
 
         bb.ply_50m = 0;
     }
