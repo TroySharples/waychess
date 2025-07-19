@@ -6,3 +6,6 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 
 add_subdirectory(src)
 add_subdirectory(apps)
+
+include(CTest)
+add_subdirectory(tests)
