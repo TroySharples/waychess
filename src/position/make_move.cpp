@@ -143,10 +143,12 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
             if (is_black_to_play)
             {
                 bb.boards[piece_idx::b_rook] ^= (FILE_H & RANK_8) | (FILE_F & RANK_8);
+                bb.b_pieces ^= (FILE_H & RANK_8) | (FILE_F & RANK_8);
             }
             else
             {
                 bb.boards[piece_idx::w_rook] ^= (FILE_H & RANK_1) | (FILE_F & RANK_1);
+                bb.w_pieces ^= (FILE_H & RANK_1) | (FILE_F & RANK_1);
             }
         }
         else
@@ -154,10 +156,12 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
             if (is_black_to_play)
             {
                 bb.boards[piece_idx::b_rook] ^= (FILE_A & RANK_8) | (FILE_D & RANK_8);
+                bb.b_pieces ^= (FILE_A & RANK_8) | (FILE_D & RANK_8);
             }
             else
             {
                 bb.boards[piece_idx::w_rook] ^= (FILE_A & RANK_1) | (FILE_D & RANK_1);
+                bb.w_pieces ^= (FILE_A & RANK_1) | (FILE_D & RANK_1);
             }
         }
     }
