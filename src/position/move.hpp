@@ -28,7 +28,7 @@ constexpr std::uint32_t serialise(std::uint8_t from_square, std::uint8_t to_squa
 constexpr std::uint8_t  deserialise_from_mb(std::uint32_t move)   noexcept { return move & 0x3f; }
 constexpr std::uint8_t  deserialise_to_mb(std::uint32_t move)     noexcept { return move >> 6 & 0x3f; }
 constexpr piece_idx     deserialise_piece_idx(std::uint32_t move) noexcept { return static_cast<piece_idx>(move >> 12 & 0x0f); }
-constexpr std::uint16_t deserialise_type(std::uint32_t move)      noexcept { return move >> 16 & 0xff; } 
+constexpr std::uint16_t deserialise_type(std::uint32_t move)      noexcept { return move >> 16; } 
 
 // We use a bitmasks of various (not necessarily orthagonal) move information to form the move type. The only
 // ones technically needed to specify all possible moves from standard chess positions are the pawn-promotion
