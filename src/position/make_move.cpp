@@ -168,9 +168,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
 
     // Handle left-in-check legality checking.
     if (args.check_legality && (
-            (is_black_to_play  && get_attackers_white(bb, std::countr_zero(bb.boards[piece_idx::b_king])))
-         || (!is_black_to_play && get_attackers_black(bb, std::countr_zero(bb.boards[piece_idx::w_king])))
-        ))
+            is_black_to_play  ? get_attackers_white(bb, std::countr_zero(bb.boards[piece_idx::b_king])) : get_attackers_black(bb, std::countr_zero(bb.boards[piece_idx::w_king]))))
         ret = false;
 
     // Handle the removal of castling rights. We also have to remember to remove castling rights in the event one of our rooks gets
