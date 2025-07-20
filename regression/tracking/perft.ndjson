@@ -1,0 +1,1 @@
+{"fen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1","depth":7,"time-ms":93099,"nps":34327848,"total-nodes":3195901860,"timestamp":"1753028794","git":"b3c3d637d18f0075dee2fd867eb27ccb01d462a1","label":"Initial result after setting up perft regression"}

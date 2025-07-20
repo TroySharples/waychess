@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Perft Regression Test",
+            "type": "shell",
+            "command": "${workspaceFolder}/regression/perft.sh",
+            "args": [
+                "\"${input:label}\""
+            ],
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "label",
+            "type": "promptString",
+            "description": "Regression tracking label (can be empty).",
+        }
+    ]
+}
