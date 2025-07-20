@@ -1,0 +1,154 @@
+#include "position/generate_moves.hpp"
+#include "position/make_move.hpp"
+#include "position/move.hpp"
+#include "utility/perft.hpp"
+
+#include <bits/chrono.h>
+#include <cstdlib>
+#include <ios>
+#include <stdexcept>
+#include <string>
+#include <chrono>
+#include <unistd.h>
+
+static std::ostream& print_usage(const char* argv0, std::ostream& os)
+{
+    return os << "Usage: " << argv0 << " <options>\n"
+              << "    Options:\n"
+              << "         -h         -> Print this help menu.\n"
+              << "         -t         -> Also print the first level tree of possible moves.\n"
+              << "         -y         -> Also print the final time taken for the perft test in ms.\n"
+              << "         -f [fen]   -> The FEN string for the starting position. Optional, defaults to starting position.\n"
+              << "         -d [depth] -> The perft depth. Optional, default 1.\n";
+}
+
+int main(int argc, char** argv)
+{
+    const std::string usage_str { std::string("    Usage - ") + argv[0] + "<options>" };
+
+    // Default arguments.
+    bool help         { false };
+    bool tree         { false };
+    bool time         { false };
+    std::size_t depth { 1 };
+    std::string fen   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
+
+    // Parse options.
+    for (int c; (c = getopt(argc, argv, "htyf:d:")) != -1; )
+    {
+        switch (c)
+        {
+            // Help.
+            case 'h':
+            {
+                help = true;
+                break;
+            }
+            // Tree.
+            case 't':
+            {
+                tree = true;
+                break;
+            }
+            // Show time.
+            case 'y':
+            {
+                time = true;
+                break;
+            }
+            // FEN.
+            case 'f':
+            {
+                fen = optarg;
+                break;
+            }
+            // Depth.
+            case 'd':
+            {
+                depth = std::stoull(optarg);
+                break;
+            }
+            // Unknown
+            case '?':
+            {
+                if (optopt == 'f' || optopt == 'd')
+                {
+                    std::cerr << "Option requires argument.\n";
+                    return EXIT_FAILURE;
+                }
+                break;
+            }
+            default:
+                std::cerr << "Could not parse commandline arguments.\n";
+                print_usage(argv[0], std::cerr);
+                return EXIT_FAILURE;
+        }
+    }
+
+    // Just print usage menu and return if we asked for help.
+    if (help)
+    {
+        print_usage(argv[0], std::cout);
+        return EXIT_SUCCESS;
+    }
+
+    // Check option consistency.
+    if (depth == 0 && tree)
+    {
+        std::cerr << "Depth must cannot be 0 when tree-printing is enabled.\n";
+        print_usage(argv[0], std::cerr);
+        return EXIT_FAILURE;
+    }
+
+    // Start printing the JSON. We might clean this up later by having a proper JSON printing class, but this
+    // program seems too simple at the moment to warrent it.
+    std::cout << R"({)" << '\n'
+              << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
+              << R"(    "depth": )" << depth             << ",\n";
+
+    const bitboard position_start(fen);
+    std::size_t total_nodes {};
+
+    const auto time_start = std::chrono::steady_clock::now();
+    if (tree)
+    {
+        std::cout << R"(    "tree": [)" << '\n';
+
+        const auto moves = generate_pseudo_legal_moves(position_start);
+        for (auto it = moves.begin(); it != moves.end(); it++)
+        {
+            bitboard next_position { position_start };
+
+            constexpr make_move_args args { .check_legality = true };
+            if (!make_move(args, next_position, *it))
+                continue;
+
+            const std::size_t nodes { perft(next_position, depth-1) };
+            total_nodes += nodes;
+
+            std::cout << R"(        {)" << '\n';
+            std::cout << R"(            "move": ")" << move::to_algebraic_long(*it) << R"(",)" << '\n';
+            std::cout << R"(            "nodes": )" << nodes << '\n';
+            std::cout << R"(        })" << (it+1 != moves.end() ? ",\n" : "\n");
+        }
+        std::cout << R"(    ],)" << '\n';
+    }
+    else
+    {
+        total_nodes = perft(position_start, depth);
+    }
+    const auto time_end = std::chrono::steady_clock::now();
+
+    // Print the time and nps.
+    if (time)
+    {
+        std::cout << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
+                  << R"(    "nps": )"     << 1000000000 * total_nodes / std::chrono::duration_cast<std::chrono::nanoseconds>(time_end-time_start).count() << ",\n";
+    }
+
+    // Finally print the total number of nodes.
+    std::cout << R"(    "total-nodes": )" << total_nodes << '\n'
+              << R"(})" << '\n';
+
+    return EXIT_SUCCESS;
+}
