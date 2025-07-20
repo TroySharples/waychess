@@ -114,22 +114,23 @@ int main(int argc, char** argv)
     {
         std::cout << R"(    "tree": [)" << '\n';
 
-        const auto moves = generate_pseudo_legal_moves(position_start);
-        for (auto it = moves.begin(); it != moves.end(); it++)
+        std::array<std::uint32_t, 256> move_buf;
+        const std::size_t moves { generate_pseudo_legal_moves(position_start, move_buf) };
+        for (std::size_t i = 0; i < moves; i++)
         {
             bitboard next_position { position_start };
 
             constexpr make_move_args args { .check_legality = true };
-            if (!make_move(args, next_position, *it))
+            if (!make_move(args, next_position, move_buf[i]))
                 continue;
 
             const std::size_t nodes { perft(next_position, depth-1) };
             total_nodes += nodes;
 
             std::cout << R"(        {)" << '\n';
-            std::cout << R"(            "move": ")" << move::to_algebraic_long(*it) << R"(",)" << '\n';
+            std::cout << R"(            "move": ")" << move::to_algebraic_long(move_buf[i]) << R"(",)" << '\n';
             std::cout << R"(            "nodes": )" << nodes << '\n';
-            std::cout << R"(        })" << (it+1 != moves.end() ? ",\n" : "\n");
+            std::cout << R"(        })" << (i+1 != moves ? ",\n" : "\n");
         }
         std::cout << R"(    ],)" << '\n';
     }

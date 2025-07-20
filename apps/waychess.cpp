@@ -11,12 +11,14 @@ static void display_pseudo_legal_moves_from_position(const bitboard& start)
 
     constexpr make_move_args args { .check_legality = false };
 
-    for (auto move : generate_pseudo_legal_moves(start))
+    std::array<std::uint32_t, 256> move_buf;
+    const std::size_t moves { generate_pseudo_legal_moves(start, move_buf) };
+    for (std::size_t i = 0; i < moves; i++)
     {
         bitboard next_position = start;
-        make_move(args, next_position, move);
+        make_move(args, next_position, move_buf[i]);
 
-        std::cout << "move: " << move::to_algebraic_long(move) << ":" << std::endl;
+        std::cout << "move: " << move::to_algebraic_long(move_buf[i]) << ":" << std::endl;
         std::cout << next_position << std::endl;
     }
 }
@@ -28,13 +30,15 @@ static void display_strictly_legal_moves_from_position(const bitboard& start)
 
     constexpr make_move_args args { .check_legality = true };
 
-    for (auto move : generate_pseudo_legal_moves(start))
+    std::array<std::uint32_t, 256> move_buf;
+    const std::size_t moves { generate_pseudo_legal_moves(start, move_buf) };
+    for (std::size_t i = 0; i < moves; i++)
     {
         bitboard next_position = start;
-        if (!make_move(args, next_position, move))
+        if (!make_move(args, next_position, move_buf[i]))
             continue;
 
-        std::cout << "move: " << move::to_algebraic_long(move) << ":" << std::endl;
+        std::cout << "move: " << move::to_algebraic_long(move_buf[i]) << ":" << std::endl;
         std::cout << next_position;
         std::cout << next_position.get_fen_string() << '\n' << std::endl;
     }
