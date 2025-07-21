@@ -11,10 +11,10 @@
 //      0 -  5 : from-square mb
 //      6 - 11 : to-square mb
 //     12 - 15 : piece idx
-//     16 - 20 : move-type bitmask
+//     16 - 18 : move-type bitmask
 //     21 - 22 : move-info enum
 //     23 - 26 : unmake-castling
-//     27 - 32 : unmake-en-passent
+//     27 - 31 : unmake-en-passent
 
 namespace move
 {
@@ -23,11 +23,19 @@ namespace move
 namespace move_type
 {
 
-constexpr std::uint8_t CAPTURE    { 0b00001 };
-constexpr std::uint8_t CASTLE     { 0b00010 };
-constexpr std::uint8_t PROMOTION  { 0b00100 };
-constexpr std::uint8_t PAWN_PUSH  { 0b01000 };
-constexpr std::uint8_t EN_PASSENT { 0b10000 };
+constexpr std::uint8_t CAPTURE       { 0b100 };
+constexpr std::uint8_t CASTLE        { 0b001 };
+constexpr std::uint8_t PROMOTION     { 0b011 };
+constexpr std::uint8_t PAWN_PUSH     { 0b010 };
+constexpr std::uint8_t EN_PASSENT    { 0b110 };
+constexpr std::uint8_t CAPTURES_PAWN { 0b101 };
+
+constexpr bool is_castle(std::uint8_t move_type)        noexcept { return move_type == 0b001; }
+constexpr bool is_capture(std::uint8_t move_type)       noexcept { return move_type & 0b100; }
+constexpr bool is_promotion(std::uint8_t move_type)     noexcept { return (move_type & 0b011) == 0b011; }
+constexpr bool is_en_passent(std::uint8_t move_type)    noexcept { return move_type == 0b110; }
+constexpr bool is_pawn_push(std::uint8_t move_type)     noexcept { return move_type == 0b010; }
+constexpr bool is_captures_pawn(std::uint8_t move_type) noexcept { return move_type == 0b101; }
 
 }
 
@@ -79,7 +87,7 @@ constexpr std::uint32_t serialise(std::uint8_t from_square, std::uint8_t to_squa
 constexpr std::uint8_t  deserialise_from_mb(std::uint32_t move)           noexcept { return move & 0x3f; }
 constexpr std::uint8_t  deserialise_to_mb(std::uint32_t move)             noexcept { return move >> 6 & 0x3f; }
 constexpr piece_idx     deserialise_piece_idx(std::uint32_t move)         noexcept { return static_cast<piece_idx>(move >> 12 & 0x0f); }
-constexpr std::uint8_t  deserialise_move_type(std::uint32_t move)         noexcept { return move >> 16 & 0x1f; }
+constexpr std::uint8_t  deserialise_move_type(std::uint32_t move)         noexcept { return move >> 16 & 0x07; }
 constexpr std::uint8_t  deserialise_move_info(std::uint32_t move)         noexcept { return move >> 21 & 0x03; }
 constexpr std::uint8_t  deserialise_unmake_castling(std::uint32_t move)   noexcept { return move >> 23 & 0x0f; }
 constexpr std::uint64_t deserialise_unmake_en_passent(std::uint32_t move) noexcept { return move & 0x80000000 ? 1ULL << (_pdep_u32(move >> 27 & 0x1f, 0b100111) | 0b001000) : 0; }

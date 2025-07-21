@@ -30,7 +30,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     // decided if it's necessary) to do this first before any pieces have moved as not to influence
     // the attacked-square calculation. This comes at the expense of duplicating the code tree
     // structure of the rook-moving logic, but oh well.
-    if (args.check_legality && type & move::move_type::CASTLE)
+    if (args.check_legality && move::move_type::is_castle(type))
     {
         // The stratagy here is to keep track of the bitboard of attackers attacking the from and
         // through castling squares attacked by the relevant side.
@@ -70,7 +70,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     // Next we handle mechanically moving the side-to-plays piece. We have to be careful about the special case of
     // pawn promotions when updating the piece-specific bitboard.
     to_move_pieces ^= from_to_bb;
-    if (type & move::move_type::PROMOTION)
+    if (move::move_type::is_promotion(type))
     {
         bb.boards[piece] ^= from_bb;
         switch (info)
@@ -87,12 +87,12 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     }
 
     // Handle piece captures.
-    if (type & move::move_type::CAPTURE)
+    if (move::move_type::is_capture(type))
     {
         std::uint64_t& opponent_pieces { is_black_to_play ? bb.w_pieces : bb.b_pieces };
 
         // En-passent captures are special - the piece to be taken off the board isn't the target move square.
-        if (type & move::move_type::EN_PASSENT)
+        if (move::move_type::is_en_passent(type))
         {
             const std::uint64_t capture_bb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
 
@@ -117,7 +117,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
         bb.ply_50m = 0;
     }
     // If the move was just a pawn push we need to reset the ply counter for the 50 move rule.
-    else if (type & move::move_type::PAWN_PUSH)
+    else if (move::move_type::is_pawn_push(type))
     {
         bb.ply_50m = 0;
         
@@ -132,7 +132,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     }
 
     // Handle moving the rook for castling (legality is checked above).
-    if (type & move::move_type::CASTLE)
+    if (move::move_type::is_castle(type))
     {
         if (info == move::move_info::CASTLE_KS)
         {
@@ -181,7 +181,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
         default:
             NULL;
     }
-    if ((type & move::move_type::CAPTURE) || piece == piece_idx::w_rook || piece == piece_idx::b_rook)
+    if (move::move_type::is_capture(type) || piece == piece_idx::w_rook || piece == piece_idx::b_rook)
     {
         if (from_to_bb & (FILE_A & RANK_1)) bb.castling &= ~bitboard::CASTLING_W_QS;
         if (from_to_bb & (FILE_H & RANK_1)) bb.castling &= ~bitboard::CASTLING_W_KS;
