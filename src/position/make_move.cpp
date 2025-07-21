@@ -4,7 +4,6 @@
 #include "pieces/pieces.hpp"
 #include "position.hpp"
 #include "position/generate_moves.hpp"
-#include <bit>
 
 bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
 {
@@ -16,7 +15,8 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     const std::uint8_t from_mb { move::deserialise_from_mb(move) };
     const std::uint8_t to_mb   { move::deserialise_to_mb(move) };
     const piece_idx piece      { move::deserialise_piece_idx(move) };
-    const std::uint16_t type   { move::deserialise_type(move) };
+    const std::uint8_t type    { move::deserialise_move_type(move) };
+    const std::uint8_t info    { move::deserialise_move_info(move) };
 
     const std::uint64_t from_bb    { 1ULL << from_mb };
     const std::uint64_t to_bb      { 1ULL << to_mb };
@@ -36,7 +36,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
         // through castling squares attacked by the relevant side.
         std::uint64_t attacked_squares {};
 
-        if (type & move::move_type::CASTLE_KS)
+        if (info == move::move_info::CASTLE_KS)
         {
             if (is_black_to_play)
             {
@@ -73,14 +73,13 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     if (type & move::move_type::PROMOTION)
     {
         bb.boards[piece] ^= from_bb;
-        if (type & move::move_type::PROMOTION_QUEEN)
-            bb.boards[is_black_to_play ? piece_idx::b_queen : piece_idx::w_queen] ^= to_bb;
-        else if (type & move::move_type::PROMOTION_KNIGHT)
-            bb.boards[is_black_to_play ? piece_idx::b_knight : piece_idx::w_knight] ^= to_bb;
-        else if (type & move::move_type::PROMOTION_ROOK)
-            bb.boards[is_black_to_play ? piece_idx::b_rook : piece_idx::w_rook] ^= to_bb;
-        else if (type & move::move_type::PROMOTION_BISHOP)
-            bb.boards[is_black_to_play ? piece_idx::b_bishop : piece_idx::w_bishop] ^= to_bb;
+        switch (info)
+        {
+            case move::move_info::PROMOTION_QUEEN:  bb.boards[is_black_to_play ? piece_idx::b_queen  : piece_idx::w_queen]  ^= to_bb; break;
+            case move::move_info::PROMOTION_KNIGHT: bb.boards[is_black_to_play ? piece_idx::b_knight : piece_idx::w_knight] ^= to_bb; break;
+            case move::move_info::PROMOTION_ROOK:   bb.boards[is_black_to_play ? piece_idx::b_rook   : piece_idx::w_rook]   ^= to_bb; break;
+            case move::move_info::PROMOTION_BISHOP: bb.boards[is_black_to_play ? piece_idx::b_bishop : piece_idx::w_bishop] ^= to_bb; break;
+        }
     }
     else
     {
@@ -93,7 +92,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
         std::uint64_t& opponent_pieces { is_black_to_play ? bb.w_pieces : bb.b_pieces };
 
         // En-passent captures are special - the piece to be taken off the board isn't the target move square.
-        if (type & move::move_type::EN_PASSENT_CAPTURE)
+        if (type & move::move_type::EN_PASSENT)
         {
             const std::uint64_t capture_bb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
 
@@ -117,17 +116,14 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
 
         bb.ply_50m = 0;
     }
-    // If the move was a double pawn push we have to update the en-passent target square for the next move.
-    else if (type & move::move_type::DOUBLE_PAWN_PUSH)
-    {
-        bb.en_passent_mb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
-
-        bb.ply_50m = 0;
-    }
-    // If the move was just a single pawn push we still need to reset the ply counter for the 50 move rule.
-    else if (type & move::move_type::SINGLE_PAWN_PUSH)
+    // If the move was just a pawn push we need to reset the ply counter for the 50 move rule.
+    else if (type & move::move_type::PAWN_PUSH)
     {
         bb.ply_50m = 0;
+        
+        // If the move was a double pawn push we have to update the en-passent target square for the next move.
+        if (info == move::move_info::PAWN_PUSH_DOUBLE)
+            bb.en_passent_mb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
     }
     // Otherwise we can increment the counter towards the 50 move limit.
     else
@@ -138,7 +134,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     // Handle moving the rook for castling (legality is checked above).
     if (type & move::move_type::CASTLE)
     {
-        if (type & move::move_type::CASTLE_KS)
+        if (info == move::move_info::CASTLE_KS)
         {
             if (is_black_to_play)
             {
