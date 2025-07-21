@@ -23,7 +23,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     const std::uint64_t from_to_bb { from_bb | to_bb };
 
     // Increment the ply counter and reset the en-passent square.
-    bb.en_passent_mb = 0;
+    bb.en_passent_bb = 0;
     bb.ply_counter++;
 
     // We first check the legality of castling from and through check. It's clearest (I haven't
@@ -123,7 +123,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
         
         // If the move was a double pawn push we have to update the en-passent target square for the next move.
         if (info == move::move_info::PAWN_PUSH_DOUBLE)
-            bb.en_passent_mb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
+            bb.en_passent_bb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
     }
     // Otherwise we can increment the counter towards the 50 move limit.
     else

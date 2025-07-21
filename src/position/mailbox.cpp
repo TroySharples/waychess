@@ -49,8 +49,8 @@ mailbox::mailbox(const bitboard& bb)
             squares[i] = piece_idx::empty;
     }
 
-    if (bb.en_passent_mb)
-        en_passent_square.emplace(std::countr_zero(bb.en_passent_mb));
+    if (bb.en_passent_bb)
+        en_passent_square.emplace(std::countr_zero(bb.en_passent_bb));
 
     castling_w_ks = bb.castling & bitboard::CASTLING_W_KS;
     castling_w_qs = bb.castling & bitboard::CASTLING_W_QS;

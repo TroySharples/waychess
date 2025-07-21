@@ -16,7 +16,7 @@ bitboard::bitboard(const mailbox& mb)
     for (std::underlying_type_t<piece_idx> p = b_pawn; p <= b_queen; p++)
         b_pieces |= boards[p];
 
-    en_passent_mb = mb.en_passent_square.has_value() ? get_bitboard_mailbox_piece(*mb.en_passent_square) : 0;
+    en_passent_bb = mb.en_passent_square.has_value() ? get_bitboard_mailbox_piece(*mb.en_passent_square) : 0;
 
     castling = 0;
     if (mb.castling_w_ks) castling |= CASTLING_W_KS;
