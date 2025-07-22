@@ -138,26 +138,30 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
         {
             if (is_black_to_play)
             {
-                bb.boards[piece_idx::b_rook] ^= (FILE_H & RANK_8) | (FILE_F & RANK_8);
-                bb.boards[piece_idx::b_any] ^= (FILE_H & RANK_8) | (FILE_F & RANK_8);
+                constexpr std::uint64_t from_to_bb { (FILE_H & RANK_8) | (FILE_F & RANK_8) };
+                bb.boards[piece_idx::b_rook] ^= from_to_bb;
+                bb.boards[piece_idx::b_any]  ^= from_to_bb;
             }
             else
             {
-                bb.boards[piece_idx::w_rook] ^= (FILE_H & RANK_1) | (FILE_F & RANK_1);
-                bb.boards[piece_idx::w_any] ^= (FILE_H & RANK_1) | (FILE_F & RANK_1);
+                constexpr std::uint64_t from_to_bb { (FILE_H & RANK_1) | (FILE_F & RANK_1) };
+                bb.boards[piece_idx::w_rook] ^= from_to_bb;
+                bb.boards[piece_idx::w_any]  ^= from_to_bb;
             }
         }
         else
         {
             if (is_black_to_play)
             {
-                bb.boards[piece_idx::b_rook] ^= (FILE_A & RANK_8) | (FILE_D & RANK_8);
-                bb.boards[piece_idx::b_any] ^= (FILE_A & RANK_8) | (FILE_D & RANK_8);
+                constexpr std::uint64_t from_to_bb { (FILE_A & RANK_8) | (FILE_D & RANK_8) };
+                bb.boards[piece_idx::b_rook] ^= from_to_bb;
+                bb.boards[piece_idx::b_any]  ^= from_to_bb;
             }
             else
             {
-                bb.boards[piece_idx::w_rook] ^= (FILE_A & RANK_1) | (FILE_D & RANK_1);
-                bb.boards[piece_idx::w_any] ^= (FILE_A & RANK_1) | (FILE_D & RANK_1);
+                constexpr std::uint64_t from_to_bb { (FILE_A & RANK_1) | (FILE_D & RANK_1) };
+                bb.boards[piece_idx::w_rook] ^= from_to_bb;
+                bb.boards[piece_idx::w_any]  ^= from_to_bb;
             }
         }
     }
