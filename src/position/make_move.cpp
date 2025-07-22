@@ -9,7 +9,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
 {
     bool ret { true };
 
-    const std::uint8_t is_black_to_play   { static_cast<std::uint8_t>(bb.is_black_to_play() ? 010 : 000) };
+    const bool is_black_to_play   { bb.is_black_to_play() };
     std::uint64_t& to_move_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
 
     const std::uint8_t from_mb { move::deserialise_from_mb(move) };
@@ -75,10 +75,10 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
         bb.boards[piece] ^= from_bb;
         switch (info)
         {
-            case move::move_info::PROMOTION_QUEEN:  bb.boards[is_black_to_play | piece_idx::w_queen]  ^= to_bb; break;
-            case move::move_info::PROMOTION_KNIGHT: bb.boards[is_black_to_play | piece_idx::w_knight] ^= to_bb; break;
-            case move::move_info::PROMOTION_ROOK:   bb.boards[is_black_to_play | piece_idx::w_rook]   ^= to_bb; break;
-            case move::move_info::PROMOTION_BISHOP: bb.boards[is_black_to_play | piece_idx::w_bishop] ^= to_bb; break;
+            case move::move_info::PROMOTION_QUEEN:  bb.boards[is_black_to_play ? piece_idx::b_queen  : piece_idx::w_queen]  ^= to_bb; break;
+            case move::move_info::PROMOTION_KNIGHT: bb.boards[is_black_to_play ? piece_idx::b_knight : piece_idx::w_knight] ^= to_bb; break;
+            case move::move_info::PROMOTION_ROOK:   bb.boards[is_black_to_play ? piece_idx::b_rook   : piece_idx::w_rook]   ^= to_bb; break;
+            case move::move_info::PROMOTION_BISHOP: bb.boards[is_black_to_play ? piece_idx::b_bishop : piece_idx::w_bishop] ^= to_bb; break;
         }
     }
     else
@@ -97,14 +97,14 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
             const std::uint64_t capture_bb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
 
             opponent_pieces ^= capture_bb;
-            bb.boards[is_black_to_play ^ piece_idx::b_pawn] ^= capture_bb;
+            bb.boards[is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn] ^= capture_bb;
         }
         // For regular piece captures, we have to loop through the opponents piece bitboards to find the one containing
         // the piece to remove.
         else
         {
             opponent_pieces ^= to_bb;
-            for (std::uint8_t idx = (is_black_to_play ^ piece_idx::b_pawn); idx <= (is_black_to_play ^ piece_idx::b_queen); idx++)
+            for (std::uint8_t idx = is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn; idx <= is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen; idx++)
             {
                 if (std::uint64_t& capture_bitboard = bb.boards[idx]; capture_bitboard & to_bb)
                 {
