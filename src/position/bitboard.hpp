@@ -42,7 +42,7 @@ struct bitboard
     std::uint16_t ply_counter;
 
     // The number of ply since the last pawn-push or capture (used for 50 move drawing rule).
-    std::uint16_t ply_50m;
+    std::uint8_t ply_50m;
 
     bool is_black_to_play() const noexcept { return ply_counter & 1; }
     bool is_white_to_play() const noexcept { return !is_black_to_play(); }

@@ -20,7 +20,7 @@ struct mailbox
     mailbox(std::string_view fen);
 
     // Each entry in the array represents what is on each square. Index 0 represents
-    // a1 and index 63 represents h8,
+    // a1 and index 63 represents h8.
     std::array<piece_idx, 64> squares;
 
     // The location (if any) of the en-passent target square.
@@ -40,7 +40,7 @@ struct mailbox
     bool is_white_to_play() const noexcept { return !is_black_to_play(); }
 
     // The number of ply since the last pawn-push or capture (used for 50 move drawing rule).
-    std::uint16_t ply_50m;
+    std::uint8_t ply_50m;
 
     // Print the corresponding fen string.
     std::string get_fen_string() const noexcept;
