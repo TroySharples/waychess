@@ -7,7 +7,7 @@
 
 std::uint64_t get_attackers(const bitboard& bb, std::uint8_t mb)
 {
-    const std::uint64_t pieces_bb  { bb.w_pieces | bb.b_pieces };
+    const std::uint64_t pieces_bb  { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
 
     return (get_king_attacked_squares_from_mailbox(mb)              & (bb.boards[piece_idx::w_king]   | bb.boards[piece_idx::b_king]))
          | (get_knight_attacked_squares_from_mailbox(mb)            & (bb.boards[piece_idx::w_knight] | bb.boards[piece_idx::b_knight]))
@@ -19,7 +19,7 @@ std::uint64_t get_attackers(const bitboard& bb, std::uint8_t mb)
 
 std::uint64_t get_attackers_white(const bitboard& bb, std::uint8_t mb)
 {
-    const std::uint64_t pieces_bb  { bb.w_pieces | bb.b_pieces };
+    const std::uint64_t pieces_bb  { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
 
     return (get_king_attacked_squares_from_mailbox(mb)              & bb.boards[piece_idx::w_king])
          | (get_knight_attacked_squares_from_mailbox(mb)            & bb.boards[piece_idx::w_knight])
@@ -30,7 +30,7 @@ std::uint64_t get_attackers_white(const bitboard& bb, std::uint8_t mb)
 
 std::uint64_t get_attackers_black(const bitboard& bb, std::uint8_t mb)
 {
-    const std::uint64_t pieces_bb  { bb.w_pieces | bb.b_pieces };
+    const std::uint64_t pieces_bb  { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
 
     return (get_king_attacked_squares_from_mailbox(mb)              & bb.boards[piece_idx::b_king])
          | (get_knight_attacked_squares_from_mailbox(mb)            & bb.boards[piece_idx::b_knight])

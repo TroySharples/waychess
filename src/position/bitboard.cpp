@@ -9,12 +9,12 @@ bitboard::bitboard(const mailbox& mb)
         if (const auto p = mb.squares[i]; p != piece_idx::empty) 
             boards[p] |= get_bitboard_mailbox_piece(i);
 
-    w_pieces = 0;
+    boards[piece_idx::w_any] = 0;
     for (std::underlying_type_t<piece_idx> p = w_pawn; p <= w_queen; p++)
-        w_pieces |= boards[p];
-    b_pieces = 0;
+        boards[piece_idx::w_any] |= boards[p];
+    boards[piece_idx::b_any] = 0;
     for (std::underlying_type_t<piece_idx> p = b_pawn; p <= b_queen; p++)
-        b_pieces |= boards[p];
+        boards[piece_idx::b_any] |= boards[p];
 
     en_passent_bb = mb.en_passent_square.has_value() ? get_bitboard_mailbox_piece(*mb.en_passent_square) : 0;
 

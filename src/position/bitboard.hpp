@@ -19,12 +19,9 @@ struct bitboard
     // Construct from fen-string.
     bitboard(std::string_view fen);
 
-    // An array of bitboards (indexed by the piece-idx enum).
-    std::array<std::uint64_t, 12> boards;
-
-    // We additionally maintain bitboards for all white pieces and black pieces. We may
-    // add to this list in the future if needed.
-    std::uint64_t w_pieces, b_pieces;
+    // An array of bitboards (indexed by the piece-idx enum). This includes bitboards for
+    // all white and all black pieces.
+    std::array<std::uint64_t, 14> boards;
     
     // Contains at most a single one-bit, which is the en-passent target square created
     // by a possible double-pawn push on the last ply.

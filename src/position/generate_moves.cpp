@@ -13,8 +13,8 @@ std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn };
-    const std::uint64_t to_move_pieces { is_black_to_play ? bb.b_pieces : bb.w_pieces };
-    const std::uint64_t opponent_pieces { is_black_to_play ? bb.w_pieces : bb.b_pieces };
+    const std::uint64_t to_move_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
+    const std::uint64_t opponent_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
     const std::uint64_t all_pieces { to_move_pieces | opponent_pieces };
 
     for (std::uint64_t to_move_pawns { bb.boards[to_move_idx] }; to_move_pawns; )
@@ -88,8 +88,8 @@ std::size_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_king : piece_idx::w_king };
-    const std::uint64_t to_move_pieces { is_black_to_play ? bb.b_pieces : bb.w_pieces };
-    const std::uint64_t opponent_pieces { is_black_to_play ? bb.w_pieces : bb.b_pieces };
+    const std::uint64_t to_move_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
+    const std::uint64_t opponent_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
     const std::uint64_t all_pieces { to_move_pieces | opponent_pieces };
 
     // There's always going to be exactly one king per colour on the board - no need to ls1b-isolate.
@@ -160,8 +160,8 @@ std::size_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t> move_b
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_knight : piece_idx::w_knight };
-    const std::uint64_t to_move_pieces { is_black_to_play ? bb.b_pieces : bb.w_pieces };
-    const std::uint64_t opponent_pieces { is_black_to_play ? bb.w_pieces : bb.b_pieces };
+    const std::uint64_t to_move_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
+    const std::uint64_t opponent_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
 
     for (std::uint64_t to_move_knights { bb.boards[to_move_idx] }; to_move_knights; )
     {
@@ -194,8 +194,8 @@ std::size_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t> move_b
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_bishop : piece_idx::w_bishop };
-    const std::uint64_t to_move_pieces { is_black_to_play ? bb.b_pieces : bb.w_pieces };
-    const std::uint64_t opponent_pieces { is_black_to_play ? bb.w_pieces : bb.b_pieces };
+    const std::uint64_t to_move_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
+    const std::uint64_t opponent_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
     const std::uint64_t all_pieces { to_move_pieces | opponent_pieces };
 
     for (std::uint64_t to_move_bishops { bb.boards[to_move_idx] }; to_move_bishops; )
@@ -229,8 +229,8 @@ std::size_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_rook : piece_idx::w_rook };
-    const std::uint64_t to_move_pieces { is_black_to_play ? bb.b_pieces : bb.w_pieces };
-    const std::uint64_t opponent_pieces { is_black_to_play ? bb.w_pieces : bb.b_pieces };
+    const std::uint64_t to_move_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
+    const std::uint64_t opponent_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
     const std::uint64_t all_pieces { to_move_pieces | opponent_pieces };
 
     for (std::uint64_t to_move_rooks { bb.boards[to_move_idx] }; to_move_rooks; )
@@ -264,8 +264,8 @@ std::size_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> move_bu
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_queen : piece_idx::w_queen };
-    const std::uint64_t to_move_pieces { is_black_to_play ? bb.b_pieces : bb.w_pieces };
-    const std::uint64_t opponent_pieces { is_black_to_play ? bb.w_pieces : bb.b_pieces };
+    const std::uint64_t to_move_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
+    const std::uint64_t opponent_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
     const std::uint64_t all_pieces { to_move_pieces | opponent_pieces };
 
     for (std::uint64_t to_move_queens { bb.boards[to_move_idx] }; to_move_queens; )

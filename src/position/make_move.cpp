@@ -10,7 +10,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     bool ret { true };
 
     const bool is_black_to_play   { bb.is_black_to_play() };
-    std::uint64_t& to_move_pieces { is_black_to_play ? bb.b_pieces : bb.w_pieces };
+    std::uint64_t& to_move_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
 
     const std::uint8_t from_mb { move::deserialise_from_mb(move) };
     const std::uint8_t to_mb   { move::deserialise_to_mb(move) };
@@ -89,7 +89,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     // Handle piece captures.
     if (move::move_type::is_capture(type))
     {
-        std::uint64_t& opponent_pieces { is_black_to_play ? bb.w_pieces : bb.b_pieces };
+        std::uint64_t& opponent_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
 
         // En-passent captures are special - the piece to be taken off the board isn't the target move square.
         if (move::move_type::is_en_passent(type))
@@ -139,12 +139,12 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
             if (is_black_to_play)
             {
                 bb.boards[piece_idx::b_rook] ^= (FILE_H & RANK_8) | (FILE_F & RANK_8);
-                bb.b_pieces ^= (FILE_H & RANK_8) | (FILE_F & RANK_8);
+                bb.boards[piece_idx::b_any] ^= (FILE_H & RANK_8) | (FILE_F & RANK_8);
             }
             else
             {
                 bb.boards[piece_idx::w_rook] ^= (FILE_H & RANK_1) | (FILE_F & RANK_1);
-                bb.w_pieces ^= (FILE_H & RANK_1) | (FILE_F & RANK_1);
+                bb.boards[piece_idx::w_any] ^= (FILE_H & RANK_1) | (FILE_F & RANK_1);
             }
         }
         else
@@ -152,12 +152,12 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
             if (is_black_to_play)
             {
                 bb.boards[piece_idx::b_rook] ^= (FILE_A & RANK_8) | (FILE_D & RANK_8);
-                bb.b_pieces ^= (FILE_A & RANK_8) | (FILE_D & RANK_8);
+                bb.boards[piece_idx::b_any] ^= (FILE_A & RANK_8) | (FILE_D & RANK_8);
             }
             else
             {
                 bb.boards[piece_idx::w_rook] ^= (FILE_A & RANK_1) | (FILE_D & RANK_1);
-                bb.w_pieces ^= (FILE_A & RANK_1) | (FILE_D & RANK_1);
+                bb.boards[piece_idx::w_any] ^= (FILE_A & RANK_1) | (FILE_D & RANK_1);
             }
         }
     }

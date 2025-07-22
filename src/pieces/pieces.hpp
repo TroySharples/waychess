@@ -7,24 +7,27 @@
 #include "bishop.hpp"
 #include "queen.hpp"
 
-// This types is also used to index our array of bitboards. We don't actually maintain a
-// bitboard for empty squares at the moment - this is only included for easier serialisation
-// and deserialisation.
+// Enumerates our piece types. This is also used to index our array of bitboards, which includes
+// the all-white / all-black bitboards. We also have an empty piece idx (even though we don't
+// maintain an empty bitboard), which is convenient in mailbox representations. Note that the
+// first three bits of each piece type match for each side, which helps in some comparison logic.
 enum piece_idx : std::uint8_t
 {
-    w_pawn    = 0x00,
-    w_knight  = 0x01,
-    w_rook    = 0x02,
-    w_bishop  = 0x03,
-    w_king    = 0x04,
-    w_queen   = 0x05,
-    b_pawn    = 0x06,
-    b_knight  = 0x07,
-    b_rook    = 0x08,
-    b_bishop  = 0x09,
-    b_king    = 0x0a,
-    b_queen   = 0x0b,
-    empty     = 0x0c
+    w_pawn   = 000,
+    w_knight = 001,
+    w_rook   = 002,
+    w_bishop = 003,
+    w_king   = 004,
+    w_queen  = 005,
+    w_any    = 006,
+    b_any    = 007,
+    b_pawn   = 010,
+    b_knight = 011,
+    b_rook   = 012,
+    b_bishop = 013,
+    b_king   = 014,
+    b_queen  = 015,
+    empty    = 016
 };
 
 // Prints piece as unicode chess piece symbol.
