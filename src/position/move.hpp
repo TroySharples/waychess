@@ -12,7 +12,7 @@
 //      6 - 11 : to-square mb
 //     12 - 15 : piece idx
 //     16 - 18 : move-type bitmask
-//     21 - 22 : move-info enum
+//     19 - 20 : move-info enum
 //     23 - 26 : unmake-castling
 //     27 - 31 : unmake-en-passent
 
@@ -69,7 +69,7 @@ constexpr std::uint32_t serialise_from_mb(std::uint8_t mb)                    no
 constexpr std::uint32_t serialise_to_mb(std::uint8_t mb)                      noexcept { return mb << 6; }
 constexpr std::uint32_t serialise_piece_idx(piece_idx p)                      noexcept { return static_cast<std::uint32_t>(p) << 12; }
 constexpr std::uint32_t serialise_move_type(std::uint8_t move_type)           noexcept { return move_type << 16; }
-constexpr std::uint32_t serialise_move_info(std::uint8_t move_info)           noexcept { return move_info << 21; }
+constexpr std::uint32_t serialise_move_info(std::uint8_t move_info)           noexcept { return move_info << 19; }
 constexpr std::uint32_t serialise_unmake_castling(std::uint8_t castling)      noexcept { return castling << 23; }
 constexpr std::uint32_t serialise_unmake_en_passent(std::uint64_t en_passent) noexcept { return en_passent ? (_pext_u32(std::countr_zero(en_passent), 0b100111) | 0x10) << 27 : 0; }
 
@@ -88,7 +88,7 @@ constexpr std::uint8_t  deserialise_from_mb(std::uint32_t move)           noexce
 constexpr std::uint8_t  deserialise_to_mb(std::uint32_t move)             noexcept { return move >> 6 & 0x3f; }
 constexpr piece_idx     deserialise_piece_idx(std::uint32_t move)         noexcept { return static_cast<piece_idx>(move >> 12 & 0x0f); }
 constexpr std::uint8_t  deserialise_move_type(std::uint32_t move)         noexcept { return move >> 16 & 0x07; }
-constexpr std::uint8_t  deserialise_move_info(std::uint32_t move)         noexcept { return move >> 21 & 0x03; }
+constexpr std::uint8_t  deserialise_move_info(std::uint32_t move)         noexcept { return move >> 19 & 0x03; }
 constexpr std::uint8_t  deserialise_unmake_castling(std::uint32_t move)   noexcept { return move >> 23 & 0x0f; }
 constexpr std::uint64_t deserialise_unmake_en_passent(std::uint32_t move) noexcept { return move & 0x80000000 ? 1ULL << (_pdep_u32(move >> 27 & 0x1f, 0b100111) | 0b001000) : 0; }
 
