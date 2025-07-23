@@ -12,9 +12,10 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     const bool is_black_to_play   { bb.is_black_to_play() };
     std::uint64_t& to_move_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
 
+    // The move only contains the piece up to colour - exactly which colour piece must be derived from the side-to-play.
     const std::uint8_t from_mb { move::deserialise_from_mb(move) };
     const std::uint8_t to_mb   { move::deserialise_to_mb(move) };
-    const piece_idx piece      { move::deserialise_piece_idx(move) };
+    const piece_idx piece      { static_cast<piece_idx>(move::deserialise_piece_idx(move) | (is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn)) };
     const std::uint8_t type    { move::deserialise_move_type(move) };
     const std::uint8_t info    { move::deserialise_move_info(move) };
 

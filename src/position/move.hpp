@@ -10,7 +10,7 @@
 // castling rights and en-passent squares in the position.
 //      0 -  5 : from-square mb
 //      6 - 11 : to-square mb
-//     12 - 15 : piece idx
+//     12 - 14 : piece idx
 //     16 - 18 : move-type bitmask
 //     19 - 20 : move-info enum
 //     23 - 26 : unmake-castling
@@ -67,7 +67,7 @@ constexpr std::uint8_t PAWN_PUSH_DOUBLE { 0b01 };
 
 constexpr std::uint32_t serialise_from_mb(std::uint8_t mb)                    noexcept { return mb; } 
 constexpr std::uint32_t serialise_to_mb(std::uint8_t mb)                      noexcept { return mb << 6; }
-constexpr std::uint32_t serialise_piece_idx(piece_idx p)                      noexcept { return static_cast<std::uint32_t>(p) << 12; }
+constexpr std::uint32_t serialise_piece_idx(piece_idx p)                      noexcept { return static_cast<std::uint32_t>(p & 0x07) << 12; }
 constexpr std::uint32_t serialise_move_type(std::uint8_t move_type)           noexcept { return move_type << 16; }
 constexpr std::uint32_t serialise_move_info(std::uint8_t move_info)           noexcept { return move_info << 19; }
 constexpr std::uint32_t serialise_unmake_castling(std::uint8_t castling)      noexcept { return castling << 23; }
@@ -86,7 +86,7 @@ constexpr std::uint32_t serialise(std::uint8_t from_square, std::uint8_t to_squa
 
 constexpr std::uint8_t  deserialise_from_mb(std::uint32_t move)           noexcept { return move & 0x3f; }
 constexpr std::uint8_t  deserialise_to_mb(std::uint32_t move)             noexcept { return move >> 6 & 0x3f; }
-constexpr piece_idx     deserialise_piece_idx(std::uint32_t move)         noexcept { return static_cast<piece_idx>(move >> 12 & 0x0f); }
+constexpr piece_idx     deserialise_piece_idx(std::uint32_t move)         noexcept { return static_cast<piece_idx>(move >> 12 & 0x07); }
 constexpr std::uint8_t  deserialise_move_type(std::uint32_t move)         noexcept { return move >> 16 & 0x07; }
 constexpr std::uint8_t  deserialise_move_info(std::uint32_t move)         noexcept { return move >> 19 & 0x03; }
 constexpr std::uint8_t  deserialise_unmake_castling(std::uint32_t move)   noexcept { return move >> 23 & 0x0f; }
