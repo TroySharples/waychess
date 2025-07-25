@@ -30,6 +30,16 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
     bb.en_passent_bb = 0;
     bb.ply_counter++;
 
+    // Handle the removal of castling rights. We also have to remember to remove castling rights in the event one of our rooks gets
+    // captured - this is actually quite subtle... There might be a more efficient way of doing this (e.g. only filtering on rook / king
+    // moves and captures).
+    if (from_to_bb & (FILE_A & RANK_1)) bb.castling &= ~bitboard::CASTLING_W_QS;
+    if (from_to_bb & (FILE_H & RANK_1)) bb.castling &= ~bitboard::CASTLING_W_KS;
+    if (from_to_bb & (FILE_E & RANK_1)) bb.castling &= ~(bitboard::CASTLING_W_QS | bitboard::CASTLING_W_KS);
+    if (from_to_bb & (FILE_A & RANK_8)) bb.castling &= ~bitboard::CASTLING_B_QS;
+    if (from_to_bb & (FILE_H & RANK_8)) bb.castling &= ~bitboard::CASTLING_B_KS;
+    if (from_to_bb & (FILE_E & RANK_8)) bb.castling &= ~(bitboard::CASTLING_B_QS | bitboard::CASTLING_B_KS);
+
     // Next we handle mechanically moving the side-to-plays piece. We have to be careful about the special case of
     // pawn promotions when updating the piece-specific bitboard.
     to_move_pieces ^= from_to_bb;
@@ -157,28 +167,6 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
                 ret = !get_attackers_black(bb, std::countr_zero(bb.boards[piece_idx::w_king]));
             }
         }
-    }
-
-    // Handle the removal of castling rights. We also have to remember to remove castling rights in the event one of our rooks gets
-    // captured - this is actually quite subtle... There might be a more efficient way of doing this (e.g. only filtering on rook / king
-    // moves and captures).
-    switch (piece)
-    {
-        case piece_idx::w_king:
-            bb.castling &= ~(bitboard::CASTLING_W_KS | bitboard::CASTLING_W_QS);
-            break;
-        case piece_idx::b_king:
-            bb.castling &= ~(bitboard::CASTLING_B_KS | bitboard::CASTLING_B_QS);
-            break;
-        default:
-            NULL;
-    }
-    if (move::move_type::is_capture(type) || piece == piece_idx::w_rook || piece == piece_idx::b_rook)
-    {
-        if (from_to_bb & (FILE_A & RANK_1)) bb.castling &= ~bitboard::CASTLING_W_QS;
-        if (from_to_bb & (FILE_H & RANK_1)) bb.castling &= ~bitboard::CASTLING_W_KS;
-        if (from_to_bb & (FILE_A & RANK_8)) bb.castling &= ~bitboard::CASTLING_B_QS;
-        if (from_to_bb & (FILE_H & RANK_8)) bb.castling &= ~bitboard::CASTLING_B_KS;
     }
 
     return ret;
