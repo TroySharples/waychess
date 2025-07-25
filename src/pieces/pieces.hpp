@@ -14,18 +14,18 @@
 enum piece_idx : std::uint8_t
 {
     w_pawn   = 000,
-    w_knight = 001,
-    w_rook   = 002,
-    w_bishop = 003,
-    w_king   = 004,
-    w_queen  = 005,
+    w_king   = 001,
+    w_knight = 002,
+    w_rook   = 003,
+    w_queen  = 004,
+    w_bishop = 005,
     w_any    = 006,
     b_any    = 007,
     b_pawn   = 010,
-    b_knight = 011,
-    b_rook   = 012,
+    b_king   = 011,
+    b_knight = 012,
     b_bishop = 013,
-    b_king   = 014,
+    b_rook   = 014,
     b_queen  = 015,
     empty    = 016
 };
