@@ -5,7 +5,7 @@
 namespace
 {
 
-std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf)
+std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -31,10 +31,10 @@ std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
                 // Test if this pawn move will result in promotion.
                 if (attack & (is_black_to_play ? RANK_1 : RANK_8))
                 {
-                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(move::move_info::PROMOTION_QUEEN);
-                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(move::move_info::PROMOTION_KNIGHT);
-                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(move::move_info::PROMOTION_ROOK);
-                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(move::move_info::PROMOTION_BISHOP);
+                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_queen);
+                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_knight);
+                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_rook);
+                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_bishop);
                 }
                 else
                 {
@@ -54,10 +54,10 @@ std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
             // Test if this pawn move will result in promotion.
             if (push & (is_black_to_play ? RANK_1 : RANK_8))
             {
-                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(move::move_info::PROMOTION_QUEEN);
-                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(move::move_info::PROMOTION_KNIGHT);
-                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(move::move_info::PROMOTION_ROOK);
-                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(move::move_info::PROMOTION_BISHOP);
+                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_queen);
+                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_knight);
+                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_rook);
+                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_bishop);
             }
             else
             {
@@ -78,7 +78,7 @@ std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
     return ret;
 }
 
-std::size_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> move_buf)
+std::size_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -148,7 +148,7 @@ std::size_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
     return ret;
 }
 
-std::size_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t> move_buf)
+std::size_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -180,7 +180,7 @@ std::size_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t> move_b
     return ret;
 }
 
-std::size_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t> move_buf)
+std::size_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -213,7 +213,7 @@ std::size_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t> move_b
     return ret;
 }
 
-std::size_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> move_buf)
+std::size_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -246,7 +246,7 @@ std::size_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
     return ret;
 }
 
-std::size_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> move_buf)
+std::size_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -281,7 +281,7 @@ std::size_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> move_bu
 
 }
 
-std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf)
+std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 

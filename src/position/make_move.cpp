@@ -5,7 +5,10 @@
 #include "position.hpp"
 #include "position/generate_moves.hpp"
 
-bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
+namespace
+{
+
+bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move, std::uint8_t& capture_idx) noexcept
 {
     bool ret { true };
 
@@ -74,13 +77,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     if (move::move_type::is_promotion(type))
     {
         bb.boards[piece] ^= from_bb;
-        switch (info)
-        {
-            case move::move_info::PROMOTION_QUEEN:  bb.boards[is_black_to_play ? piece_idx::b_queen  : piece_idx::w_queen]  ^= to_bb; break;
-            case move::move_info::PROMOTION_KNIGHT: bb.boards[is_black_to_play ? piece_idx::b_knight : piece_idx::w_knight] ^= to_bb; break;
-            case move::move_info::PROMOTION_ROOK:   bb.boards[is_black_to_play ? piece_idx::b_rook   : piece_idx::w_rook]   ^= to_bb; break;
-            case move::move_info::PROMOTION_BISHOP: bb.boards[is_black_to_play ? piece_idx::b_bishop : piece_idx::w_bishop] ^= to_bb; break;
-        }
+        bb.boards[info | (is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn)] ^= to_bb;
     }
     else
     {
@@ -88,6 +85,7 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     }
 
     // Handle piece captures.
+    capture_idx = 0;
     if (move::move_type::is_capture(type))
     {
         std::uint64_t& opponent_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
@@ -101,18 +99,20 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
             bb.boards[is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn] ^= capture_bb;
         }
         // For regular piece captures, we have to loop through the opponents piece bitboards to find the one containing
-        // the piece to remove.
+        // the piece to remove. We also have to remember to fill in the unmake-move so we can recover the piece when
+        // going in reverse.
         else
         {
             opponent_pieces ^= to_bb;
-            for (std::uint8_t idx = is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn; idx <= is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen; idx++)
+            for (capture_idx = is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn; capture_idx <= (is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen); capture_idx++)
             {
-                if (std::uint64_t& capture_bitboard = bb.boards[idx]; capture_bitboard & to_bb)
+                if (std::uint64_t& capture_bitboard = bb.boards[capture_idx]; capture_bitboard & to_bb)
                 {
                     capture_bitboard ^= to_bb;
                     break;
                 }
             }
+            capture_idx |= 0x10;
         }
 
         bb.ply_50m = 0;
@@ -195,4 +195,26 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move)
     }
 
     return ret;
+}
+
+}
+
+bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move, std::uint32_t& unmake) noexcept
+{
+    // The first 18 bits of the unmake are the same as the forward move.
+    unmake = move & 0x3ffff;
+
+    std::uint8_t captured_piece;
+    const bool ret { make_move_impl(args, bb, move, captured_piece) };
+
+    // TODO: fill out the inverse move parameters.
+
+    return ret;
+
+}
+
+bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move) noexcept
+{
+    std::uint8_t captured_piece;
+    return make_move_impl(args, bb, move, captured_piece);
 }
