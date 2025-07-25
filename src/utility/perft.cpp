@@ -19,7 +19,7 @@ std::size_t perft_recursive(const bitboard& bb, std::size_t depth, std::span<std
         bitboard next_position = bb;
 
         constexpr make_move_args args { .check_legality = true };
-        if (!make_move(args, next_position, move_buf[i]))
+        if (!make_move(args, next_position, move_buf[i])) [[unlikely]]
             continue;
 
         ret += perft_recursive(next_position, depth-1, move_buf.subspan(moves));
