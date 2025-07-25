@@ -12,8 +12,6 @@ add_library(lib-waychess STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/pieces.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/position/bitboard.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/position/mailbox.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/position/generate_moves.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/position/make_move.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/position/move.cpp
 )
 target_include_directories(lib-waychess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

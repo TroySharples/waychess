@@ -1,14 +1,15 @@
-#include "make_move.hpp"
+#pragma once
 
-#include "move.hpp"
+#include "position/make_move.hpp"
+
+#include "position/move.hpp"
+#include "position/position.hpp"
 #include "pieces/pieces.hpp"
-#include "position.hpp"
-#include "position/generate_moves.hpp"
 
-namespace
+namespace details
 {
 
-bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move, std::uint8_t& capture_idx) noexcept
+inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move, std::uint8_t& capture_idx) noexcept
 {
     bool ret { true };
 
@@ -171,13 +172,13 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
 
 }
 
-bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move, std::uint32_t& unmake) noexcept
+inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move, std::uint32_t& unmake) noexcept
 {
     // The first 18 bits of the unmake are the same as the forward move.
     unmake = move & 0x3ffff;
 
     std::uint8_t captured_piece;
-    const bool ret { make_move_impl(args, bb, move, captured_piece) };
+    const bool ret { details::make_move_impl(args, bb, move, captured_piece) };
 
     // TODO: fill out the inverse move parameters.
 
@@ -185,8 +186,8 @@ bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move, std
 
 }
 
-bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move) noexcept
+inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move) noexcept
 {
     std::uint8_t captured_piece;
-    return make_move_impl(args, bb, move, captured_piece);
+    return details::make_move_impl(args, bb, move, captured_piece);
 }

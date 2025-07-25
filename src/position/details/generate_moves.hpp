@@ -1,11 +1,13 @@
-#include "generate_moves.hpp"
+#pragma once
 
-#include "move.hpp"
+#include "position/generate_moves.hpp"
 
-namespace
+#include "position/move.hpp"
+
+namespace details
 {
 
-std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -78,7 +80,7 @@ std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
     return ret;
 }
 
-std::size_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -148,7 +150,7 @@ std::size_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
     return ret;
 }
 
-std::size_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -180,7 +182,7 @@ std::size_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t> move_b
     return ret;
 }
 
-std::size_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -213,7 +215,7 @@ std::size_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t> move_b
     return ret;
 }
 
-std::size_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -246,7 +248,7 @@ std::size_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
     return ret;
 }
 
-std::size_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -281,7 +283,7 @@ std::size_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> move_bu
 
 }
 
-std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -289,12 +291,12 @@ std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint3
     // later on. This could look like just generating piece moves that are likely to be good first, or possibly running
     // some sort of sorting algorithm on the moves vector before returning.
 
-    ret += get_pawn_moves(bb, move_buf.subspan(ret));
-    ret += get_king_moves(bb, move_buf.subspan(ret));
-    ret += get_knight_moves(bb, move_buf.subspan(ret));
-    ret += get_bishop_moves(bb, move_buf.subspan(ret));
-    ret += get_rook_moves(bb, move_buf.subspan(ret));
-    ret += get_queen_moves(bb, move_buf.subspan(ret));
+    ret += details::get_pawn_moves(bb, move_buf.subspan(ret));
+    ret += details::get_king_moves(bb, move_buf.subspan(ret));
+    ret += details::get_knight_moves(bb, move_buf.subspan(ret));
+    ret += details::get_bishop_moves(bb, move_buf.subspan(ret));
+    ret += details::get_rook_moves(bb, move_buf.subspan(ret));
+    ret += details::get_queen_moves(bb, move_buf.subspan(ret));
 
     return ret;
 }
