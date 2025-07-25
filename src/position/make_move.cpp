@@ -30,15 +30,12 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
     bb.en_passent_bb = 0;
     bb.ply_counter++;
 
-    // Handle the removal of castling rights. We also have to remember to remove castling rights in the event one of our rooks gets
-    // captured - this is actually quite subtle... There might be a more efficient way of doing this (e.g. only filtering on rook / king
-    // moves and captures).
-    if (from_to_bb & (FILE_A & RANK_1)) bb.castling &= ~bitboard::CASTLING_W_QS;
-    if (from_to_bb & (FILE_H & RANK_1)) bb.castling &= ~bitboard::CASTLING_W_KS;
-    if (from_to_bb & (FILE_E & RANK_1)) bb.castling &= ~(bitboard::CASTLING_W_QS | bitboard::CASTLING_W_KS);
-    if (from_to_bb & (FILE_A & RANK_8)) bb.castling &= ~bitboard::CASTLING_B_QS;
-    if (from_to_bb & (FILE_H & RANK_8)) bb.castling &= ~bitboard::CASTLING_B_KS;
-    if (from_to_bb & (FILE_E & RANK_8)) bb.castling &= ~(bitboard::CASTLING_B_QS | bitboard::CASTLING_B_KS);
+    // Handle the removal of castling rights. We use the from-to bitboard instead of just the from one as we also have
+    // to remember to remove castling rights in the event one of our rooks gets captured - this is actually quite subtle...
+    if (from_to_bb & ((FILE_E & RANK_1) | (FILE_A & RANK_1))) bb.castling &= ~bitboard::CASTLING_W_QS;
+    if (from_to_bb & ((FILE_E & RANK_1) | (FILE_H & RANK_1))) bb.castling &= ~bitboard::CASTLING_W_KS;
+    if (from_to_bb & ((FILE_E & RANK_8) | (FILE_A & RANK_8))) bb.castling &= ~bitboard::CASTLING_B_QS;
+    if (from_to_bb & ((FILE_E & RANK_8) | (FILE_H & RANK_8))) bb.castling &= ~bitboard::CASTLING_B_KS;
 
     // Next we handle mechanically moving the side-to-plays piece. We have to be careful about the special case of
     // pawn promotions when updating the piece-specific bitboard.
