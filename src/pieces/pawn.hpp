@@ -25,6 +25,8 @@ std::uint64_t get_white_pawn_double_attacked_squares_from_bitboard(std::uint64_t
 
 std::uint64_t get_white_pawn_all_attacked_squares_from_mailbox(std::uint8_t mb) noexcept;
 
+inline std::uint64_t get_white_pawn_all_attacked_squares_from_mailboxes(auto... mbs) noexcept { return (get_white_pawn_all_attacked_squares_from_mailbox(mbs) | ...); }
+
 std::uint64_t get_black_pawn_west_attacked_squares_from_bitboard(std::uint64_t bb) noexcept;
 std::uint64_t get_black_pawn_east_attacked_squares_from_bitboard(std::uint64_t bb) noexcept;
 std::uint64_t get_black_pawn_all_attacked_squares_from_bitboard(std::uint64_t bb) noexcept;
@@ -32,6 +34,8 @@ std::uint64_t get_black_pawn_single_attacked_squares_from_bitboard(std::uint64_t
 std::uint64_t get_black_pawn_double_attacked_squares_from_bitboard(std::uint64_t bb) noexcept;
 
 std::uint64_t get_black_pawn_all_attacked_squares_from_mailbox(std::uint8_t mb) noexcept;
+
+inline std::uint64_t get_black_pawn_all_attacked_squares_from_mailboxes(auto... mbs) noexcept { return (get_black_pawn_all_attacked_squares_from_mailbox(mbs) | ...); }
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // PUSHES

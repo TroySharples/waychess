@@ -103,7 +103,7 @@ std::uint64_t get_bishop_blocker_squares_from_mailbox(std::uint8_t mb) noexcept
     return blocker_table_bishop[mb];
 }
 
-std::uint64_t get_bishop_attacked_squares_from_mailbox(std::uint8_t mb, std::uint64_t pos) noexcept
+std::uint64_t get_bishop_attacked_squares_from_mailbox(std::uint64_t pos, std::uint8_t mb) noexcept
 {
     return attack_table_bishop[mb][pos];
 }

@@ -195,7 +195,7 @@ std::size_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t> move_b
         const std::uint64_t bishop_bitboard { ls1b_isolate(to_move_bishops) };
         const std::uint8_t bishop_mailbox = std::countr_zero(bishop_bitboard);
 
-        for (std::uint64_t attacks { get_bishop_attacked_squares_from_mailbox(bishop_mailbox, all_pieces) & ~to_move_pieces }; attacks; )
+        for (std::uint64_t attacks { get_bishop_attacked_squares_from_mailbox(all_pieces, bishop_mailbox) & ~to_move_pieces }; attacks; )
         {
             const std::uint64_t attack { ls1b_isolate(attacks) };
 
@@ -228,7 +228,7 @@ std::size_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
         const std::uint64_t rook_bitboard { ls1b_isolate(to_move_rooks) };
         const std::uint8_t rook_mailbox = std::countr_zero(rook_bitboard);
 
-        for (std::uint64_t attacks { get_rook_attacked_squares_from_mailbox(rook_mailbox, all_pieces) & ~to_move_pieces }; attacks; )
+        for (std::uint64_t attacks { get_rook_attacked_squares_from_mailbox(all_pieces, rook_mailbox) & ~to_move_pieces }; attacks; )
         {
             const std::uint64_t attack { ls1b_isolate(attacks) };
 
@@ -261,7 +261,7 @@ std::size_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> move_bu
         const std::uint64_t queen_bitboard { ls1b_isolate(to_move_queens) };
         const std::uint8_t queen_mailbox = std::countr_zero(queen_bitboard);
 
-        for (std::uint64_t attacks { get_queen_attacked_squares_from_mailbox(queen_mailbox, all_pieces) & ~to_move_pieces }; attacks; )
+        for (std::uint64_t attacks { get_queen_attacked_squares_from_mailbox(all_pieces, queen_mailbox) & ~to_move_pieces }; attacks; )
         {
             const std::uint64_t attack { ls1b_isolate(attacks) };
 

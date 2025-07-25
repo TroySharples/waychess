@@ -52,7 +52,7 @@ std::uint64_t get_queen_blocker_squares_from_mailbox(std::uint8_t mb) noexcept
     return blocker_table_queen[mb];
 }
 
-std::uint64_t get_queen_attacked_squares_from_mailbox(std::uint8_t mb, std::uint64_t pos) noexcept
+std::uint64_t get_queen_attacked_squares_from_mailbox(std::uint64_t pos, std::uint8_t mb) noexcept
 {
-    return get_rook_attacked_squares_from_mailbox(mb, pos) | get_bishop_attacked_squares_from_mailbox(mb, pos);
+    return get_rook_attacked_squares_from_mailbox(pos, mb) | get_bishop_attacked_squares_from_mailbox(pos, mb);
 }
