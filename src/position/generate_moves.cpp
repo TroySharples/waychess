@@ -29,7 +29,7 @@ std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
                 const std::uint32_t move { move::serialise_make(pawn_mailbox, std::countr_zero(attack), to_move_idx, move::move_type::CAPTURE) };
 
                 // Test if this pawn move will result in promotion.
-                if (attack & (is_black_to_play ? RANK_1 : RANK_8))
+                if (attack & (is_black_to_play ? RANK_1 : RANK_8)) [[unlikely]]
                 {
                     move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_queen);
                     move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_knight);
@@ -52,7 +52,7 @@ std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf
             const std::uint32_t move { move::serialise_make(pawn_mailbox, std::countr_zero(push), to_move_idx, move::move_type::PAWN_PUSH, move::move_info::PAWN_PUSH_SINGLE)};
 
             // Test if this pawn move will result in promotion.
-            if (push & (is_black_to_play ? RANK_1 : RANK_8))
+            if (push & (is_black_to_play ? RANK_1 : RANK_8)) [[unlikely]]
             {
                 move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_queen);
                 move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_knight);

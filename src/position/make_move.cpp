@@ -40,7 +40,7 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
     // Next we handle mechanically moving the side-to-plays piece. We have to be careful about the special case of
     // pawn promotions when updating the piece-specific bitboard.
     to_move_pieces ^= from_to_bb;
-    if (move::move_type::is_promotion(type))
+    if (move::move_type::is_promotion(type)) [[unlikely]]
     {
         bb.boards[piece] ^= from_bb;
         bb.boards[info | (is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn)] ^= to_bb;
@@ -57,7 +57,7 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
         std::uint64_t& opponent_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
 
         // En-passent captures are special - the piece to be taken off the board isn't the target move square.
-        if (move::move_type::is_en_passent(type))
+        if (move::move_type::is_en_passent(type)) [[unlikely]]
         {
             const std::uint64_t capture_bb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
 
@@ -99,7 +99,7 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
     }
 
     // Handle moving the rook for castling (legality is checked below).
-    if (move::move_type::is_castle(type))
+    if (move::move_type::is_castle(type)) [[unlikely]]
     {
         if (info == move::move_info::CASTLE_KS)
         {
@@ -136,7 +136,7 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
     // Handle left-in-check legality checking.
     if (args.check_legality)
     {
-        if (move::move_type::is_castle(type))
+        if (move::move_type::is_castle(type)) [[unlikely]]
         {
             if (is_black_to_play)
             {
