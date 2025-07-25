@@ -2,6 +2,7 @@
 
 #include <span>
 #include <cstdint>
+#include <immintrin.h>
 
 // Move generation for sliding pieces needs to take into account the position of other pieces on the board
 // (i.e. blocking pieces). We do this using PEXT bitboards (all machines we are running this on will have
@@ -17,8 +18,8 @@ struct pext_bitboard
 {
     std::span<std::uint64_t> table;
     std::uint64_t mask;
-    const std::uint64_t& operator[](std::uint64_t x) const noexcept;
-    std::uint64_t& operator[](std::uint64_t x) noexcept;
+    const std::uint64_t& operator[](std::uint64_t x) const noexcept { return table[_pext_u64(x, mask)];}
+    std::uint64_t& operator[](std::uint64_t x) noexcept { return table[_pext_u64(x, mask)]; }
 };
 
 }
