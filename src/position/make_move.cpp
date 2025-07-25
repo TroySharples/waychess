@@ -32,10 +32,10 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
 
     // Handle the removal of castling rights. We use the from-to bitboard instead of just the from one as we also have
     // to remember to remove castling rights in the event one of our rooks gets captured - this is actually quite subtle...
-    if (from_to_bb & ((FILE_E & RANK_1) | (FILE_A & RANK_1))) bb.castling &= ~bitboard::CASTLING_W_QS;
-    if (from_to_bb & ((FILE_E & RANK_1) | (FILE_H & RANK_1))) bb.castling &= ~bitboard::CASTLING_W_KS;
-    if (from_to_bb & ((FILE_E & RANK_8) | (FILE_A & RANK_8))) bb.castling &= ~bitboard::CASTLING_B_QS;
-    if (from_to_bb & ((FILE_E & RANK_8) | (FILE_H & RANK_8))) bb.castling &= ~bitboard::CASTLING_B_KS;
+    if (from_to_bb & ((FILE_E & RANK_1) | (FILE_A & RANK_1))) [[unlikely]] bb.castling &= ~bitboard::CASTLING_W_QS;
+    if (from_to_bb & ((FILE_E & RANK_1) | (FILE_H & RANK_1))) [[unlikely]] bb.castling &= ~bitboard::CASTLING_W_KS;
+    if (from_to_bb & ((FILE_E & RANK_8) | (FILE_A & RANK_8))) [[unlikely]] bb.castling &= ~bitboard::CASTLING_B_QS;
+    if (from_to_bb & ((FILE_E & RANK_8) | (FILE_H & RANK_8))) [[unlikely]] bb.castling &= ~bitboard::CASTLING_B_KS;
 
     // Next we handle mechanically moving the side-to-plays piece. We have to be careful about the special case of
     // pawn promotions when updating the piece-specific bitboard.
