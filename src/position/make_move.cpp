@@ -30,47 +30,6 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
     bb.en_passent_bb = 0;
     bb.ply_counter++;
 
-    // We first check the legality of castling from and through check. It's clearest (I haven't
-    // decided if it's necessary) to do this first before any pieces have moved as not to influence
-    // the attacked-square calculation. This comes at the expense of duplicating the code tree
-    // structure of the rook-moving logic, but oh well.
-    if (args.check_legality && move::move_type::is_castle(type))
-    {
-        // The stratagy here is to keep track of the bitboard of attackers attacking the from and
-        // through castling squares attacked by the relevant side.
-        std::uint64_t attacked_squares {};
-
-        if (info == move::move_info::CASTLE_KS)
-        {
-            if (is_black_to_play)
-            {
-                attacked_squares |= get_attackers_white(bb, std::countr_zero(FILE_E & RANK_8))
-                                  | get_attackers_white(bb, std::countr_zero(FILE_F & RANK_8));
-            }
-            else
-            {
-                attacked_squares |= get_attackers_black(bb, std::countr_zero(FILE_E & RANK_1))
-                                  | get_attackers_black(bb, std::countr_zero(FILE_F & RANK_1));
-            }
-        }
-        else
-        {
-            if (is_black_to_play)
-            {
-                attacked_squares |= get_attackers_white(bb, std::countr_zero(FILE_E & RANK_8))
-                                  | get_attackers_white(bb, std::countr_zero(FILE_D & RANK_8));
-            }
-            else
-            {
-                attacked_squares |= get_attackers_black(bb, std::countr_zero(FILE_E & RANK_1))
-                                  | get_attackers_black(bb, std::countr_zero(FILE_D & RANK_1));
-            }
-        }
-
-        if (attacked_squares)
-            ret = false;
-    }
-
     // Next we handle mechanically moving the side-to-plays piece. We have to be careful about the special case of
     // pawn promotions when updating the piece-specific bitboard.
     to_move_pieces ^= from_to_bb;
@@ -121,7 +80,7 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
     else if (move::move_type::is_pawn_push(type))
     {
         bb.ply_50m = 0;
-        
+
         // If the move was a double pawn push we have to update the en-passent target square for the next move.
         if (info == move::move_info::PAWN_PUSH_DOUBLE)
             bb.en_passent_bb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
@@ -132,7 +91,7 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
         bb.ply_50m++;
     }
 
-    // Handle moving the rook for castling (legality is checked above).
+    // Handle moving the rook for castling (legality is checked below).
     if (move::move_type::is_castle(type))
     {
         if (info == move::move_info::CASTLE_KS)
@@ -168,9 +127,37 @@ bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move
     }
 
     // Handle left-in-check legality checking.
-    if (args.check_legality && (
-            is_black_to_play  ? get_attackers_white(bb, std::countr_zero(bb.boards[piece_idx::b_king])) : get_attackers_black(bb, std::countr_zero(bb.boards[piece_idx::w_king]))))
-        ret = false;
+    if (args.check_legality)
+    {
+        if (move::move_type::is_castle(type))
+        {
+            if (is_black_to_play)
+            {
+                if (info == move::move_info::CASTLE_KS)
+                    ret = !get_attackers_white(bb, std::countr_zero(FILE_E & RANK_8), std::countr_zero(FILE_F & RANK_8), std::countr_zero(FILE_G & RANK_8));
+                else
+                    ret = !get_attackers_white(bb, std::countr_zero(FILE_E & RANK_8), std::countr_zero(FILE_D & RANK_8), std::countr_zero(FILE_C & RANK_8));
+            }
+            else
+            {
+                if (info == move::move_info::CASTLE_KS)
+                    ret = !get_attackers_black(bb, std::countr_zero(FILE_E & RANK_1), std::countr_zero(FILE_F & RANK_1), std::countr_zero(FILE_G & RANK_1));
+                else
+                    ret = !get_attackers_black(bb, std::countr_zero(FILE_E & RANK_1), std::countr_zero(FILE_D & RANK_1), std::countr_zero(FILE_C & RANK_1));
+            }
+        }
+        else
+        {
+            if (is_black_to_play)
+            {
+                ret = !get_attackers_white(bb, std::countr_zero(bb.boards[piece_idx::b_king]));
+            }
+            else
+            {
+                ret = !get_attackers_black(bb, std::countr_zero(bb.boards[piece_idx::w_king]));
+            }
+        }
+    }
 
     // Handle the removal of castling rights. We also have to remember to remove castling rights in the event one of our rooks gets
     // captured - this is actually quite subtle... There might be a more efficient way of doing this (e.g. only filtering on rook / king
