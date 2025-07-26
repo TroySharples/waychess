@@ -34,8 +34,7 @@ void test_unmake_recursive(bitboard& bb, std::size_t depth, std::span<std::uint3
 
 void test_unmake(const char* fen, std::size_t depth)
 {
-    constexpr std::size_t max_moves_per_position { 218 };
-    std::vector<std::uint32_t> move_buf(depth*max_moves_per_position);
+    std::vector<std::uint32_t> move_buf(depth*MAX_MOVES_PER_POSITION);
 
     bitboard bb { fen };
     test_unmake_recursive(bb, depth, move_buf);

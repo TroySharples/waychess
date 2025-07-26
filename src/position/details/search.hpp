@@ -70,16 +70,14 @@ inline std::int16_t evaluate_minimax_impl(const bitboard& bb, std::size_t depth,
 
 inline std::int16_t evaluate_minimax(const bitboard& bb, std::size_t depth, evaluation eval) noexcept
 {
-    constexpr std::size_t max_moves_per_position { 218 };
-    std::vector<std::uint32_t> move_buf(depth*max_moves_per_position);
+    std::vector<std::uint32_t> move_buf(depth*MAX_MOVES_PER_POSITION);
 
     return details::evaluate_minimax_impl(bb, depth, eval, move_buf);
 }
 
 inline std::pair<std::uint32_t, std::int16_t>best_move_minimax(const bitboard& bb, std::size_t depth, evaluation eval) noexcept
 {
-    constexpr std::size_t max_moves_per_position { 218 };
-    std::vector<std::uint32_t> move_buf(depth*max_moves_per_position);
+    std::vector<std::uint32_t> move_buf(depth*MAX_MOVES_PER_POSITION);
     std::span<std::uint32_t> move_span(move_buf);
 
     const bool is_black_to_play { bb.is_black_to_play() };

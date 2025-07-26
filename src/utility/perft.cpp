@@ -77,8 +77,7 @@ std::string perft_args::strategy_type_to_string(strategy_type strategy)
 
 std::size_t perft(const perft_args& args, const bitboard& start)
 {
-    constexpr std::size_t max_moves_per_position { 218 };
-    std::vector<std::uint32_t> move_buf(args.depth*max_moves_per_position);
+    std::vector<std::uint32_t> move_buf(args.depth*MAX_MOVES_PER_POSITION);
 
     bitboard bb { start };
 
