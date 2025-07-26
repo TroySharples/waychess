@@ -2,4 +2,13 @@
 
 #include "position/bitboard.hpp"
 
-std::size_t perft(const bitboard& start, std::size_t depth);
+struct perft_args
+{
+    std::size_t depth;
+    enum strategy_type{ copy, unmake } strategy { copy };
+
+    static strategy_type strategy_type_from_string(std::string_view str);
+    static std::string strategy_type_to_string(strategy_type strategy);
+};
+
+std::size_t perft(const perft_args& args, const bitboard& start);

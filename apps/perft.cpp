@@ -9,17 +9,19 @@
 #include <stdexcept>
 #include <string>
 #include <chrono>
+#include <cstring>
 #include <unistd.h>
 
 static std::ostream& print_usage(const char* argv0, std::ostream& os)
 {
     return os << "Usage: " << argv0 << " <options>\n"
               << "    Options:\n"
-              << "         -h         -> Print this help menu.\n"
-              << "         -t         -> Also print the first level tree of possible moves.\n"
-              << "         -y         -> Also print the final time taken for the perft test in ms.\n"
-              << "         -f [fen]   -> The FEN string for the starting position. Optional, defaults to starting position.\n"
-              << "         -d [depth] -> The perft depth. Optional, default 1.\n";
+              << "         -h            -> Print this help menu.\n"
+              << "         -t            -> Also print the first level tree of possible moves.\n"
+              << "         -y            -> Also print the final time taken for the perft test in ms.\n"
+              << "         -f [fen]      -> The FEN string for the starting position. Optional, defaults to starting position.\n"
+              << "         -d [depth]    -> The perft depth. Optional, default 1.\n"
+              << "         -s [stratagy] -> The perft search strategy. Can be either copy or unmake - default copy.\n";
 }
 
 int main(int argc, char** argv)
@@ -30,11 +32,11 @@ int main(int argc, char** argv)
     bool help         { false };
     bool tree         { false };
     bool time         { false };
-    std::size_t depth { 1 };
     std::string fen   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
+    perft_args args   { .depth=1, .strategy=perft_args::copy };
 
     // Parse options.
-    for (int c; (c = getopt(argc, argv, "htyf:d:")) != -1; )
+    for (int c; (c = getopt(argc, argv, "htyf:d:s:")) != -1; )
     {
         switch (c)
         {
@@ -65,7 +67,13 @@ int main(int argc, char** argv)
             // Depth.
             case 'd':
             {
-                depth = std::stoull(optarg);
+                args.depth = std::stoull(optarg);
+                break;
+            }
+            // Strategy.
+            case 's':
+            {
+                args.strategy = perft_args::strategy_type_from_string(optarg);
                 break;
             }
             // Unknown
@@ -93,7 +101,7 @@ int main(int argc, char** argv)
     }
 
     // Check option consistency.
-    if (depth == 0 && tree)
+    if (args.depth == 0 && tree)
     {
         std::cerr << "Depth must cannot be 0 when tree-printing is enabled.\n";
         print_usage(argv[0], std::cerr);
@@ -104,7 +112,8 @@ int main(int argc, char** argv)
     // program seems too simple at the moment to warrent it.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
-              << R"(    "depth": )" << depth             << ",\n";
+              << R"(    "depth": )" << args.depth        << ",\n"
+              << R"(    "strategy": )" << '"' << perft_args::strategy_type_to_string(args.strategy) << '"' << ",\n";
 
     const bitboard position_start(fen);
     std::size_t total_nodes {};
@@ -121,11 +130,10 @@ int main(int argc, char** argv)
         {
             bitboard next_position { position_start };
 
-            constexpr make_move_args args { .check_legality = true };
-            if (!make_move(args, next_position, move_buf[i]))
+            if (!make_move({ .check_legality = true }, next_position, move_buf[i]))
                 continue;
 
-            const std::size_t nodes { perft(next_position, depth-1) };
+            const std::size_t nodes { perft({ .depth=args.depth-1, .strategy=args.strategy }, next_position) };
             total_nodes += nodes;
 
             // Handle trailing-comma printing.
@@ -143,7 +151,7 @@ int main(int argc, char** argv)
     }
     else
     {
-        total_nodes = perft(position_start, depth);
+        total_nodes = perft(args, position_start);
     }
     const auto time_end = std::chrono::steady_clock::now();
 

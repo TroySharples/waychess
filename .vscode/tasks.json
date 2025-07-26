@@ -6,6 +6,7 @@
             "type": "shell",
             "command": "${workspaceFolder}/regression/perft.sh",
             "args": [
+                "\"${input:strategy}\"",
                 "\"${input:label}\""
             ],
             "problemMatcher": []
@@ -16,6 +17,16 @@
             "id": "label",
             "type": "promptString",
             "description": "Regression tracking label (can be empty).",
+        },
+        {
+            "id": "strategy",
+            "type": "pickString",
+            "description": "Perft tree-traversal strategy",
+            "options": [
+                "copy",
+                "unmake"
+            ],
+            "default": "copy"
         }
     ]
 }

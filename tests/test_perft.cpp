@@ -23,7 +23,7 @@ TEST(Perft, StartingPosition)
     };
 
     for (std::size_t i = 0; i < results.size(); i++)
-        EXPECT_EQ(perft(bitboard(STARTING_FEN), i), results[i]);
+        EXPECT_EQ(perft({ .depth=i }, bitboard(STARTING_FEN)), results[i]);
 }
 
 TEST(Perft, Kiwipete)
@@ -39,7 +39,7 @@ TEST(Perft, Kiwipete)
     };
 
     for (std::size_t i = 0; i < results.size(); i++)
-        EXPECT_EQ(perft(bitboard(KIWIPETE_FEN), i), results[i]);
+        EXPECT_EQ(perft({ .depth=i }, bitboard(KIWIPETE_FEN)), results[i]);
 }
 
 TEST(Perft, Pos3)
@@ -57,7 +57,7 @@ TEST(Perft, Pos3)
     };
 
     for (std::size_t i = 0; i < results.size(); i++)
-        EXPECT_EQ(perft(bitboard(POS3_FEN), i), results[i]);
+        EXPECT_EQ(perft({ .depth=i }, bitboard(POS3_FEN)), results[i]);
 }
 
 TEST(Perft, Pos4)
@@ -73,7 +73,7 @@ TEST(Perft, Pos4)
     };
 
     for (std::size_t i = 0; i < results.size(); i++)
-        EXPECT_EQ(perft(bitboard(POS4_FEN), i), results[i]);
+        EXPECT_EQ(perft({ .depth=i }, bitboard(POS4_FEN)), results[i]);
 }
 
 TEST(Perft, Pos5)
@@ -88,7 +88,7 @@ TEST(Perft, Pos5)
     };
 
     for (std::size_t i = 0; i < results.size(); i++)
-        EXPECT_EQ(perft(bitboard(POS5_FEN), i), results[i]);
+        EXPECT_EQ(perft({ .depth=i }, bitboard(POS5_FEN)), results[i]);
 }
 
 TEST(Perft, Pos6)
@@ -103,7 +103,7 @@ TEST(Perft, Pos6)
     };
 
     for (std::size_t i = 0; i < results.size(); i++)
-        EXPECT_EQ(perft(bitboard(POS6_FEN), i), results[i]);
+        EXPECT_EQ(perft({ .depth=i }, bitboard(POS6_FEN)), results[i]);
 }
 
 int main(int argc, char **argv)
