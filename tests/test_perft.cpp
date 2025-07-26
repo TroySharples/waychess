@@ -1,7 +1,3 @@
-#include "position/generate_moves.hpp"
-#include "position/make_move.hpp"
-#include "position/move.hpp"
-
 #include "utility/perft.hpp"
 
 #include <gtest/gtest.h>
