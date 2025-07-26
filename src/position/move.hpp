@@ -35,7 +35,7 @@ constexpr bool is_pawn_push(std::uint8_t move_type)     noexcept { return move_t
 
 }
 
-// We use a variety of enums to signal additional information about the move. As we only have two bits
+// We use a variety of enums to signal additional information about the move. As we only have three bits
 // to play with, the move-type is needed to switch how we interpret this.
 namespace move_info
 {
@@ -44,7 +44,7 @@ namespace move_info
 constexpr std::uint8_t CASTLE_KS { 0b00 };
 constexpr std::uint8_t CASTLE_QS { 0b01 };
 
-// First three bits of piece ID for unmake captures and pawn promotions. Tthe remaining bit is determed
+// First three bits of piece ID for unmake captures and pawn promotions. The remaining bit is determed
 // by the side to play.
 
 // Pawn push.
@@ -65,9 +65,9 @@ constexpr std::uint8_t PAWN_PUSH_DOUBLE { 0b01 };
 constexpr std::uint32_t serialise_from_mb(std::uint8_t mb)                      noexcept { return mb; } 
 constexpr std::uint32_t serialise_to_mb(std::uint8_t mb)                        noexcept { return mb << 6; }
 constexpr std::uint32_t serialise_piece_idx(piece_idx p)                        noexcept { return static_cast<std::uint32_t>(p & 0x07) << 12; }
-constexpr std::uint32_t serialise_move_type(std::uint8_t move_type)             noexcept { return move_type << 15; }
-constexpr std::uint32_t serialise_move_info(std::uint8_t move_info)             noexcept { return move_info << 18; }
-constexpr std::uint32_t serialise_unmake_castling(std::uint8_t castling)        noexcept { return castling << 21; }
+constexpr std::uint32_t serialise_move_type(std::uint8_t move_type)             noexcept { return (move_type & 0x07) << 15; }
+constexpr std::uint32_t serialise_move_info(std::uint8_t move_info)             noexcept { return (move_info & 0x07) << 18; }
+constexpr std::uint32_t serialise_unmake_castling(std::uint8_t castling)        noexcept { return (castling  & 0x0f) << 21; }
 constexpr std::uint32_t serialise_unmake_en_passent(std::uint8_t en_passent_mb) noexcept { return (0x78 | en_passent_mb) << 25; }
 constexpr std::uint32_t serialise_unmake_ply_50m(std::uint8_t ply_50m)          noexcept { return ply_50m << 25; }
 
