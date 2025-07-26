@@ -39,7 +39,7 @@ std::string bitboard::get_fen_string() const noexcept
     return mailbox(*this).get_fen_string();
 }
 
-std::ostream& operator<<(std::ostream& os, const bitboard& v)
+std::ostream& bitboard::display_unicode_board(std::ostream& os, bool flipped) const noexcept
 {
-    return os << mailbox(v);
+    return mailbox(*this).display_unicode_board(os, flipped);
 }

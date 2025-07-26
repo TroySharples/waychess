@@ -10,11 +10,13 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
 {
     return os << "Usage: " << argv0 << " <options>\n"
               << "    Options:\n"
-              << "         -h          -> Print this help menu.\n"
-              << "         -f [fen]    -> The FEN string for the starting position. Required, no default.\n"
-              << "         -t [format] -> The format of the output. Can be either fen (default), or unicode.\n"
-              << "         -m [move]   -> Instead print the resulting position after the move (specified in algebraic long format). Optional, default\n"
-              << "                        to just printing the input position. This must be specified after the FEN input.\n";
+              << "         -h               -> Print this help menu.\n"
+              << "         -f [fen]         -> The FEN string for the starting position. Required, no default.\n"
+              << "         -t [format]      -> The format of the output. Can be either fen (default), or unicode.\n"
+              << "         -o [orientation] -> When format is unicode, choose the orientation the board should be displayed. Optional, default white. Has\n"
+              << "                             no affect when printing the FEN string.\n"
+              << "         -m [move]        -> Instead print the resulting position after the move (specified in algebraic long format). Optional, default\n"
+              << "                             to just printing the input position. This must be specified after the FEN input.\n";
 }
 
 int main(int argc, char** argv)
@@ -24,11 +26,12 @@ int main(int argc, char** argv)
     // Default arguments.
     bool help { false };
     enum { fen, unicode } format { fen };
+    bool flipped { fen };
     std::optional<std::string> input;
     std::optional<std::uint32_t> move;
 
     // Parse options.
-    for (int c; (c = getopt(argc, argv, "hf:t:m:")) != -1; )
+    for (int c; (c = getopt(argc, argv, "hf:t:o:m:")) != -1; )
     {
         switch (c)
         {
@@ -58,6 +61,24 @@ int main(int argc, char** argv)
                 else
                 {
                     std::cerr << "Unvalid output format.\n";
+                    return EXIT_FAILURE;
+                }
+                break;
+            }
+            // Orientation.
+            case 'o':
+            {
+                if (std::strcmp(optarg, "white") == 0)
+                {
+                    flipped = false;
+                }
+                else if (std::strcmp(optarg, "black") == 0)
+                {
+                    flipped = true;
+                }
+                else
+                {
+                    std::cerr << "Unvalid board orientation.\n";
                     return EXIT_FAILURE;
                 }
                 break;
@@ -120,8 +141,8 @@ int main(int argc, char** argv)
     // Prints the board in one of two possible ways.
     switch (format)
     {
-        case fen:     std::cout << bb.get_fen_string() << '\n'; break;
-        case unicode: std::cout << bb << '\n'; break;
+        case fen:     std::cout << bb.get_fen_string() << '\n';     break;
+        case unicode: bb.display_unicode_board(std::cout, flipped); break;
     }
 
     return EXIT_SUCCESS;

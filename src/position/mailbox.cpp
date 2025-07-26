@@ -213,13 +213,15 @@ std::string mailbox::get_fen_string() const noexcept
     return ss.str();
 }
 
-std::ostream& operator<<(std::ostream& os, const mailbox& v)
+
+// Print the corresponding unicode board.
+std::ostream& mailbox::display_unicode_board(std::ostream& os, bool flipped) const noexcept
 {
     os << ANSI_RESET;
     for (std::uint8_t rank = 0; rank < 8; rank++)
     {
         for (std::uint8_t file = 0; file < 8; file++)
-            os << (WHITE_SQUARES & get_bitboard_mailbox_piece(rank*8+file) ? ANSI_BACKGROUND_CYAN : ANSI_BACKGROUND_WHITE) << v.squares[(7-rank)*8+file];
+            os << (WHITE_SQUARES & get_bitboard_mailbox_piece(rank*8+file) ? ANSI_BACKGROUND_CYAN : ANSI_BACKGROUND_WHITE) << squares[(flipped ? rank : 7-rank)*8+(flipped ? 7-file : file)];
         os << ANSI_RESET << '\n';
     }
     return os;

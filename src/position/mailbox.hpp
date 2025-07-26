@@ -45,6 +45,6 @@ struct mailbox
     // Print the corresponding fen string.
     std::string get_fen_string() const noexcept;
 
-    // Prints board using unicode chess piece symbols.
-    friend std::ostream& operator<<(std::ostream& os, const mailbox& v);
+    // Print the corresponding unicode board.
+    std::ostream& display_unicode_board(std::ostream& os, bool flipped = false) const noexcept;
 };
