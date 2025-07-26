@@ -112,7 +112,7 @@ int main(int argc, char** argv)
     // program seems too simple at the moment to warrent it.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
-              << R"(    "depth": )" << args.depth        << ",\n"
+              << R"(    "depth": )" << args.depth << ",\n"
               << R"(    "strategy": )" << '"' << perft_args::strategy_type_to_string(args.strategy) << '"' << ",\n";
 
     const bitboard position_start(fen);
