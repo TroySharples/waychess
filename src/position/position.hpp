@@ -2,7 +2,6 @@
 
 #include "bitboard.hpp"
 
-
 inline std::uint64_t get_attackers(const bitboard& bb, std::uint8_t mb) noexcept
 {
     const std::uint64_t pieces_bb  { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
