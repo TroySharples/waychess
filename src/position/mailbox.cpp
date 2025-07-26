@@ -205,7 +205,7 @@ std::string mailbox::get_fen_string() const noexcept
     ss << ' ';
 
     // Half-move clock.
-    ss << ply_50m << ' ';
+    ss << static_cast<int>(ply_50m) << ' ';
 
     // Full move counter.
     ss << 1+ply_counter/2;
