@@ -7,7 +7,7 @@
 namespace
 {
 
-std::size_t perft_recursive(const bitboard& bb, std::size_t depth, std::span<std::uint32_t> move_buf)
+std::size_t perft_recursive(bitboard& bb, std::size_t depth, std::span<std::uint32_t> move_buf)
 {
     if (depth == 0) [[unlikely]]
         return 1;
@@ -18,13 +18,13 @@ std::size_t perft_recursive(const bitboard& bb, std::size_t depth, std::span<std
 
     for (std::size_t i = 0; i < moves; i++)
     {
-        bitboard next_position = bb;
-
         constexpr make_move_args args { .check_legality = true };
-        if (!make_move(args, next_position, move_buf[i])) [[unlikely]]
-            continue;
 
-        ret += perft_recursive(next_position, depth-1, move_buf.subspan(moves));
+        std::uint32_t unmake {};
+        if (make_move(args, bb, move_buf[i], unmake)) [[likely]]
+            ret += perft_recursive(bb, depth-1, move_buf.subspan(moves));
+
+        unmake_move(bb, unmake);
     }
 
     return ret;
@@ -32,10 +32,11 @@ std::size_t perft_recursive(const bitboard& bb, std::size_t depth, std::span<std
 
 }
 
-std::size_t perft(const bitboard& bb, std::size_t depth)
+std::size_t perft(const bitboard& start, std::size_t depth)
 {
     constexpr std::size_t max_moves_per_position { 218 };
     std::vector<std::uint32_t> move_buf(depth*max_moves_per_position);
 
+    bitboard bb { start };
     return perft_recursive(bb, depth, move_buf);
 }
