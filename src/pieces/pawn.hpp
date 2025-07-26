@@ -56,3 +56,5 @@ std::uint64_t get_black_pawn_all_push_squares_from_bitboard(std::uint64_t bb, st
 std::uint64_t get_black_pawn_single_push_squares_from_mailbox(std::uint8_t mb, std::uint64_t npos) noexcept;
 std::uint64_t get_black_pawn_double_push_squares_from_mailbox(std::uint8_t mb, std::uint64_t npos) noexcept;
 std::uint64_t get_black_pawn_all_push_squares_from_mailbox(std::uint8_t mb, std::uint64_t npos) noexcept;
+
+#include "details/pawn.hpp"

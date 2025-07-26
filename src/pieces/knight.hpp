@@ -6,3 +6,5 @@ std::uint64_t get_knight_attacked_squares_from_bitboard(std::uint64_t bb) noexce
 std::uint64_t get_knight_attacked_squares_from_mailbox(std::uint8_t mb) noexcept;
 
 inline std::uint64_t get_knight_attacked_squares_from_mailboxes(auto... mbs) noexcept { return (get_knight_attacked_squares_from_mailbox(mbs) | ...); }
+
+#include "details/knight.hpp"

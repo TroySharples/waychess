@@ -1,23 +1,17 @@
-#include "knight.hpp"
+#pragma once
 
-#include "details/ram.hpp"
+#include "pieces/knight.hpp"
 
-namespace
+#include <span>
+
+namespace details
 {
 
-const std::span<std::uint64_t> attack_table_knight = [] ()
-{
-    auto ret = details::get_ram_slice(64);
-
-    for (std::size_t i = 0; i < ret.size(); i++)
-        ret[i] = get_knight_attacked_squares_from_bitboard(1ULL << i);
-
-    return ret;
-} ();
+extern const std::span<std::uint64_t> attack_table_knight;
 
 }
 
-std::uint64_t get_knight_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
+inline std::uint64_t get_knight_attacked_squares_from_bitboard(std::uint64_t bb) noexcept
 {
     std::uint64_t ret {};
 
@@ -41,7 +35,7 @@ std::uint64_t get_knight_attacked_squares_from_bitboard(std::uint64_t bb) noexce
     return ret;
 }
 
-std::uint64_t get_knight_attacked_squares_from_mailbox(std::uint8_t mb) noexcept
+inline std::uint64_t get_knight_attacked_squares_from_mailbox(std::uint8_t mb) noexcept
 {
-    return attack_table_knight[mb];
+    return details::attack_table_knight[mb];
 }
