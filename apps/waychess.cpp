@@ -7,7 +7,7 @@
 static void display_pseudo_legal_moves_from_position(const bitboard& start)
 {
     std::cout << "starting-position:" << std::endl;
-    std::cout << start << std::endl;
+    start.display_unicode_board(std::cout) << std::endl;
 
     constexpr make_move_args args { .check_legality = false };
 
@@ -19,14 +19,14 @@ static void display_pseudo_legal_moves_from_position(const bitboard& start)
         make_move(args, next_position, move_buf[i]);
 
         std::cout << "move: " << move::to_algebraic_long(move_buf[i]) << ":" << std::endl;
-        std::cout << next_position << std::endl;
+        next_position.display_unicode_board(std::cout) << std::endl;
     }
 }
 
 static void display_strictly_legal_moves_from_position(const bitboard& start)
 {
     std::cout << "starting-position:" << std::endl;
-    std::cout << start << std::endl;
+    start.display_unicode_board(std::cout) << std::endl;
 
     constexpr make_move_args args { .check_legality = true };
 
@@ -39,7 +39,7 @@ static void display_strictly_legal_moves_from_position(const bitboard& start)
             continue;
 
         std::cout << "move: " << move::to_algebraic_long(move_buf[i]) << ":" << std::endl;
-        std::cout << next_position;
+        next_position.display_unicode_board(std::cout);
         std::cout << next_position.get_fen_string() << '\n' << std::endl;
     }
 }
