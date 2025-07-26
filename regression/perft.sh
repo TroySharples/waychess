@@ -6,7 +6,7 @@ SCRIPT_PATH="${BASH_SOURCE:-$0}"
 SCRIPT_DIR="$(dirname "${SCRIPT_PATH}")"
 
 # Runs the perft command - we always go from the starting position with depth 7.
-PERFT_PATH="${SCRIPT_DIR}"/../build/apps/perft
+PERFT_PATH="${SCRIPT_DIR}"/../build/apps/waychess-perft
 PERFT_DEPTH=7
 PERFT_STRATEGY=$1
 PERFT_RESULT=$("${PERFT_PATH}" -y -d ${PERFT_DEPTH} -s ${PERFT_STRATEGY})

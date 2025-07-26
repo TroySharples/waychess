@@ -40,7 +40,7 @@ set -euo pipefail
 SCRIPT_PATH="${BASH_SOURCE:-$0}"
 SCRIPT_DIR="$(dirname "${SCRIPT_PATH}")"
 
-PERFT_PATH="${SCRIPT_DIR}"/../build/apps/perft
+PERFT_PATH="${SCRIPT_DIR}"/../build/apps/waychess-perft
 
 # Runs our perft utility and stores the result.
 depth=$1
