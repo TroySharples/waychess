@@ -17,7 +17,7 @@ std::string to_algebraic_long(std::uint32_t move) noexcept
 
     ret.append(to_coordinates_str(from_mb));
     ret.append(to_coordinates_str(to_mb));
-    if (type & move::move_type::PROMOTION)
+    if (move::move_type::is_promotion(type))
         ret.push_back(to_fen_char(static_cast<piece_idx>(piece_idx::b_pawn | info)));
 
     return ret;
