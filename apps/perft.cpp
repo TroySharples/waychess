@@ -114,6 +114,7 @@ int main(int argc, char** argv)
     {
         std::cout << R"(    "tree": [)" << '\n';
 
+        bool array_first { true };
         std::array<std::uint32_t, 256> move_buf;
         const std::size_t moves { generate_pseudo_legal_moves(position_start, move_buf) };
         for (std::size_t i = 0; i < moves; i++)
@@ -127,12 +128,18 @@ int main(int argc, char** argv)
             const std::size_t nodes { perft(next_position, depth-1) };
             total_nodes += nodes;
 
+            // Handle trailing-comma printing.
+            if (array_first)
+                array_first = false;
+            else
+                std::cout << ",\n";
+
             std::cout << R"(        {)" << '\n';
             std::cout << R"(            "move": ")" << move::to_algebraic_long(move_buf[i]) << R"(",)" << '\n';
             std::cout << R"(            "nodes": )" << nodes << '\n';
-            std::cout << R"(        })" << (i+1 != moves ? ",\n" : "\n");
+            std::cout << R"(        })";
         }
-        std::cout << R"(    ],)" << '\n';
+        std::cout << '\n' << R"(    ],)" << '\n';
     }
     else
     {
