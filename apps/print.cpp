@@ -12,7 +12,7 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "    Options:\n"
               << "         -h               -> Print this help menu.\n"
               << "         -f [fen]         -> The FEN string for the starting position. Required, no default.\n"
-              << "         -t [format]      -> The format of the output. Can be either fen (default), or unicode.\n"
+              << "         -t [format]      -> The format of the output. Can be either fen (default), unicode, or side (just prints the side to play).\n"
               << "         -o [orientation] -> When format is unicode, choose the orientation the board should be displayed. Optional, default white. Has\n"
               << "                             no affect when printing the FEN string.\n"
               << "         -m [move]        -> Instead print the resulting position after the move (specified in algebraic long format). Optional, default\n"
@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 
     // Default arguments.
     bool help { false };
-    enum { fen, unicode } format { fen };
+    enum { fen, unicode, side } format { fen };
     bool flipped { fen };
     std::optional<std::string> input;
     std::optional<std::uint32_t> move;
@@ -57,6 +57,10 @@ int main(int argc, char** argv)
                 else if (std::strcmp(optarg, "unicode") == 0)
                 {
                     format = unicode;
+                }
+                else if (std::strcmp(optarg, "side") == 0)
+                {
+                    format = side;
                 }
                 else
                 {
@@ -141,8 +145,9 @@ int main(int argc, char** argv)
     // Prints the board in one of two possible ways.
     switch (format)
     {
-        case fen:     std::cout << bb.get_fen_string() << '\n';     break;
+        case fen:     std::cout << bb.get_fen_string() << '\n'; break;
         case unicode: bb.display_unicode_board(std::cout, flipped); break;
+        case side:    std::cout << (bb.is_black_to_play() ? "white\n" : "black\n"); break;
     }
 
     return EXIT_SUCCESS;
