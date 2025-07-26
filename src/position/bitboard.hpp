@@ -54,6 +54,17 @@ struct bitboard
     // Print the corresponding fen string.
     std::string get_fen_string() const noexcept;
 
+    // Equality overloads
+    bool operator==(const bitboard& other) const noexcept
+    {
+        return boards == other.boards
+            && en_passent_bb == other.en_passent_bb
+            && castling      == other.castling
+            && ply_counter   == other.ply_counter
+            && ply_50m       == other.ply_50m;
+    }
+    bool operator!=(const bitboard& other) const noexcept { return !this->operator==(other); }
+
     // Prints board using unicode chess piece symbols.
     friend std::ostream& operator<<(std::ostream& os, const bitboard& v);
 };
