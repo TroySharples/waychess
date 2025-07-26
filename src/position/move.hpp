@@ -2,6 +2,8 @@
 
 #include "pieces/pieces.hpp"
 
+struct bitboard;
+
 // Moves are serialised as 32-bit integers - 16 bits to encode the mechanics of a move, and
 // an additional 16 bits to contain meta-data about the move type. We also encode a minimal
 // set of information needed to unmake the move if needed. This basically boils down to
@@ -108,5 +110,10 @@ constexpr std::uint8_t deserialise_unmake_ply_50m(std::uint32_t move)    noexcep
 
 // A variant of algebraic long notation that is used by UCI.
 std::string to_algebraic_long(std::uint32_t move) noexcept;
+
+// Very slow implementation of long-notation to our internal move representation. This needs the bitboard the move
+// is made from to fill in all the additional meta fields. This works by generating all the legal moves, and then
+// doing a string-compare on each one!
+std::uint32_t from_algebraic_long(std::string_view algebraic, const bitboard& bb);
 
 }

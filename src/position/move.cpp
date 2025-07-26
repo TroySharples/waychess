@@ -2,6 +2,7 @@
 
 #include "pieces/pieces.hpp"
 #include "utility/coordinates.hpp"
+#include "generate_moves.hpp"
 
 namespace move
 {
@@ -21,6 +22,19 @@ std::string to_algebraic_long(std::uint32_t move) noexcept
         ret.push_back(to_fen_char(static_cast<piece_idx>(piece_idx::b_pawn | info)));
 
     return ret;
+}
+
+std::uint32_t from_algebraic_long(std::string_view algebraic, const bitboard& bb)
+{
+    // This is very hacky, but it's easy and works, and doesn't need to be fast.
+    std::array<std::uint32_t, MAX_MOVES_PER_POSITION> move_buf;
+    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+
+    for (std::size_t i = 0; i < moves; i++)
+        if (const std::uint32_t move { move_buf[i] }; to_algebraic_long(move) == algebraic)
+            return move;
+
+    throw std::invalid_argument("Error deserialising move - no such move in position");
 }
 
 }
