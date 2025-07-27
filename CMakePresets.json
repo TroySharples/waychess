@@ -7,8 +7,8 @@
             "binaryDir": "${workspaceRoot}/build/",
             "generator": "Unix Makefiles",
             "cacheVariables": {
-                "CMAKE_C_COMPILER": "clang",
-                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
             }
         },
@@ -23,8 +23,7 @@
             "name": "release",
             "inherits": [ "default" ],
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "COMPILE_OPTIONS": "-O3"
+                "CMAKE_BUILD_TYPE": "Release"
             }
         }
     ],
