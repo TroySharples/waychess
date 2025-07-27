@@ -30,8 +30,8 @@ do
         fen=$(${PRINT_PATH} -f "${fen}" -m ${move})
     fi
 
-    # Prints the board after every ply.
+    # Prints the board and FEN after every ply.
     ${PRINT_PATH} -f "${fen}" -t unicode -o ${side}
-
+    echo "${fen}"
 done
 
