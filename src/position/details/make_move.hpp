@@ -41,14 +41,15 @@ constexpr inline bool make_move_impl(const make_move_args& args, bitboard& bb, s
 
         unmake |= move::serialise_unmake_en_passent(en_passent_mb);
         hash   ^= zobrist::get_code_en_passent(en_passent_mb);
+
+        bb.en_passent_bb = 0;
     }
     else
     {
         unmake |= move::serialise_unmake_ply_50m(bb.ply_50m);
     }
 
-    // Increment the ply counter and reset the en-passent square.
-    bb.en_passent_bb = 0;
+    // Increment the ply counter.
     bb.ply_counter++;
 
     // Handle the removal of castling rights. We use the from-to bitboard instead of just the from one as we also have
@@ -272,6 +273,10 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
     // Decrement the ply counter.
     bb.ply_counter--;
 
+    // Undo any current en-passent squares from the Zobrist hash.
+    if (bb.en_passent_bb)
+        hash ^= zobrist::get_code_en_passent(std::countr_zero(bb.en_passent_bb));
+
     // Handle en-passent / 50m-ply re-establishment.
     if ((ply_50m & 0x78) == 0x78) [[unlikely]]
     {
@@ -281,6 +286,8 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
 
         bb.en_passent_bb = 1ULL << en_passent_mb;
         bb.ply_50m       = 0;
+
+        hash ^= zobrist::get_code_en_passent(en_passent_mb);
     }
     else
     {
