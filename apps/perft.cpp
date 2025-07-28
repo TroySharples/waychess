@@ -21,7 +21,7 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "         -y            -> Also print the final time taken for the perft test in ms.\n"
               << "         -f [fen]      -> The FEN string for the starting position. Optional, defaults to starting position.\n"
               << "         -d [depth]    -> The perft depth. Optional, default 1.\n"
-              << "         -s [stratagy] -> The perft search strategy. Can be either copy or unmake - default copy.\n";
+              << "         -s [stratagy] -> The perft search strategy. Can be either copy, unmake, or hash - default copy.\n";
 }
 
 int main(int argc, char** argv)
@@ -158,8 +158,9 @@ int main(int argc, char** argv)
     // Print the time and nps.
     if (time)
     {
-        std::cout << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
-                  << R"(    "nps": )"     << 1000000000 * total_nodes / std::chrono::duration_cast<std::chrono::nanoseconds>(time_end-time_start).count() << ",\n";
+        const std::uint64_t duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
+        std::cout << R"(    "time-ms": )" << duration_ms << ",\n"
+                  << R"(    "nps": )"     << 1000ULL * total_nodes / duration_ms << ",\n";
     }
 
     // Finally print the total number of nodes.
