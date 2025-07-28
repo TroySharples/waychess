@@ -286,8 +286,6 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
 
         bb.en_passent_bb = 1ULL << en_passent_mb;
         bb.ply_50m       = 0;
-
-        hash ^= zobrist::get_code_en_passent(en_passent_mb);
     }
     else
     {
