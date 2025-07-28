@@ -26,18 +26,15 @@ struct mailbox
     // The location (if any) of the en-passent target square.
     std::optional<std::uint8_t> en_passent_square;
 
-    // Castling options.
-    bool castling_w_ks;
-    bool castling_w_qs;
-    bool castling_b_ks;
-    bool castling_b_qs;
+    // Castling nibble - same as in the bitboard representation.
+    std::uint8_t castling;
 
     // The number of ply since the game started. An even ply implies white is to move. For initial
     // positions where black starts, this should be initialised to 1.
     std::uint16_t ply_counter;
 
-    bool is_black_to_play() const noexcept { return ply_counter & 1; }
-    bool is_white_to_play() const noexcept { return !is_black_to_play(); }
+    constexpr bool is_black_to_play() const noexcept { return ply_counter & 1; }
+    constexpr bool is_white_to_play() const noexcept { return !is_black_to_play(); }
 
     // The number of ply since the last pawn-push or capture (used for 50 move drawing rule).
     std::uint8_t ply_50m;

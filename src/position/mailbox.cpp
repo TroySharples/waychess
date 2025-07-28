@@ -16,6 +16,7 @@ constexpr const char* ANSI_BACKGROUND_WHITE = "\033[47m";
 }
 
 mailbox::mailbox(const bitboard& bb)
+    : castling(bb.castling), ply_counter(bb.ply_counter), ply_50m(bb.ply_50m)
 {
     for (std::size_t i = 0; i < squares.size(); i++)
     {
@@ -51,14 +52,6 @@ mailbox::mailbox(const bitboard& bb)
 
     if (bb.en_passent_bb)
         en_passent_square.emplace(std::countr_zero(bb.en_passent_bb));
-
-    castling_w_ks = bb.castling & bitboard::CASTLING_W_KS;
-    castling_w_qs = bb.castling & bitboard::CASTLING_W_QS;
-    castling_b_ks = bb.castling & bitboard::CASTLING_B_KS;
-    castling_b_qs = bb.castling & bitboard::CASTLING_B_QS;
-
-    ply_counter = bb.ply_counter;
-    ply_50m     = bb.ply_50m;
 }
 
 mailbox::mailbox(std::string_view fen)
@@ -101,18 +94,15 @@ mailbox::mailbox(std::string_view fen)
 
     // Castling ability. We can actually sucessfully parse invalid fen strings here, but
     // that's the callers problem (TM).
-    castling_w_ks = false;
-    castling_w_qs = false;
-    castling_b_ks = false;
-    castling_b_qs = false;
+    castling = 0;
     for (char c = fen.at(pos++); c != ' '; c = fen.at(pos++))
     {
         switch (c)
         {
-            case 'K': castling_w_ks = true; break;
-            case 'Q': castling_w_qs = true; break;
-            case 'k': castling_b_ks = true; break;
-            case 'q': castling_b_qs = true; break;
+            case 'K': castling |= bitboard::CASTLING_W_KS; break;
+            case 'Q': castling |= bitboard::CASTLING_W_QS; break;
+            case 'k': castling |= bitboard::CASTLING_B_KS; break;
+            case 'q': castling |= bitboard::CASTLING_B_QS; break;
             case '-': break;
             default:
                 throw std::invalid_argument("Unexpected castling charactor in fen string");
@@ -184,12 +174,12 @@ std::string mailbox::get_fen_string() const noexcept
     ss << (ply_counter & 1ULL ? 'b' : 'w') << ' ';
 
     // Castling ability.
-    if (castling_w_ks || castling_w_qs || castling_b_ks || castling_b_qs)
+    if (castling)
     {
-        if (castling_w_ks) ss << 'K';
-        if (castling_w_qs) ss << 'Q';
-        if (castling_b_ks) ss << 'k';
-        if (castling_b_qs) ss << 'q';
+        if (castling | bitboard::CASTLING_W_KS) ss << 'K';
+        if (castling | bitboard::CASTLING_W_QS) ss << 'Q';
+        if (castling | bitboard::CASTLING_B_KS) ss << 'k';
+        if (castling | bitboard::CASTLING_B_QS) ss << 'q';
     }
     else
     {

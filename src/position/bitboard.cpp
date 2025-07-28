@@ -3,6 +3,7 @@
 #include "mailbox.hpp"
 
 bitboard::bitboard(const mailbox& mb)
+    : en_passent_bb(mb.en_passent_square.has_value() ? get_bitboard_mailbox_piece(*mb.en_passent_square) : 0), castling(mb.castling), ply_counter(mb.ply_counter), ply_50m(mb.ply_50m)
 {
     boards.fill(0);
     for (std::size_t i = 0; i < mb.squares.size(); i++)
@@ -15,17 +16,6 @@ bitboard::bitboard(const mailbox& mb)
     boards[piece_idx::b_any] = 0;
     for (std::underlying_type_t<piece_idx> p = b_pawn; p <= b_queen; p++)
         boards[piece_idx::b_any] |= boards[p];
-
-    en_passent_bb = mb.en_passent_square.has_value() ? get_bitboard_mailbox_piece(*mb.en_passent_square) : 0;
-
-    castling = 0;
-    if (mb.castling_w_ks) castling |= CASTLING_W_KS;
-    if (mb.castling_w_qs) castling |= CASTLING_W_QS;
-    if (mb.castling_b_ks) castling |= CASTLING_B_KS;
-    if (mb.castling_b_qs) castling |= CASTLING_B_QS;
-
-    ply_counter = mb.ply_counter;
-    ply_50m     = mb.ply_50m;
 }
 
 bitboard::bitboard(std::string_view fen)
