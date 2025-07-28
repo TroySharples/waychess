@@ -24,9 +24,10 @@
             "description": "Perft tree-traversal strategy",
             "options": [
                 "copy",
-                "unmake"
+                "unmake",
+                "hash"
             ],
-            "default": "copy"
+            "default": "hash"
         }
     ]
 }
