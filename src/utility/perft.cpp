@@ -85,5 +85,6 @@ std::size_t perft(const perft_args& args, const bitboard& start)
     {
         case perft_args::copy:   return perft_recursive_copy(bb, args.depth, move_buf);
         case perft_args::unmake: return perft_recursive_unmake(bb, args.depth, move_buf);
+        default: throw std::invalid_argument("Invalid perft-args");
     }
 }
