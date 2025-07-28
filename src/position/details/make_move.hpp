@@ -368,8 +368,8 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
             if (is_black_to_play)
             {
                 constexpr std::uint64_t code {
-                    zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_H & RANK_8))
-                  ^ zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_F & RANK_8))
+                    zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_H & RANK_1))
+                  ^ zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_F & RANK_1))
                 };
                 hash ^= code;
 
@@ -380,8 +380,8 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
             else
             {
                 constexpr std::uint64_t code {
-                    zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_H & RANK_1))
-                  ^ zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_F & RANK_1))
+                    zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_H & RANK_8))
+                  ^ zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_F & RANK_8))
                 };
                 hash ^= code;
 
@@ -395,8 +395,8 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
             if (is_black_to_play)
             {
                 constexpr std::uint64_t code {
-                    zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_A & RANK_8))
-                  ^ zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_D & RANK_8))
+                    zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_A & RANK_1))
+                  ^ zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_D & RANK_1))
                 };
                 hash ^= code;
 
@@ -407,8 +407,8 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
             else
             {
                 constexpr std::uint64_t code {
-                    zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_A & RANK_1))
-                  ^ zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_D & RANK_1))
+                    zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_A & RANK_8))
+                  ^ zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_D & RANK_8))
                 };
                 hash ^= code;
 
