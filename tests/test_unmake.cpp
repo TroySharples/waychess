@@ -9,26 +9,28 @@
 namespace
 {
 
-void test_unmake_recursive(bitboard& bb, std::size_t depth, std::span<std::uint32_t> move_buf)
+void test_unmake_recursive(bitboard& bb, std::uint64_t& hash, std::size_t depth, std::span<std::uint32_t> move_buf)
 {
     if (depth == 0)
         return;
 
     const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
-    const bitboard orig { bb };
+    const bitboard bb_orig { bb };
+    const std::uint64_t hash_orig { hash };
     for (std::size_t i = 0; i < moves; i++)
     {
         constexpr make_move_args args { .check_legality = false };
 
         std::uint32_t unmake {};
-        make_move(args, bb, move_buf[i], unmake);
+        make_move(args, bb, move_buf[i], unmake, hash);
 
-        test_unmake_recursive(bb, depth-1, move_buf.subspan(moves));
+        test_unmake_recursive(bb, hash, depth-1, move_buf.subspan(moves));
 
-        unmake_move(bb, unmake);
+        unmake_move(bb, unmake, hash);
 
-        EXPECT_EQ(bb, orig);
+        EXPECT_EQ(bb, bb_orig);
+        EXPECT_EQ(hash, hash_orig);
     }
 }
 
@@ -37,7 +39,8 @@ void test_unmake(const char* fen, std::size_t depth)
     std::vector<std::uint32_t> move_buf(depth*MAX_MOVES_PER_POSITION);
 
     bitboard bb { fen };
-    test_unmake_recursive(bb, depth, move_buf);
+    std::uint64_t hash = zobrist::hash_init(bb);
+    test_unmake_recursive(bb, hash, depth, move_buf);
 }
 
 }
