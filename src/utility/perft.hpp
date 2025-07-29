@@ -5,7 +5,7 @@
 struct perft_args
 {
     std::size_t depth;
-    enum strategy_type{ copy, unmake, hash } strategy { copy };
+    enum strategy_type{ copy, unmake, hash } strategy { hash };
 
     static strategy_type strategy_type_from_string(std::string_view str);
     static std::string strategy_type_to_string(strategy_type strategy);
