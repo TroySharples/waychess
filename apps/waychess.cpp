@@ -1,4 +1,8 @@
 #include "position/bitboard.hpp"
+#include "position/make_move.hpp"
+#include "position/move.hpp"
+#include "position/search.hpp"
+
 
 #include <cstdlib>
 #include <iostream>
@@ -25,7 +29,23 @@ void handle_isready()
 
 void handle_ucinewgame()
 {
-    
+
+}
+
+void handle_setoption(std::istringstream& iss)
+{
+    std::string option;
+    iss >> option;
+
+    if (option == "Hash")
+    {
+        // We will need to implement this one day.
+    }
+    else
+    {
+        // Ignore unhandled options.
+    }
+
 }
 
 void handle_debug(std::istringstream& /*iss*/)
@@ -35,16 +55,52 @@ void handle_debug(std::istringstream& /*iss*/)
 
 void handle_position(std::istringstream& iss)
 {
-    std::string fen;
-    std::getline(iss >> std::ws, fen);
+    std::string token;
 
-    bitboard bb(fen);
-    bb.display_unicode_board(std::cout) << std::endl;
+    // Parse starting postion.
+    iss >> token;
+    if (token == "startpos")
+    {
+        bb = bitboard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    }
+    else if (token == "fen")
+    {
+        // FEN has exactly 6 space-separated fields.
+        std::ostringstream fen_stream;
+        for (std::size_t i = 0; i < 6 && iss >> token; i++)
+            fen_stream << token << " ";
+
+        bb = bitboard(fen_stream.str());
+    }
+    else
+    {
+        std::cerr << "Invalid position format." << std::endl;
+    }
+
+    if (!iss)
+        return;
+
+    // Parse any moves that have taken place after the starting position.
+    iss >> token;
+    if (token == "moves")
+    {
+        while (iss >> token)
+        {
+            std::uint32_t move { move::from_algebraic_long(token, bb) };
+            make_move({ .check_legality = false }, bb, move);
+        }
+    }
+    else
+    {
+        std::cerr << "Invalid token following position." << std::endl;
+    }
 }
 
 void handle_go(std::istringstream& iss)
 {
-    
+    const auto best_move = best_move_minimax(bb, 7, &evaluate_terminal);
+
+    std::cout << "bestmove " << move::to_algebraic_long(best_move.first) << std::endl;
 }
 
 void handle_unknown(std::string_view command)
@@ -70,6 +126,8 @@ int main()
             handle_isready();
         else if (command == "ucinewgame")
             handle_ucinewgame();
+        else if (command == "setoption")
+            handle_setoption(iss);
         else if (command == "debug")
             handle_debug(iss);
         else if (command == "position")
