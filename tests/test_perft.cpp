@@ -4,11 +4,6 @@
 
 #include <gtest/gtest.h>
 
-/////////////////////////////////////////////////////////////////////////
-// All positions taken from chess programming wiki perft results page. //
-// https://www.chessprogramming.org/Perft_Results                      //
-/////////////////////////////////////////////////////////////////////////
-
 TEST(Perft, StartingPosition)
 {
     std::vector<std::size_t> results {
@@ -106,6 +101,7 @@ TEST(Perft, Pos6)
         EXPECT_EQ(perft({ .depth=i }, bitboard(POS6_FEN)), results[i]);
 }
 
+// Tests performannt perft correctness across a variety of positions.
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
