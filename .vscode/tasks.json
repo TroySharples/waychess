@@ -23,11 +23,12 @@
             "type": "pickString",
             "description": "Perft tree-traversal strategy",
             "options": [
-                "copy",
-                "unmake",
-                "hash"
+                "copy-no-hash",
+                "unmake-no-hash",
+                "copy-hash",
+                "unmake-hash"
             ],
-            "default": "hash"
+            "default": "unmake-hash"
         }
     ]
 }

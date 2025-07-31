@@ -21,7 +21,7 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "         -y            -> Also print the final time taken for the perft test in ms.\n"
               << "         -f [fen]      -> The FEN string for the starting position. Optional, defaults to starting position.\n"
               << "         -d [depth]    -> The perft depth. Optional, default 1.\n"
-              << "         -s [stratagy] -> The perft search strategy. Can be either copy, unmake, or hash - default hash.\n";
+              << "         -s [stratagy] -> The perft search strategy. Can be either copy-no-hash, unmake-no-hash, copy-hash, or unmake-hash - default unmake-hash.\n";
 }
 
 int main(int argc, char** argv)
@@ -33,7 +33,7 @@ int main(int argc, char** argv)
     bool tree         { false };
     bool time         { false };
     std::string fen   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
-    perft_args args   { .depth=1, .strategy=perft_args::hash };
+    perft_args args   { .depth=1, .strategy=perft_args::unmake_hash };
 
     // Parse options.
     for (int c; (c = getopt(argc, argv, "htyf:d:s:")) != -1; )
