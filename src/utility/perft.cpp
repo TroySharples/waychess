@@ -58,11 +58,9 @@ struct perft_hash_entry
     std::size_t   nodes;
 };
 
-// Simple hash-table only containing the actual key and number of positions for now. This should
-// correspond to about a 1GB table.
-constexpr std::size_t PERFT_HASH_ENTRIES { 1ULL << 26 };
-constexpr std::uint64_t PERFT_HASH_MASK  { 0x3ffffff };
-std::array<perft_hash_entry, PERFT_HASH_ENTRIES> perft_hash_table;
+
+std::size_t perft_hash_mask {};
+std::vector<perft_hash_entry> perft_hash_table;
 
 std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::size_t depth, std::span<std::uint32_t> move_buf)
 {
@@ -70,7 +68,7 @@ std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::
         return 1;
 
     // Loop up the value in the hash table and return immediately if we hit.
-    perft_hash_entry& hash_entry { perft_hash_table[hash & PERFT_HASH_MASK] };
+    perft_hash_entry& hash_entry { perft_hash_table[hash & perft_hash_mask] };
     if (hash_entry.key == hash && hash_entry.depth == depth)
         return hash_entry.nodes;
 
@@ -101,7 +99,7 @@ std::size_t perft_recursive_copy_hash(bitboard& bb, std::uint64_t hash, std::siz
         return 1;
 
     // Loop up the value in the hash table and return immediately if we hit.
-    perft_hash_entry& hash_entry { perft_hash_table[hash & PERFT_HASH_MASK] };
+    perft_hash_entry& hash_entry { perft_hash_table[hash & perft_hash_mask] };
     if (hash_entry.key == hash && hash_entry.depth == depth)
         return hash_entry.nodes;
 
@@ -127,6 +125,16 @@ std::size_t perft_recursive_copy_hash(bitboard& bb, std::uint64_t hash, std::siz
     return ret;
 }
 
+}
+
+void set_log2_perft_hash_entries(std::size_t log2_entries)
+{
+    const std::size_t entries { 1ULL << log2_entries };
+
+    perft_hash_mask = entries - 1;
+
+    perft_hash_table.resize(entries);
+    perft_hash_table.shrink_to_fit();
 }
 
 perft_args::strategy_type perft_args::strategy_type_from_string(std::string_view str)

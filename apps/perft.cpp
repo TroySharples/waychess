@@ -114,6 +114,8 @@ int main(int argc, char** argv)
     const bitboard position_start(fen);
     std::size_t total_nodes {};
 
+    set_log2_perft_hash_entries(26);
+
     const auto time_start = std::chrono::steady_clock::now();
     if (tree)
     {
