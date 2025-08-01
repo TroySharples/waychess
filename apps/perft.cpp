@@ -5,8 +5,6 @@
 
 #include <bits/chrono.h>
 #include <cstdlib>
-#include <ios>
-#include <stdexcept>
 #include <string>
 #include <chrono>
 #include <cstring>
@@ -26,8 +24,6 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
 
 int main(int argc, char** argv)
 {
-    const std::string usage_str { std::string("    Usage - ") + argv[0] + "<options>" };
-
     // Default arguments.
     bool help         { false };
     bool tree         { false };
