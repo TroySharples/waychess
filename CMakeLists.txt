@@ -9,3 +9,9 @@ add_subdirectory(apps)
 
 include(CTest)
 add_subdirectory(tests)
+
+include(InstallRequiredSystemLibraries)
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Troy Sharples")
+include(CPack)
