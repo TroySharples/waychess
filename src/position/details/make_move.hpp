@@ -280,7 +280,7 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
     // Handle en-passent / 50m-ply re-establishment.
     if ((ply_50m & 0x78) == 0x78) [[unlikely]]
     {
-        const std::uint8_t en_passent_mb { (ply_50m & 0x07) | (is_black_to_play ? 0b101000 : 0b010000) };
+        const std::uint8_t en_passent_mb { static_cast<std::uint8_t>((ply_50m & 0x07) | (is_black_to_play ? 0b101000 : 0b010000)) };
 
         hash ^= zobrist::get_code_en_passent(en_passent_mb);
 
@@ -349,7 +349,7 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
         else
         {
             const std::uint64_t capture_mb = std::countr_zero(to_bb);
-            const piece_idx capture_idx { info | (is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn) };
+            const auto capture_idx = static_cast<piece_idx>(info | static_cast<std::uint8_t>(is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn));
 
             hash ^= zobrist::get_code_piece(capture_idx, capture_mb);
 

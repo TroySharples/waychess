@@ -96,7 +96,7 @@ void handle_position(std::istringstream& iss)
     }
 }
 
-void handle_go(std::istringstream& iss)
+void handle_go(std::istringstream& /*iss*/)
 {
     const auto best_move = best_move_minimax(bb, 6, &evaluate_terminal);
 
