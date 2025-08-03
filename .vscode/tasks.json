@@ -10,6 +10,15 @@
                 "\"${input:label}\""
             ],
             "problemMatcher": []
+        },
+        {
+            "label": "Evalution Regression Test",
+            "type": "shell",
+            "command": "${workspaceFolder}/regression/evaluate.sh",
+            "args": [
+                "\"${input:label}\""
+            ],
+            "problemMatcher": []
         }
     ],
     "inputs": [
