@@ -143,14 +143,10 @@ std::size_t get_perft_hash_table_bytes()
 
 perft_args::strategy_type perft_args::strategy_type_from_string(std::string_view str)
 {
-    if (str == "copy-no-hash")
-        return perft_args::copy_no_hash;
-    if (str == "unmake-no-hash")
-        return perft_args::unmake_no_hash;
-    if (str == "copy-hash")
-        return perft_args::copy_hash;
-    if (str == "unmake-hash")
-        return perft_args::unmake_hash;
+    if (str == "copy")
+        return perft_args::copy;
+    if (str == "unmake")
+        return perft_args::unmake;
 
     throw std::invalid_argument("Invalid perft strategy");
 }
@@ -159,10 +155,8 @@ std::string perft_args::strategy_type_to_string(strategy_type strategy)
 {
     switch (strategy)
     {
-        case perft_args::copy_no_hash:   return "copy-no-hash";
-        case perft_args::unmake_no_hash: return "unmake-no-hash";
-        case perft_args::copy_hash:      return "copy-hash";
-        case perft_args::unmake_hash:    return "unmake-hash";
+        case perft_args::copy:   return "copy";
+        case perft_args::unmake: return "unmake";
         default: throw std::invalid_argument("Invalid perft strategy");
     }
 }
@@ -173,20 +167,24 @@ std::size_t perft(const perft_args& args, const bitboard& start)
 
     bitboard bb { start };
 
-    switch (args.strategy)
+    // Switch implementations depending whether our hash-table is non-empty.
+    if (get_perft_hash_table_bytes() == 0)
     {
-        case perft_args::copy_no_hash:   return perft_recursive_copy_no_hash(bb, args.depth, move_buf);
-        case perft_args::unmake_no_hash: return perft_recursive_unmake_no_hash(bb, args.depth, move_buf);
-        case perft_args::copy_hash:
+        switch (args.strategy)
         {
-            std::uint64_t hash = zobrist::hash_init(bb);
-            return perft_recursive_copy_hash(bb, hash, args.depth, move_buf);
+            case perft_args::copy:   return perft_recursive_copy_no_hash(bb, args.depth, move_buf);
+            case perft_args::unmake: return perft_recursive_unmake_no_hash(bb, args.depth, move_buf);
+            default: throw std::invalid_argument("Invalid perft-args");
         }
-        case perft_args::unmake_hash:
+    }
+    else
+    {
+        std::uint64_t hash = zobrist::hash_init(bb);
+        switch (args.strategy)
         {
-            std::uint64_t hash = zobrist::hash_init(bb);
-            return perft_recursive_unmake_hash(bb, hash, args.depth, move_buf);
+            case perft_args::copy:   return perft_recursive_copy_hash(bb, hash, args.depth, move_buf);
+            case perft_args::unmake: return perft_recursive_unmake_hash(bb, hash, args.depth, move_buf);
+            default: throw std::invalid_argument("Invalid perft-args");
         }
-        default: throw std::invalid_argument("Invalid perft-args");
     }
 }

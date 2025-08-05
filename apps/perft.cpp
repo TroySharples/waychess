@@ -30,7 +30,7 @@ int main(int argc, char** argv)
     bool tree                         { false };
     bool time                         { false };
     std::string fen                   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
-    perft_args args                   { .depth=1, .strategy=perft_args::unmake_hash };
+    perft_args args                   { .depth=1, .strategy=perft_args::copy };
     std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
@@ -112,21 +112,20 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
+    // Init hash table, so we can read-back the actual allocated memory (instead of the requested amount) when
+    // printing out the telemetry below.
+    set_perft_hash_table_bytes(hash_table_size_bytes);
+
     // Start printing the JSON. We might clean this up later by having a proper JSON printing class, but this
     // program seems too simple at the moment to warrent it.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
               << R"(    "depth": )" << args.depth << ",\n"
-              << R"(    "strategy": )" << '"' << perft_args::strategy_type_to_string(args.strategy) << '"' << ",\n";
+              << R"(    "strategy": )" << '"' << perft_args::strategy_type_to_string(args.strategy) << '"' << ",\n"
+              << R"(    "hash-table MB": )"   << '"' << get_perft_hash_table_bytes()/1000000 << '"' << ",\n";
 
     const bitboard position_start(fen);
     std::size_t total_nodes {};
-
-    if (args.strategy == perft_args::copy_hash || args.strategy == perft_args::unmake_hash)
-    {
-        set_perft_hash_table_bytes(hash_table_size_bytes);
-        std::cout << R"(    "hash-table MB": )"   << '"' << get_perft_hash_table_bytes()/1000000 << '"' << ",\n";
-    }
 
     const auto time_start = std::chrono::steady_clock::now();
     if (tree)
