@@ -104,7 +104,7 @@ TEST(Perft, Pos6)
 // Tests performannt perft correctness across a variety of positions.
 int main(int argc, char **argv)
 {
-    set_log2_perft_hash_entries(26); 
+    set_perft_hash_table_bytes(1000000000ULL); 
 
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

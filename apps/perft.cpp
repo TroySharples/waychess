@@ -14,25 +14,27 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
 {
     return os << "Usage: " << argv0 << " <options>\n"
               << "    Options:\n"
-              << "         -h            -> Print this help menu.\n"
-              << "         -t            -> Also print the first level tree of possible moves.\n"
-              << "         -y            -> Also print the final time taken for the perft test in ms.\n"
-              << "         -f [fen]      -> The FEN string for the starting position. Optional, defaults to starting position.\n"
-              << "         -d [depth]    -> The perft depth. Optional, default 1.\n"
-              << "         -s [stratagy] -> The perft search strategy. Can be either copy-no-hash, unmake-no-hash, copy-hash, or unmake-hash - default unmake-hash.\n";
+              << "         -h                   -> Print this help menu.\n"
+              << "         -t                   -> Also print the first level tree of possible moves.\n"
+              << "         -y                   -> Also print the final time taken for the perft test in ms.\n"
+              << "         -f [fen]             -> The FEN string for the starting position. Optional, defaults to starting position.\n"
+              << "         -d [depth]           -> The perft depth. Optional, default 1.\n"
+              << "         -s [stratagy]        -> The perft search strategy. Can be either copy-no-hash, unmake-no-hash, copy-hash, or unmake-hash - default unmake-hash.\n"
+              << "         -k [hash-table size] -> The size of the hash-table (in MiB) if used. Optional, default 1000.\n";
 }
 
 int main(int argc, char** argv)
 {
     // Default arguments.
-    bool help         { false };
-    bool tree         { false };
-    bool time         { false };
-    std::string fen   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
-    perft_args args   { .depth=1, .strategy=perft_args::unmake_hash };
+    bool help                         { false };
+    bool tree                         { false };
+    bool time                         { false };
+    std::string fen                   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
+    perft_args args                   { .depth=1, .strategy=perft_args::unmake_hash };
+    std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
-    for (int c; (c = getopt(argc, argv, "htyf:d:s:")) != -1; )
+    for (int c; (c = getopt(argc, argv, "htyf:d:s:k:")) != -1; )
     {
         switch (c)
         {
@@ -72,10 +74,16 @@ int main(int argc, char** argv)
                 args.strategy = perft_args::strategy_type_from_string(optarg);
                 break;
             }
+            // Hash size.
+            case 'k':
+            {
+                hash_table_size_bytes = std::stoull(optarg)*1000000;
+                break;
+            }
             // Unknown
             case '?':
             {
-                if (optopt == 'f' || optopt == 'd')
+                if (optopt == 'f' || optopt == 'd' || optopt == 's' || optopt == 'k')
                 {
                     std::cerr << "Option requires argument.\n";
                     return EXIT_FAILURE;
@@ -114,7 +122,11 @@ int main(int argc, char** argv)
     const bitboard position_start(fen);
     std::size_t total_nodes {};
 
-    set_log2_perft_hash_entries(26);
+    if (args.strategy == perft_args::copy_hash || args.strategy == perft_args::unmake_hash)
+    {
+        set_perft_hash_table_bytes(hash_table_size_bytes);
+        std::cout << R"(    "hash-table MB": )"   << '"' << get_perft_hash_table_bytes()/1000000 << '"' << ",\n";
+    }
 
     const auto time_start = std::chrono::steady_clock::now();
     if (tree)

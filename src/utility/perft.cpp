@@ -3,6 +3,7 @@
 #include "position/generate_moves.hpp"
 #include "position/make_move.hpp"
 #include "position/move.hpp"
+#include "details/hash_map.hpp"
 
 namespace
 {
@@ -51,16 +52,15 @@ std::size_t perft_recursive_unmake_no_hash(bitboard& bb, std::size_t depth, std:
     return ret;
 }
 
-struct perft_hash_entry
+struct perft_value_type
 {
-    std::uint64_t key;
-    std::uint8_t  depth;
-    std::size_t   nodes;
+    std::uint8_t depth;
+    std::size_t  nodes;
 };
 
-
-std::size_t perft_hash_mask {};
-std::vector<perft_hash_entry> perft_hash_table;
+using perft_hash_table_type = details::hash_table<perft_value_type>;
+std::vector<perft_hash_table_type::entry_type> perft_hash_buf;
+perft_hash_table_type perft_hash_table;
 
 std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::size_t depth, std::span<std::uint32_t> move_buf)
 {
@@ -68,9 +68,9 @@ std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::
         return 1;
 
     // Loop up the value in the hash table and return immediately if we hit.
-    perft_hash_entry& hash_entry { perft_hash_table[hash & perft_hash_mask] };
-    if (hash_entry.key == hash && hash_entry.depth == depth)
-        return hash_entry.nodes;
+    auto& entry { perft_hash_table[hash] };
+    if (entry.key == hash && entry.value.depth == depth)
+        return entry.value.nodes;
 
     std::size_t ret {};
 
@@ -86,9 +86,9 @@ std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::
     }
 
     // Update the hash table with our result - always overriding for now.
-    hash_entry.key = hash;
-    hash_entry.depth = depth;
-    hash_entry.nodes = ret;
+    entry.key = hash;
+    entry.value.depth = depth;
+    entry.value.nodes = ret;
 
     return ret;
 }
@@ -99,9 +99,9 @@ std::size_t perft_recursive_copy_hash(bitboard& bb, std::uint64_t hash, std::siz
         return 1;
 
     // Loop up the value in the hash table and return immediately if we hit.
-    perft_hash_entry& hash_entry { perft_hash_table[hash & perft_hash_mask] };
-    if (hash_entry.key == hash && hash_entry.depth == depth)
-        return hash_entry.nodes;
+    auto& hash_entry { perft_hash_table[hash] };
+    if (hash_entry.key == hash && hash_entry.value.depth == depth)
+        return hash_entry.value.nodes;
 
     std::size_t ret {};
 
@@ -119,22 +119,26 @@ std::size_t perft_recursive_copy_hash(bitboard& bb, std::uint64_t hash, std::siz
 
     // Update the hash table with our result - always overriding for now.
     hash_entry.key = hash;
-    hash_entry.depth = depth;
-    hash_entry.nodes = ret;
+    hash_entry.value.depth = depth;
+    hash_entry.value.nodes = ret;
 
     return ret;
 }
 
 }
 
-void set_log2_perft_hash_entries(std::size_t log2_entries)
+void set_perft_hash_table_bytes(std::size_t bytes)
 {
-    const std::size_t entries { 1ULL << log2_entries };
+    // We only allocate the log2-floor of the requested entries.
+    const std::size_t entries { std::bit_floor(bytes/sizeof(perft_hash_table_type::entry_type)) };
 
-    perft_hash_mask = entries - 1;
+    perft_hash_buf.resize(entries);
+    perft_hash_table = perft_hash_table_type(perft_hash_buf);
+}
 
-    perft_hash_table.resize(entries);
-    perft_hash_table.shrink_to_fit();
+std::size_t get_perft_hash_table_bytes()
+{
+    return perft_hash_table.get_table_bytes();
 }
 
 perft_args::strategy_type perft_args::strategy_type_from_string(std::string_view str)

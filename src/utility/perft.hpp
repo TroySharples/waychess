@@ -2,8 +2,9 @@
 
 #include "position/bitboard.hpp"
 
-// Value of 26 should correspond to about a 1 GB table.
-void set_log2_perft_hash_entries(std::size_t log2_entries);
+// Note only allocates the log2_floor the entries.
+void set_perft_hash_table_bytes(std::size_t bytes);
+std::size_t get_perft_hash_table_bytes();
 
 struct perft_args
 {
