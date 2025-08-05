@@ -7,15 +7,16 @@ SCRIPT_DIR="$(dirname "${SCRIPT_PATH}")"
 
 # Runs the perft command - we always go from the starting position with depth 7.
 PERFT_PATH="${SCRIPT_DIR}"/../build/apps/waychess-perft
-PERFT_DEPTH=7
 PERFT_STRATEGY=$1
-PERFT_RESULT=$("${PERFT_PATH}" -y -d ${PERFT_DEPTH} -s ${PERFT_STRATEGY})
+PERFT_DEPTH=$2
+PERFT_HASH_BYTES=$3
+PERFT_RESULT=$("${PERFT_PATH}" -y -d ${PERFT_DEPTH} -s ${PERFT_STRATEGY} -k ${PERFT_HASH_BYTES})
 
 # Adds additional metafields to the result and minifies the JSON.
 REGRESSION_HARDWARE=$(lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
 REGRESSION_TIMESTAMP=$(date +%s)
 REGRESSION_GIT=$(git rev-parse HEAD)
-REGRESSION_LABEL=$2
+REGRESSION_LABEL=$4
 REGRESSION_RESULT=$(echo ${PERFT_RESULT} | jq -c \
     --arg regression_hardware  "${REGRESSION_HARDWARE}" \
     --arg regression_timestamp "${REGRESSION_TIMESTAMP}" \

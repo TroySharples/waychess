@@ -7,6 +7,8 @@
             "command": "${workspaceFolder}/regression/perft.sh",
             "args": [
                 "\"${input:strategy}\"",
+                "\"${input:depth}\"",
+                "\"${input:hash-size}\"",
                 "\"${input:label}\""
             ],
             "problemMatcher": []
@@ -26,6 +28,18 @@
             "id": "label",
             "type": "promptString",
             "description": "Regression tracking label (can be empty).",
+        },
+        {
+            "id": "depth",
+            "type": "promptString",
+            "description": "Maximum tree depth.",
+            "default": "7"
+        },
+        {
+            "id": "hash-size",
+            "type": "promptString",
+            "description": "Upper-limit of hash-table size in MB.",
+            "default": "1000"
         },
         {
             "id": "strategy",
