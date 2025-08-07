@@ -2,6 +2,7 @@ add_library(lib-waychess STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/utility/binary.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utility/coordinates.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utility/perft.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utility/puzzle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/details/ram.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/details/knight.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/details/king.cpp
