@@ -9,7 +9,6 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
     return os << "Usage: " << argv0 << " <options>\n"
               << "    Options:\n"
               << "         -h         -> Print this help menu.\n"
-              << "         -y         -> Also print the final time taken for the evaluation in ms.\n"
               << "         -b         -> Also print the recommended move.\n"
               << "         -f [fen]   -> The FEN string for the starting position. Optional, defaults to starting position.\n"
               << "         -d [depth] -> The evaluation depth. Optional, default 1.\n";
@@ -19,13 +18,12 @@ int main(int argc, char** argv)
 {
     // Default arguments.
     bool help         { false };
-    bool time         { false };
     bool recommened   { false };
     std::string fen   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
     std::size_t depth { 1 };
 
     // Parse options.
-    for (int c; (c = getopt(argc, argv, "hybf:d:")) != -1; )
+    for (int c; (c = getopt(argc, argv, "hbf:d:")) != -1; )
     {
         switch (c)
         {
@@ -33,12 +31,6 @@ int main(int argc, char** argv)
             case 'h':
             {
                 help = true;
-                break;
-            }
-            // Show time.
-            case 'y':
-            {
-                time = true;
                 break;
             }
             // Recommended move.
@@ -82,13 +74,6 @@ int main(int argc, char** argv)
         print_usage(argv[0], std::cout);
         return EXIT_SUCCESS;
     }
-    // Start printing the JSON. We might clean this up later by having a proper JSON printing class, but this
-    // program seems too simple at the moment to warrent it.
-    std::cout << R"({)" << '\n'
-              << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
-              << R"(    "depth": )" << depth << ",\n"
-              << R"(    "search": )" << '"' << "minimax" << '"' << ",\n"
-              << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n";
 
     const bitboard position_start(fen);
     std::int16_t evaluation_cp {};
@@ -107,12 +92,15 @@ int main(int argc, char** argv)
     }
     const auto time_end = std::chrono::steady_clock::now();
 
-    // Print the time and nps.
-    if (time)
-        std::cout << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n";
-
-    // Finally print the evaluation.
-    std::cout << R"(    "evaluation-cp": )" << evaluation_cp << '\n'
+    // Start printing the JSON file in one go. We might clean this up later by having a proper JSON printing class, but this
+    // program seems too simple at the moment to warrent it.
+    std::cout << R"({)" << '\n'
+              << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
+              << R"(    "depth": )" << depth << ",\n"
+              << R"(    "search": )" << '"' << "minimax" << '"' << ",\n"
+              << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
+              << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
+              << R"(    "evaluation-cp": )" << evaluation_cp << '\n'
               << R"(})" << '\n';
 
     return EXIT_SUCCESS;

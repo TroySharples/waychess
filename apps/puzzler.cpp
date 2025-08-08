@@ -24,7 +24,7 @@ int main(int argc, char** argv)
     std::uint8_t depth { 4 };
 
     // Parse options.
-    for (int c; (c = getopt(argc, argv, "hyf:d:")) != -1; )
+    for (int c; (c = getopt(argc, argv, "hf:d:")) != -1; )
     {
         switch (c)
         {

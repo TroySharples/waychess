@@ -16,7 +16,6 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "    Options:\n"
               << "         -h                   -> Print this help menu.\n"
               << "         -t                   -> Also print the first level tree of possible moves.\n"
-              << "         -y                   -> Also print the final time taken for the perft test in ms.\n"
               << "         -f [fen]             -> The FEN string for the starting position. Optional, defaults to starting position.\n"
               << "         -d [depth]           -> The perft depth. Optional, default 1.\n"
               << "         -s [stratagy]        -> The perft search strategy. Can be either copy-no-hash, unmake-no-hash, copy-hash, or unmake-hash - default unmake-hash.\n"
@@ -28,13 +27,12 @@ int main(int argc, char** argv)
     // Default arguments.
     bool help                         { false };
     bool tree                         { false };
-    bool time                         { false };
     std::string fen                   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
     perft_args args                   { .depth=1, .strategy=perft_args::copy };
     std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
-    for (int c; (c = getopt(argc, argv, "htyf:d:s:k:")) != -1; )
+    for (int c; (c = getopt(argc, argv, "htf:d:s:k:")) != -1; )
     {
         switch (c)
         {
@@ -48,12 +46,6 @@ int main(int argc, char** argv)
             case 't':
             {
                 tree = true;
-                break;
-            }
-            // Show time.
-            case 'y':
-            {
-                time = true;
                 break;
             }
             // FEN.
@@ -117,7 +109,8 @@ int main(int argc, char** argv)
     set_perft_hash_table_bytes(hash_table_size_bytes);
 
     // Start printing the JSON. We might clean this up later by having a proper JSON printing class, but this
-    // program seems too simple at the moment to warrent it.
+    // program seems too simple at the moment to warrent it. We have to do it at the start becausse we print the
+    // tree of moves structure dynamically.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
               << R"(    "depth": )" << args.depth << ",\n"
@@ -164,16 +157,11 @@ int main(int argc, char** argv)
     }
     const auto time_end = std::chrono::steady_clock::now();
 
-    // Print the time and nps.
-    if (time)
-    {
-        const std::uint64_t duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
-        std::cout << R"(    "time-ms": )" << duration_ms << ",\n"
-                  << R"(    "nps": )"     << 1000ULL * total_nodes / duration_ms << ",\n";
-    }
-
-    // Finally print the total number of nodes.
-    std::cout << R"(    "total-nodes": )" << total_nodes << '\n'
+    // Finish off printing the JSON file.
+    const std::uint64_t duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
+    std::cout << R"(    "time-ms": )" << duration_ms << ",\n"
+              << R"(    "nps": )"     << 1000ULL * total_nodes / duration_ms << ",\n"
+              << R"(    "total-nodes": )" << total_nodes << '\n'
               << R"(})" << '\n';
 
     return EXIT_SUCCESS;

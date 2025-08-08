@@ -5,12 +5,12 @@ set -euo pipefail
 SCRIPT_PATH="${BASH_SOURCE:-$0}"
 SCRIPT_DIR="$(dirname "${SCRIPT_PATH}")"
 
-# Runs the perft command - we always go from the starting position with depth 7.
+# Runs the command.
 PERFT_PATH="${SCRIPT_DIR}"/../build/apps/waychess-perft
 PERFT_STRATEGY=$1
 PERFT_DEPTH=$2
 PERFT_HASH_BYTES=$3
-PERFT_RESULT=$("${PERFT_PATH}" -y -d ${PERFT_DEPTH} -s ${PERFT_STRATEGY} -k ${PERFT_HASH_BYTES})
+PERFT_RESULT=$("${PERFT_PATH}" -d ${PERFT_DEPTH} -s ${PERFT_STRATEGY} -k ${PERFT_HASH_BYTES})
 
 # Adds additional metafields to the result and minifies the JSON.
 REGRESSION_HARDWARE=$(lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
