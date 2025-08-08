@@ -21,6 +21,17 @@
                 "\"${input:label}\""
             ],
             "problemMatcher": []
+        },
+        {
+            "label": "Puzzler Regression Test",
+            "type": "shell",
+            "command": "${workspaceFolder}/regression/puzzler.sh",
+            "args": [
+                "\"puzzles/${input:puzzle-file}.csv\"",
+                "\"${input:depth}\"",
+                "\"${input:label}\""
+            ],
+            "problemMatcher": []
         }
     ],
     "inputs": [
@@ -48,6 +59,16 @@
             "options": [
                 "copy",
                 "unmake"
+            ],
+            "default": "copy"
+        },
+        {
+            "id": "puzzle-file",
+            "type": "pickString",
+            "description": "Puzzle file",
+            "options": [
+                "mate500",
+                "endgame500"
             ],
             "default": "copy"
         }
