@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 
     // Start printing the JSON. We only do this at the end in case we have trouble parsing the CSV file when running the test.
     std::cout << R"({)" << '\n'
-              << R"(    "file": )"   << '"' << csv_path.filename() << '"' << ",\n"
+              << R"(    "file": )"   << csv_path.filename() << ",\n"
               << R"(    "depth": )" << static_cast<int>(depth) << ",\n"
               << R"(    "search": )" << '"' << "minimax" << '"' << ",\n"
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
