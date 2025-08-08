@@ -19,7 +19,7 @@ void test_puzzles(const std::filesystem::path& csv_path, double pass_accuracy)
     std::string line;
     ASSERT_TRUE(std::getline(is, line));
 
-    const recommendation rec = [] (const bitboard& bb) {
+    const recommendation rec = [] (const bitboard& bb, const void* /*args*/) {
         constexpr std::uint8_t depth { 4 };
         return best_move_minimax(bb, depth, &evaluate_terminal).first;
     };

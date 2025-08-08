@@ -4,14 +4,14 @@
 
 #include <sstream>
 
-bool puzzle::solve(recommendation rec) const
+bool puzzle::solve(recommendation rec, const void* args) const
 {
     bitboard bb_copy { bb };
     bool is_to_move { false };
 
     for (auto move : moves)
     {
-        if (is_to_move && move != rec(bb_copy))
+        if (is_to_move && move != rec(bb_copy, args))
             return false;
 
         make_move({ .check_legality = false }, bb_copy, move);
