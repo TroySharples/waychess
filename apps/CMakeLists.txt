@@ -13,3 +13,8 @@ install(TARGETS waychess-print DESTINATION bin)
 add_executable(waychess-evaluate ${CMAKE_CURRENT_SOURCE_DIR}/evaluate.cpp)
 target_link_libraries(waychess-evaluate PRIVATE lib-waychess)
 install(TARGETS waychess-evaluate DESTINATION bin)
+
+add_executable(waychess-puzzler ${CMAKE_CURRENT_SOURCE_DIR}/puzzler.cpp)
+target_link_libraries(waychess-puzzler PRIVATE lib-waychess)
+install(TARGETS waychess-puzzler DESTINATION bin)
+
