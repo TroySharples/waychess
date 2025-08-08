@@ -12,7 +12,7 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "         -y         -> Also print the final time taken for the evaluation in ms.\n"
               << "         -b         -> Also print the recommended move.\n"
               << "         -f [fen]   -> The FEN string for the starting position. Optional, defaults to starting position.\n"
-              << "         -d [depth] -> The perft depth. Optional, default 1.\n";
+              << "         -d [depth] -> The evaluation depth. Optional, default 1.\n";
 }
 
 int main(int argc, char** argv)
