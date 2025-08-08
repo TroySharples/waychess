@@ -6,19 +6,21 @@
 
 bool puzzle::solve(recommendation rec, const void* args) const
 {
+    bool ret { true };
+
     bitboard bb_copy { bb };
     bool is_to_move { false };
 
     for (auto move : moves)
     {
         if (is_to_move && move != rec(bb_copy, args))
-            return false;
+            ret = false;
 
         make_move({ .check_legality = false }, bb_copy, move);
         is_to_move = !is_to_move;
     }
 
-    return true;
+    return ret;
 }
 
 std::istream& operator>>(std::istream& is, puzzle& v)
