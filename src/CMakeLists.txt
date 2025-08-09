@@ -4,12 +4,12 @@ add_library(lib-waychess STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/utility/perft.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utility/puzzle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/details/ram.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/details/knight.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/details/king.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/details/pawn.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/details/rook.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/details/bishop.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/details/queen.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/knight.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/king.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/pawn.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/rook.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/bishop.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pieces/queen.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/pieces.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/position/bitboard.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/position/mailbox.cpp

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "details/zobrist_hash.hpp"
-
+#include "details/prn_codes.hpp"
 #include "position/mailbox.hpp"
 
 namespace zobrist
