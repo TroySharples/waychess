@@ -10,10 +10,11 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
 {
     return os << "Usage: " << argv0 << " <options>\n"
               << "    Options:\n"
-              << "         -h          -> Print this help menu.\n"
-              << "         -f [file]   -> The path to the Lichess CSV containing the puzzles.\n"
-              << "         -d [depth]  -> The perft depth. Optional, default 4.\n"
-              << "         -s [search] -> The search strategy to use. Can either be minimax, negamax, or negamax-prune. Optional, default negamax-prune.\n";
+              << "         -h                   -> Print this help menu.\n"
+              << "         -f [file]            -> The path to the Lichess CSV containing the puzzles.\n"
+              << "         -d [depth]           -> The perft depth. Optional, default 4.\n"
+              << "         -s [search]          -> The search strategy to use. Can either be minimax, negamax, or negamax-prune. Optional, default negamax-prune.\n"
+              << "         -k [hash-table size] -> The size of the hash-table (in MiB) if used. Optional, default 1000.\n";
 }
 
 int main(int argc, char** argv)
@@ -23,9 +24,10 @@ int main(int argc, char** argv)
     std::filesystem::path csv_path;
     std::uint8_t depth { 4 };
     search::search s  { search::negamax };
+    std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
-    for (int c; (c = getopt(argc, argv, "hf:d:s:")) != -1; )
+    for (int c; (c = getopt(argc, argv, "hf:d:s:k:")) != -1; )
     {
         switch (c)
         {
@@ -51,6 +53,12 @@ int main(int argc, char** argv)
             case 's':
             {
                 s = search::search_from_string(optarg);
+                break;
+            }
+            // Hash size.
+            case 'k':
+            {
+                hash_table_size_bytes = std::stoull(optarg)*1000000;
                 break;
             }
             // Unknown
@@ -92,6 +100,10 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
+    // Init hash table, so we can read-back the actual allocated memory (instead of the requested amount) when
+    // printing out the telemetry below.
+    search::set_search_hash_table_bytes(hash_table_size_bytes);
+
     std::size_t puzzles_total {};
     std::size_t puzzles_solved {};
 
@@ -116,6 +128,7 @@ int main(int argc, char** argv)
               << R"(    "file": )"   << csv_path.filename() << ",\n"
               << R"(    "depth": )" << static_cast<int>(depth) << ",\n"
               << R"(    "search": )" << '"' << search::search_to_string(s) << '"' << ",\n"
+              << R"(    "hash-table MB": )" << '"' << search::get_search_hash_table_bytes()/1000000 << '"' << ",\n"
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
               << R"(    "puzzles-total": )" << puzzles_total << ",\n"

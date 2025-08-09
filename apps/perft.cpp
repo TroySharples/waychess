@@ -25,10 +25,10 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
 int main(int argc, char** argv)
 {
     // Default arguments.
-    bool help                         { false };
-    bool tree                         { false };
-    std::string fen                   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
-    perft_args args                   { .depth=1, .strategy=perft_args::copy };
+    bool help { false };
+    bool tree { false };
+    std::string fen { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
+    perft_args args { .depth=1, .strategy=perft_args::copy };
     std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.

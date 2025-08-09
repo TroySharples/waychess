@@ -21,6 +21,7 @@
             "args": [
                 "\"${input:search}\"",
                 "\"${input:depth}\"",
+                "\"${input:hash-size}\"",
                 "\"${input:label}\""
             ],
             "problemMatcher": [],
@@ -34,6 +35,7 @@
                 "\"puzzles/${input:puzzle-file}.csv\"",
                 "\"${input:search}\"",
                 "\"${input:depth}\"",
+                "\"${input:hash-size}\"",
                 "\"${input:label}\""
             ],
             "problemMatcher": [],
