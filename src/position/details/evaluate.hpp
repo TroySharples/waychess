@@ -5,7 +5,7 @@
 namespace details
 {
 
-constexpr std::array<std::int16_t, 14> material_cp {
+constexpr std::array<int, 14> material_cp {
     // White pawn.
     100,
     // White king.
@@ -36,13 +36,13 @@ constexpr std::array<std::int16_t, 14> material_cp {
 
 };
 
-inline std::int16_t evaluate_terminal(const bitboard& bb) noexcept
+inline int evaluate_terminal(const bitboard& bb) noexcept
 {
-    std::int16_t ret {};
+    int ret {};
 
-    // At the moment his is purely materialistic.
+    // At the moment this is purely materialistic.
     for (std::size_t i = 0; i < 14; i++)
-        ret += details::material_cp[i]*static_cast<std::int16_t>(std::popcount(bb.boards[i]));
+        ret += details::material_cp[i]*std::popcount(bb.boards[i]);
 
     return ret;
 }

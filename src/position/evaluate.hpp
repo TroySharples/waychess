@@ -3,12 +3,12 @@
 #include "bitboard.hpp"
 
 // A generic terminal evaluation signature.
-using evaluation = std::int16_t (*)(const bitboard& bb);
+using evaluation = int (*)(const bitboard& bb);
 
 // A general move-recommendation signature.
 using recommendation = std::uint32_t (*)(const bitboard& bb, const void* args);
 
 // Our terminal evaluation heuristic - may add more of these in the future.
-std::int16_t evaluate_terminal(const bitboard& bb) noexcept;
+int evaluate_terminal(const bitboard& bb) noexcept;
 
 #include "details/evaluate.hpp"

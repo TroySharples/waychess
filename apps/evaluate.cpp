@@ -76,7 +76,7 @@ int main(int argc, char** argv)
     }
 
     const bitboard position_start(fen);
-    std::int16_t evaluation_cp {};
+    int evaluation_cp {};
 
     const auto time_start = std::chrono::steady_clock::now();
     if (recommened)
