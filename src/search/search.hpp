@@ -17,8 +17,9 @@ namespace search
 using search = int (*)(const bitboard& bb, std::size_t max_depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval);
 
 // The search algorithms we've implemented so far.
-constexpr search negamax { &search_negamax };
-constexpr search minimax { &search_minimax };
+constexpr search negamax       { &search_negamax };
+constexpr search minimax       { &search_minimax };
+constexpr search negamax_prune { &search_negamax_prune };
 
 search search_from_string(std::string_view str);
 std::string search_to_string(search s);

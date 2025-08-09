@@ -11,7 +11,7 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "         -h          -> Print this help menu.\n"
               << "         -f [fen]    -> The FEN string for the starting position. Optional, defaults to starting position.\n"
               << "         -d [depth]  -> The evaluation depth. Optional, default 1.\n"
-              << "         -s [search] -> The search strategy to use. Can either be minimax or negamax. Optional, default negamax.\n";
+              << "         -s [search] -> The search strategy to use. Can either be minimax, negamax, or negamax-prune. Optional, default negamax-prune.\n";
 }
 
 int main(int argc, char** argv)

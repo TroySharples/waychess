@@ -74,9 +74,10 @@
             "description": "Search algorithm",
             "options": [
                 "negamax",
-                "minimax"
+                "minimax",
+                "negamax-prune"
             ],
-            "default": "negamax"
+            "default": "negamax-prune"
         },
         {
             "id": "puzzle-file",

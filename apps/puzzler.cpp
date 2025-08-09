@@ -13,7 +13,7 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "         -h          -> Print this help menu.\n"
               << "         -f [file]   -> The path to the Lichess CSV containing the puzzles.\n"
               << "         -d [depth]  -> The perft depth. Optional, default 4.\n"
-              << "         -s [search] -> The search strategy to use. Can either be minimax or negamax. Optional, default negamax.\n";
+              << "         -s [search] -> The search strategy to use. Can either be minimax, negamax, or negamax-prune. Optional, default negamax-prune.\n";
 }
 
 int main(int argc, char** argv)
