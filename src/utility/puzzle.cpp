@@ -52,7 +52,6 @@ std::istream& operator>>(std::istream& is, puzzle& v)
 
             v.moves.push_back(move);
         }
-
     }
 
     // Discard the rest of the puzzle info and read to the end of the line.

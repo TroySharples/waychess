@@ -18,7 +18,7 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "         -t                   -> Also print the first level tree of possible moves.\n"
               << "         -f [fen]             -> The FEN string for the starting position. Optional, defaults to starting position.\n"
               << "         -d [depth]           -> The perft depth. Optional, default 1.\n"
-              << "         -s [stratagy]        -> The perft search strategy. Can be either copy-no-hash, unmake-no-hash, copy-hash, or unmake-hash - default unmake-hash.\n"
+              << "         -s [stratagy]        -> The perft search strategy. Can be either copy or unmake, - default copy.\n"
               << "         -k [hash-table size] -> The size of the hash-table (in MiB) if used. Optional, default 1000.\n";
 }
 
