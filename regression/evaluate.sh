@@ -7,14 +7,15 @@ SCRIPT_DIR="$(dirname "${SCRIPT_PATH}")"
 
 # Runs the command.
 EVALUATE_PATH="${SCRIPT_DIR}"/../build/apps/waychess-evaluate
-EVALUATE_DEPTH=7
-EVALUATE_RESULT=$("${EVALUATE_PATH}" -d ${EVALUATE_DEPTH})
+EVALUATE_SEARCH=$1
+EVALUATE_DEPTH=$2
+EVALUATE_RESULT=$("${EVALUATE_PATH}" -s ${EVALUATE_SEARCH} -d ${EVALUATE_DEPTH})
 
 # Adds additional metafields to the result and minifies the JSON.
 REGRESSION_HARDWARE=$(lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
 REGRESSION_TIMESTAMP=$(date +%s)
 REGRESSION_GIT=$(git rev-parse HEAD)
-REGRESSION_LABEL=$1
+REGRESSION_LABEL=$3
 REGRESSION_RESULT=$(echo ${EVALUATE_RESULT} | jq -c \
     --arg regression_hardware  "${REGRESSION_HARDWARE}" \
     --arg regression_timestamp "${REGRESSION_TIMESTAMP}" \

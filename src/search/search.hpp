@@ -5,6 +5,7 @@
 // ####################################
 
 #include "search_negamax.hpp"
+#include "search_minimax.hpp"
 
 namespace search
 {
@@ -15,7 +16,12 @@ namespace search
 // playing side).
 using search = int (*)(const bitboard& bb, std::size_t max_depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval);
 
+// The search algorithms we've implemented so far.
 constexpr search negamax { &search_negamax };
+constexpr search minimax { &search_minimax };
+
+search search_from_string(std::string_view str);
+std::string search_to_string(search s);
 
 struct recommendation
 {

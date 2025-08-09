@@ -37,12 +37,11 @@ inline int search_negamax_recursive(const bitboard& bb, std::size_t depth, evalu
 
 }
 
-// The args-search must contain a std::size_t target depth.
-inline int search_negamax(const bitboard& bb, std::size_t max_depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval)
+inline int search_negamax(const bitboard& bb, std::size_t depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval)
 {
     const int colour = (bb.is_black_to_play() ? -1 : 1);
 
-    return colour*details::search_negamax_recursive(bb, max_depth, eval, move_buf, colour, args_eval);
+    return colour*details::search_negamax_recursive(bb, depth, eval, move_buf, colour, args_eval);
 }
 
 }

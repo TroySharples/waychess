@@ -19,6 +19,8 @@
             "type": "shell",
             "command": "${workspaceFolder}/regression/evaluate.sh",
             "args": [
+                "\"${input:search}\"",
+                "\"${input:depth}\"",
                 "\"${input:label}\""
             ],
             "problemMatcher": [],
@@ -64,6 +66,16 @@
                 "unmake"
             ],
             "default": "copy"
+        },
+        {
+            "id": "search",
+            "type": "pickString",
+            "description": "Search algorithm",
+            "options": [
+                "negamax",
+                "minimax"
+            ],
+            "default": "negamax"
         },
         {
             "id": "puzzle-file",
