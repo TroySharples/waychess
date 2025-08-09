@@ -10,14 +10,12 @@
 namespace details
 {
 
-int search_mini(const bitboard& bb, std::size_t depth, evaluation eval, std::span<std::uint32_t> move_buf) noexcept;
-int search_maxi(const bitboard& bb, std::size_t depth, evaluation eval, std::span<std::uint32_t> move_buf) noexcept;
-
-inline int search_maxi(const bitboard& bb, std::size_t depth, evaluation eval, std::span<std::uint32_t> move_buf) noexcept
+inline int search_negamax(const bitboard& bb, std::size_t depth, evaluation eval, std::span<std::uint32_t> move_buf, int colour) noexcept
 {
-    if (depth == 0) return eval(bb);
+    if (depth == 0)
+        return colour*eval(bb);
 
-    int ret { std::numeric_limits<int>::min() };
+    int ret { -std::numeric_limits<int>::max() };
 
     const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
@@ -25,37 +23,10 @@ inline int search_maxi(const bitboard& bb, std::size_t depth, evaluation eval, s
     {
         bitboard next_position = bb;
 
-        constexpr make_move_args args { .check_legality = true };
-        if (!make_move(args, next_position, move_buf[i])) [[unlikely]]
+        if (!make_move({ .check_legality = true }, next_position, move_buf[i])) [[unlikely]]
             continue;
 
-        const int score { search_mini(next_position, depth-1, eval, move_buf.subspan(moves)) };
-        if (score > ret)
-            ret = score;
-    }
-
-    return ret;
-}
-
-inline int search_mini(const bitboard& bb, std::size_t depth, evaluation eval, std::span<std::uint32_t> move_buf) noexcept
-{
-    if (depth == 0) return eval(bb);
-
-    int ret { std::numeric_limits<int>::max() };
-
-    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
-
-    for (std::size_t i = 0; i < moves; i++)
-    {
-        bitboard next_position = bb;
-
-        constexpr make_move_args args { .check_legality = true };
-        if (!make_move(args, next_position, move_buf[i])) [[unlikely]]
-            continue;
-
-        const int score { search_maxi(next_position, depth-1, eval, move_buf.subspan(moves)) };
-        if (score < ret)
-            ret = score;
+        ret = std::max(ret, -search_negamax(next_position, depth-1, eval, move_buf.subspan(moves), -colour));
     }
 
     return ret;
@@ -63,7 +34,9 @@ inline int search_mini(const bitboard& bb, std::size_t depth, evaluation eval, s
 
 inline int evaluate_minimax_impl(const bitboard& bb, std::size_t depth, evaluation eval, std::span<std::uint32_t> move_buf) noexcept
 {
-    return bb.is_black_to_play() ? details::search_mini(bb, depth, eval, move_buf) : details::search_maxi(bb, depth, eval, move_buf);
+    const int colour = (bb.is_black_to_play() ? -1 : 1);
+
+    return colour*search_negamax(bb, depth, eval, move_buf, colour);
 }
 
 }
