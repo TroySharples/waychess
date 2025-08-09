@@ -1,7 +1,7 @@
 #include "position/bitboard.hpp"
 #include "position/make_move.hpp"
 #include "position/move.hpp"
-#include "position/search.hpp"
+#include "search/search.hpp"
 
 
 #include <cstdlib>
@@ -98,9 +98,9 @@ void handle_position(std::istringstream& iss)
 
 void handle_go(std::istringstream& /*iss*/)
 {
-    const auto best_move = best_move_minimax(bb, 6, &evaluate_terminal);
+    const auto best_move = search::recommend_move(bb, search::negamax, 6, evaluation::raw_material).move;
 
-    std::cout << "bestmove " << move::to_algebraic_long(best_move.first) << std::endl;
+    std::cout << "bestmove " << move::to_algebraic_long(best_move) << std::endl;
 }
 
 void handle_unknown(std::string_view command)

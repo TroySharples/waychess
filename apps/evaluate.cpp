@@ -1,4 +1,4 @@
-#include "position/search.hpp"
+#include "search/search.hpp"
 
 #include <chrono>
 #include <cstring>
@@ -76,21 +76,14 @@ int main(int argc, char** argv)
     }
 
     const bitboard position_start(fen);
-    int evaluation_cp {};
 
     const auto time_start = std::chrono::steady_clock::now();
-    if (recommened)
-    {
-        const auto best_move = best_move_minimax(position_start, depth, &evaluate_terminal);
-        evaluation_cp = best_move.second;
-
-        std::cout << R"(    "recommendation": )" << '"' << move::to_algebraic_long(best_move.first) << '"' << ",\n";
-    }
-    else
-    {
-        evaluation_cp = evaluate_minimax(position_start, depth, &evaluate_terminal);
-    }
+    const search::recommendation rec { search::recommend_move(position_start, search::negamax, depth, evaluation::raw_material) };
     const auto time_end = std::chrono::steady_clock::now();
+
+    // Print the recommended move if needed.
+    if (recommened)
+        std::cout << R"(    "recommendation": )" << '"' << move::to_algebraic_long(rec.move) << '"' << ",\n";
 
     // Start printing the JSON file in one go. We might clean this up later by having a proper JSON printing class, but this
     // program seems too simple at the moment to warrent it.
@@ -100,7 +93,7 @@ int main(int argc, char** argv)
               << R"(    "search": )" << '"' << "minimax" << '"' << ",\n"
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
-              << R"(    "evaluation-cp": )" << evaluation_cp << '\n'
+              << R"(    "evaluation-cp": )" << rec.eval << '\n'
               << R"(})" << '\n';
 
     return EXIT_SUCCESS;

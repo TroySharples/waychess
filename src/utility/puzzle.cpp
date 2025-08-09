@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-bool puzzle::solve(recommendation rec, const void* args) const
+bool puzzle::solve(search::search s, std::size_t max_depth, evaluation::evaluation eval, const void* args_eval) const
 {
     bool ret { true };
 
@@ -13,7 +13,7 @@ bool puzzle::solve(recommendation rec, const void* args) const
 
     for (auto move : moves)
     {
-        if (is_to_move && move != rec(bb_copy, args))
+        if (is_to_move && move != search::recommend_move(bb_copy, s, max_depth, eval, args_eval).move)
             ret = false;
 
         make_move({ .check_legality = false }, bb_copy, move);

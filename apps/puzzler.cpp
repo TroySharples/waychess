@@ -1,5 +1,4 @@
 #include "utility/puzzle.hpp"
-#include "position/search.hpp"
 
 #include <chrono>
 #include <cstring>
@@ -85,10 +84,6 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    recommendation rec = [] (const bitboard& bb, const void* args) {
-        return best_move_minimax(bb, *static_cast<const std::uint8_t*>(args), &evaluate_terminal).first;
-    };
-
     std::size_t puzzles_total {};
     std::size_t puzzles_solved {};
 
@@ -101,7 +96,8 @@ int main(int argc, char** argv)
         ss >> p;
 
         puzzles_total++;
-        if (p.solve(rec, &depth)) puzzles_solved++;
+        if (p.solve(search::negamax, depth, evaluation::raw_material))
+            puzzles_solved++;
     }
     const auto time_end = std::chrono::steady_clock::now();
 

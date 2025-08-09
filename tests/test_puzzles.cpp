@@ -1,5 +1,4 @@
 #include "utility/puzzle.hpp"
-#include "position/search.hpp"
 
 #include <gtest/gtest.h>
 #include <filesystem>
@@ -19,11 +18,6 @@ void test_puzzles(const std::filesystem::path& csv_path, double pass_accuracy)
     std::string line;
     ASSERT_TRUE(std::getline(is, line));
 
-    const recommendation rec = [] (const bitboard& bb, const void* /*args*/) {
-        constexpr std::uint8_t depth { 4 };
-        return best_move_minimax(bb, depth, &evaluate_terminal).first;
-    };
-
     while (std::getline(is, line))
     {
         std::stringstream ss(line);
@@ -32,7 +26,8 @@ void test_puzzles(const std::filesystem::path& csv_path, double pass_accuracy)
         ss >> p;
 
         puzzles_total++;
-        if (p.solve(rec)) puzzles_solved++;
+        if (p.solve(search::negamax, 4, evaluation::raw_material))
+            puzzles_solved++;
     }
 
     const double accuracy = static_cast<double>(puzzles_solved) / static_cast<double>(puzzles_total);

@@ -1,6 +1,9 @@
 #pragma once
 
-#include "position/evaluate.hpp"
+#include "position/bitboard.hpp"
+
+namespace evaluation
+{
 
 namespace details
 {
@@ -36,7 +39,8 @@ constexpr std::array<int, 14> material_cp {
 
 };
 
-inline int evaluate_terminal(const bitboard& bb) noexcept
+// Simply counts the material points - this is super basic and we don't expect it to be very good.
+inline int evaluate_raw_material(const bitboard& bb, const void* /*args*/) noexcept
 {
     int ret {};
 
@@ -45,4 +49,6 @@ inline int evaluate_terminal(const bitboard& bb) noexcept
         ret += details::material_cp[i]*std::popcount(bb.boards[i]);
 
     return ret;
+}
+
 }
