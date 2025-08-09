@@ -9,7 +9,6 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
     return os << "Usage: " << argv0 << " <options>\n"
               << "    Options:\n"
               << "         -h         -> Print this help menu.\n"
-              << "         -b         -> Also print the recommended move.\n"
               << "         -f [fen]   -> The FEN string for the starting position. Optional, defaults to starting position.\n"
               << "         -d [depth] -> The evaluation depth. Optional, default 1.\n";
 }
@@ -18,7 +17,6 @@ int main(int argc, char** argv)
 {
     // Default arguments.
     bool help         { false };
-    bool recommened   { false };
     std::string fen   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
     std::size_t depth { 1 };
 
@@ -31,12 +29,6 @@ int main(int argc, char** argv)
             case 'h':
             {
                 help = true;
-                break;
-            }
-            // Recommended move.
-            case 'b':
-            {
-                recommened = true;
                 break;
             }
             // FEN.
@@ -81,10 +73,6 @@ int main(int argc, char** argv)
     const search::recommendation rec { search::recommend_move(position_start, search::negamax, depth, evaluation::raw_material) };
     const auto time_end = std::chrono::steady_clock::now();
 
-    // Print the recommended move if needed.
-    if (recommened)
-        std::cout << R"(    "recommendation": )" << '"' << move::to_algebraic_long(rec.move) << '"' << ",\n";
-
     // Start printing the JSON file in one go. We might clean this up later by having a proper JSON printing class, but this
     // program seems too simple at the moment to warrent it.
     std::cout << R"({)" << '\n'
@@ -93,6 +81,7 @@ int main(int argc, char** argv)
               << R"(    "search": )" << '"' << "minimax" << '"' << ",\n"
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
+              << R"(    "recommendation": )" << '"' << move::to_algebraic_long(rec.move) << '"' << ",\n"
               << R"(    "evaluation-cp": )" << rec.eval << '\n'
               << R"(})" << '\n';
 

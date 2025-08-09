@@ -20,7 +20,7 @@ while :
 do
     if [[ "${side}" == "$(${PRINT_PATH} -f "${fen}" -t side)" ]]; then
         # It's our turn to play.
-        move=$(${EVALUATE_PATH} -f "${fen}" -d ${depth} -b | jq -r '.["recommendation"]' )
+        move=$(${EVALUATE_PATH} -f "${fen}" -d ${depth} | jq -r '.["recommendation"]' )
         echo "Move: ${move}"
         fen=$(${PRINT_PATH} -f "${fen}" -m ${move})
     else
