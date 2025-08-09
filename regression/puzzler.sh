@@ -8,14 +8,15 @@ SCRIPT_DIR="$(dirname "${SCRIPT_PATH}")"
 # Runs the command.
 PUZZLER_PATH="${SCRIPT_DIR}"/../build/apps/waychess-puzzler
 PUZZLER_CSV=$1
-PUZZLER_DEPTH=$2
-PUZZLER_RESULT=$("${PUZZLER_PATH}" -f "${PUZZLER_CSV}" -d ${PUZZLER_DEPTH})
+PUZZLER_SEARCH=$2
+PUZZLER_DEPTH=$3
+PUZZLER_RESULT=$("${PUZZLER_PATH}" -f "${PUZZLER_CSV}" -s ${PUZZLER_SEARCH} -d ${PUZZLER_DEPTH})
 
 # Adds additional metafields to the result and minifies the JSON.
 REGRESSION_HARDWARE=$(lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
 REGRESSION_TIMESTAMP=$(date +%s)
 REGRESSION_GIT=$(git rev-parse HEAD)
-REGRESSION_LABEL=$3
+REGRESSION_LABEL=$4
 REGRESSION_RESULT=$(echo ${PUZZLER_RESULT} | jq -c \
     --arg regression_hardware  "${REGRESSION_HARDWARE}" \
     --arg regression_timestamp "${REGRESSION_TIMESTAMP}" \

@@ -10,9 +10,10 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
 {
     return os << "Usage: " << argv0 << " <options>\n"
               << "    Options:\n"
-              << "         -h         -> Print this help menu.\n"
-              << "         -f [file]  -> The path to the Lichess CSV containing the puzzles.\n"
-              << "         -d [depth] -> The perft depth. Optional, default 4.\n";
+              << "         -h          -> Print this help menu.\n"
+              << "         -f [file]   -> The path to the Lichess CSV containing the puzzles.\n"
+              << "         -d [depth]  -> The perft depth. Optional, default 4.\n"
+              << "         -s [search] -> The search strategy to use. Can either be minimax or negamax. Optional, default negamax.\n";
 }
 
 int main(int argc, char** argv)
@@ -21,9 +22,10 @@ int main(int argc, char** argv)
     bool help { false };
     std::filesystem::path csv_path;
     std::uint8_t depth { 4 };
+    search::search s  { search::negamax };
 
     // Parse options.
-    for (int c; (c = getopt(argc, argv, "hf:d:")) != -1; )
+    for (int c; (c = getopt(argc, argv, "hf:d:s:")) != -1; )
     {
         switch (c)
         {
@@ -43,6 +45,12 @@ int main(int argc, char** argv)
             case 'd':
             {
                 depth = std::stoul(optarg);
+                break;
+            }
+            // Search strategy.
+            case 's':
+            {
+                s = search::search_from_string(optarg);
                 break;
             }
             // Unknown
@@ -96,7 +104,7 @@ int main(int argc, char** argv)
         ss >> p;
 
         puzzles_total++;
-        if (p.solve(search::negamax, depth, evaluation::raw_material))
+        if (p.solve(s, depth, evaluation::raw_material))
             puzzles_solved++;
     }
     const auto time_end = std::chrono::steady_clock::now();
@@ -107,7 +115,7 @@ int main(int argc, char** argv)
     std::cout << R"({)" << '\n'
               << R"(    "file": )"   << csv_path.filename() << ",\n"
               << R"(    "depth": )" << static_cast<int>(depth) << ",\n"
-              << R"(    "search": )" << '"' << "minimax" << '"' << ",\n"
+              << R"(    "search": )" << '"' << search::search_to_string(s) << '"' << ",\n"
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
               << R"(    "puzzles-total": )" << puzzles_total << ",\n"

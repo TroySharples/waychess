@@ -32,6 +32,7 @@
             "command": "${workspaceFolder}/regression/puzzler.sh",
             "args": [
                 "\"puzzles/${input:puzzle-file}.csv\"",
+                "\"${input:search}\"",
                 "\"${input:depth}\"",
                 "\"${input:label}\""
             ],
