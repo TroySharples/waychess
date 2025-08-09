@@ -11,7 +11,8 @@
                 "\"${input:hash-size}\"",
                 "\"${input:label}\""
             ],
-            "problemMatcher": []
+            "problemMatcher": [],
+            "dependsOn": ["CMake: build"]
         },
         {
             "label": "Evalution Regression Test",
@@ -20,7 +21,8 @@
             "args": [
                 "\"${input:label}\""
             ],
-            "problemMatcher": []
+            "problemMatcher": [],
+            "dependsOn": ["CMake: build"]
         },
         {
             "label": "Puzzler Regression Test",
@@ -31,7 +33,8 @@
                 "\"${input:depth}\"",
                 "\"${input:label}\""
             ],
-            "problemMatcher": []
+            "problemMatcher": [],
+            "dependsOn": ["CMake: build"]
         }
     ],
     "inputs": [
