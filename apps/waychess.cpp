@@ -1,8 +1,4 @@
-#include "position/bitboard.hpp"
-#include "position/make_move.hpp"
-#include "position/move.hpp"
-#include "search/search.hpp"
-
+#include "search/algorithms.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -96,9 +92,58 @@ void handle_position(std::istringstream& iss)
     }
 }
 
-void handle_go(std::istringstream& /*iss*/)
+struct go_parameters
 {
-    const auto best_move = search::recommend_move(bb, search::negamax, 6, evaluation::raw_material).move;
+    std::size_t wtime {}, btime {};
+
+    friend std::istream& operator>>(std::istream& is, go_parameters& v);
+};
+
+std::istream& operator>>(std::istream& is, go_parameters& v)
+{
+    while (is)
+    {
+        std::string token;
+        is >> token;
+        if (token == "wtime")
+        {
+            is >> token;
+            v.wtime = std::stoull(token);
+        }
+        else if (token == "btime")
+        {
+            is >> token;
+            v.btime = std::stoull(token);
+        }
+        else
+        {
+            std::cerr << "Unknown go-parameter " << token << " - ";
+            is >> token;
+            std::cerr << token << std::endl;
+        }
+    }
+
+    return is;
+}
+
+void handle_go(std::istringstream& iss)
+{
+    std::uint32_t best_move;
+
+    go_parameters param;
+    iss >> param;
+
+    if (const std::size_t remaining_ms = (bb.is_black_to_play() ? param.btime : param.wtime); remaining_ms)
+    {
+        // If we know the time limit, just spend 1/15 the time playing the actual move.
+        const std::chrono::milliseconds time(remaining_ms / 15);
+        best_move = search::recommend_move_id(bb, search::negamax, time, evaluation::raw_material).move;
+    }
+    else
+    {
+        // Otherwise just calculate to depth 6.
+        best_move = search::recommend_move(bb, search::negamax, 6, evaluation::raw_material).move;
+    }
 
     std::cout << "bestmove " << move::to_algebraic_long(best_move) << std::endl;
 }

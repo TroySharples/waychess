@@ -1,3 +1,4 @@
+#include "search/algorithms.hpp"
 #include "utility/puzzle.hpp"
 
 #include <chrono>

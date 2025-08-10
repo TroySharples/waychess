@@ -1,4 +1,4 @@
-#include "search/search.hpp"
+#include "search/algorithms.hpp"
 
 #include <chrono>
 #include <cstring>

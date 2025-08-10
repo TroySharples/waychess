@@ -26,6 +26,9 @@ inline int search_negamax(const bitboard& bb, std::size_t depth, int colour, eva
 
     for (std::size_t i = 0; i < moves; i++)
     {
+        if (stop_search) [[unlikely]]
+            return ret;
+
         bitboard next_position = bb;
 
         if (!make_move({ .check_legality = true }, next_position, move_buf[i])) [[unlikely]]
@@ -48,6 +51,9 @@ inline int search_negamax_prune_no_hash(const bitboard& bb, std::size_t depth, i
 
     for (std::size_t i = 0; i < moves; i++)
     {
+        if (stop_search) [[unlikely]]
+            return ret;
+
         bitboard next_position = bb;
 
         if (!make_move({ .check_legality = true }, next_position, move_buf[i])) [[unlikely]]
@@ -79,6 +85,9 @@ inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, st
 
     for (std::size_t i = 0; i < moves; i++)
     {
+        if (stop_search) [[unlikely]]
+            return ret;
+
         bitboard bitboard_copy { bb };
         std::uint64_t hash_copy { hash };
 

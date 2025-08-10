@@ -1,5 +1,7 @@
 #pragma once
 
+#include "search.hpp"
+
 #include "evaluation/evaluation.hpp"
 
 #include "position/generate_moves.hpp"
@@ -27,6 +29,9 @@ inline int search_maxi(const bitboard& bb, std::size_t depth, evaluation::evalua
 
     for (std::size_t i = 0; i < moves; i++)
     {
+        if (stop_search) [[unlikely]]
+            return ret;
+
         bitboard next_position = bb;
 
         if (!make_move({ .check_legality = true }, next_position, move_buf[i])) [[unlikely]]
@@ -51,6 +56,9 @@ inline int search_mini(const bitboard& bb, std::size_t depth, evaluation::evalua
 
     for (std::size_t i = 0; i < moves; i++)
     {
+        if (stop_search) [[unlikely]]
+            return ret;
+
         bitboard next_position = bb;
 
         if (!make_move({ .check_legality = true }, next_position, move_buf[i])) [[unlikely]]

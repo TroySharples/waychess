@@ -6,8 +6,11 @@
 
 #include "evaluation/evaluation.hpp"
 #include "details/hash_map.hpp"
+#include "position/generate_moves.hpp"
+#include "position/make_move.hpp"
 
 #include <vector>
+#include <chrono>
 
 namespace search
 {
@@ -17,6 +20,10 @@ namespace search
 // max-depth). This must return an absolute centipawn evaluation (i.e. not relative to the
 // playing side).
 using search = int (*)(const bitboard& bb, std::size_t max_depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval);
+
+// A global boolean indicating when we must stop searching as soon as possible. All algorithms must
+// respect this.
+extern bool stop_search;
 
 // Entry type for search algorithms that use Zobrist hash-tables. We may add more things to this in the future.
 struct __attribute__ ((__packed__)) search_value_type
@@ -47,25 +54,7 @@ struct recommendation
 
 recommendation recommend_move(const bitboard& bb, search s, std::size_t max_depth, evaluation::evaluation eval, const void* args_eval = nullptr);
 
-}
-
-// ####################################
-// ALGORITHMS
-// ####################################
-
-#include "search_negamax.hpp"
-#include "search_minimax.hpp"
-
-namespace search
-{
-
-// The search algorithms we've implemented so far.
-constexpr search negamax       { &search_negamax };
-constexpr search minimax       { &search_minimax };
-constexpr search negamax_prune { &search_negamax_prune };
-
-search search_from_string(std::string_view str);
-std::string search_to_string(search s);
+recommendation recommend_move_id(const bitboard& bb, search s, std::chrono::duration<double> time, evaluation::evaluation eval, const void* args_eval = nullptr);
 
 }
 
@@ -73,11 +62,15 @@ std::string search_to_string(search s);
 // IMPLEMENTATION
 // ####################################
 
+#include <future>
+
 namespace search
 {
 
 inline recommendation recommend_move(const bitboard& bb, search s, std::size_t max_depth, evaluation::evaluation eval, const void* args_eval)
 {
+    stop_search = false;
+
     std::vector<std::uint32_t> move_buf(max_depth*MAX_MOVES_PER_POSITION);
     std::span<std::uint32_t> move_span(move_buf);
 
@@ -98,6 +91,41 @@ inline recommendation recommend_move(const bitboard& bb, search s, std::size_t m
     }
 
     return ret;
+}
+
+namespace details
+{
+
+inline recommendation recommend_move_id_future(const bitboard& bb, search s, evaluation::evaluation eval, const void* args_eval)
+{
+    stop_search = false;
+
+    std::size_t depth { 1 };
+    recommendation ret;
+
+    // Do the iterative deepening - we make sure to only update our recommendation if we weren't interrupted.
+    while (true)
+    {
+        const recommendation id = recommend_move(bb, s, depth++, eval, args_eval);
+        if (stop_search)
+            break;
+        ret = id;
+    }
+
+    return ret;
+}
+
+}
+
+inline recommendation recommend_move_id(const bitboard& bb, search s, std::chrono::duration<double> time, evaluation::evaluation eval, const void* args_eval)
+{
+    auto f = std::async(&details::recommend_move_id_future, bb, s, eval, args_eval);
+
+    // Technically this is undefined multithreaded behaviour... Will improve this section of the code greatly in the future.
+    std::this_thread::sleep_for(time);
+    stop_search = true;
+
+    return f.get();
 }
 
 }
