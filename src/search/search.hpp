@@ -19,10 +19,13 @@ namespace search
 using search = int (*)(const bitboard& bb, std::size_t max_depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval);
 
 // Entry type for search algorithms that use Zobrist hash-tables. We may add more things to this in the future.
-struct search_value_type
+struct __attribute__ ((__packed__)) search_value_type
 {
     std::uint8_t depth;
     int eval;
+
+    // A generic meta-field that can be used for various purposes depending on the search.
+    std::uint8_t meta;
 };
 
 using search_hash_table_type = ::details::hash_table<search_value_type>;
