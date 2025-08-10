@@ -94,7 +94,7 @@ void handle_position(std::istringstream& iss)
 
 struct go_parameters
 {
-    std::size_t wtime {}, btime {};
+    std::size_t wtime {}, btime {}, winc {}, binc {};
 
     friend std::istream& operator>>(std::istream& is, go_parameters& v);
 };
@@ -115,6 +115,16 @@ std::istream& operator>>(std::istream& is, go_parameters& v)
             is >> token;
             v.btime = std::stoull(token);
         }
+        else if (token == "winc")
+        {
+            is >> token;
+            v.winc = std::stoull(token);
+        }
+        else if (token == "binc")
+        {
+            is >> token;
+            v.binc = std::stoull(token);
+        }
         else
         {
             std::cerr << "Unknown go-parameter " << token << " - ";
@@ -133,16 +143,18 @@ void handle_go(std::istringstream& iss)
     go_parameters param;
     iss >> param;
 
-    if (const std::size_t remaining_ms = (bb.is_black_to_play() ? param.btime : param.wtime); remaining_ms)
+    if (const std::size_t remaining_ms { (bb.is_black_to_play() ? param.btime : param.wtime) }; remaining_ms)
     {
+        const std::size_t inc_ms { bb.is_black_to_play() ? param.binc : param.winc };
+
         // If we know the time limit, just spend 1/15 the time playing the actual move.
-        const std::chrono::milliseconds time(remaining_ms / 15);
-        best_move = search::recommend_move_id(bb, search::negamax, time, evaluation::raw_material).move;
+        const std::chrono::milliseconds time(remaining_ms/20 + inc_ms/2);
+        best_move = search::recommend_move_id(bb, search::negamax_prune, time, evaluation::raw_material).move;
     }
     else
     {
         // Otherwise just calculate to depth 6.
-        best_move = search::recommend_move(bb, search::negamax, 6, evaluation::raw_material).move;
+        best_move = search::recommend_move(bb, search::negamax_prune, 6, evaluation::raw_material).move;
     }
 
     std::cout << "bestmove " << move::to_algebraic_long(best_move) << std::endl;
