@@ -1,4 +1,6 @@
 #include "search/algorithms.hpp"
+#include "utility/uci.hpp"
+#include "version.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -11,31 +13,53 @@ namespace
 // Our global bitboard - we'll think about wrapping this in a nice class at some point.
 bitboard bb;
 
-void handle_uci()
+void handle(const uci::command_uci& /*req*/)
 {
-    std::cout << "id name Waychess\n"
-              << "id author Troy Sharples\n"
-              << "uciok" << std::endl;
-}
-
-void handle_isready()
-{
-    std::cout << "readyok" << std::endl;
-}
-
-void handle_ucinewgame()
-{
-
-}
-
-void handle_setoption(std::istringstream& iss)
-{
-    std::string option;
-    iss >> option;
-
-    if (option == "Hash")
+    // Print the Waychess ID.
     {
-        // We will need to implement this one day.
+        uci::command_id resp;
+        resp.id = "name " + std::string(NAME) + ' ' + std::string(VERSION);
+        resp.print(std::cout);
+    }
+    {
+        uci::command_id resp;
+        resp.id = "author " + std::string(AUTHOR);
+        resp.print(std::cout);
+    }
+
+    // Print the options we support.
+    {
+        uci::command_option resp;
+        resp.option = "name Hash type spin default 128 min 0 max 2048";
+        resp.print(std::cout);
+    }
+
+    // Says we are ready to start.
+    uci::command_uciok{}.print(std::cout);
+}
+
+void handle(const uci::command_isready& /*req*/)
+{
+    uci::command_readyok{}.print(std::cout);
+}
+
+void handle(const uci::command_ucinewgame& /*req*/)
+{
+    // Clear the position.
+    bb = bitboard{};
+}
+
+void handle(const uci::command_setoption& req)
+{
+    if (req.name == "Hash")
+    {
+        if (!req.value.has_value())
+            throw std::runtime_error("Set hash option must contain a value");
+
+        const std::size_t hash_bytes { 1000ULL * std::stoull(*req.value) };
+
+        // This should only affect the search hash-table.
+        search::set_search_hash_table_bytes(hash_bytes);
     }
     else
     {
@@ -44,124 +68,56 @@ void handle_setoption(std::istringstream& iss)
 
 }
 
-void handle_debug(std::istringstream& /*iss*/)
+void handle(const uci::command_debug& req)
 {
-    std::cerr << "We do not support the debug command" << std::endl;
+    // Non-fatal error if we are requesting debug info - we'll add this into the program at some later time.
+    if (req.debug)
+        std::cerr << "We do not currently support the debug command" << std::endl;
 }
 
-void handle_position(std::istringstream& iss)
+void handle(const uci::command_position& req)
 {
-    std::string token;
+    bb = req.bb;
 
-    // Parse starting postion.
-    iss >> token;
-    if (token == "startpos")
+    // Apply the subsequent moves if necessary.
+    for (const auto& move_str : req.moves)
     {
-        bb = bitboard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        std::uint32_t move { move::from_algebraic_long(move_str, bb) };
+        make_move({ .check_legality = false }, bb, move);
     }
-    else if (token == "fen")
-    {
-        // FEN has exactly 6 space-separated fields.
-        std::ostringstream fen_stream;
-        for (std::size_t i = 0; i < 6 && iss >> token; i++)
-            fen_stream << token << " ";
+}
 
-        bb = bitboard(fen_stream.str());
+void handle(const uci::command_go& req)
+{
+    std::uint32_t recommended_move;
+
+    if (bb.is_black_to_play() ? !req.btime.has_value() : !req.wtime.has_value())
+    {
+        // If we haven't been told anything about out time parameters we just default to calculating to depth 6.
+        recommended_move = search::recommend_move(bb, search::negamax_prune, 6, evaluation::raw_material).move;
     }
     else
     {
-        std::cerr << "Invalid position format." << std::endl;
+        // Otherwise, we just spend 1/20 of our remaining time and half our increment calculating this.
+        const std::size_t remaining_ms { bb.is_black_to_play() ? *req.btime : *req.wtime };
+        const std::size_t increment_ms { bb.is_black_to_play() ? (req.binc.has_value() ? *req.binc : 0)  : (req.winc.has_value() ? *req.winc : 0) };
+
+        const std::chrono::milliseconds time(remaining_ms/20 + increment_ms/2);
+        recommended_move = search::recommend_move_id(bb, search::negamax_prune, time, evaluation::raw_material).move;
     }
 
-    if (!iss)
-        return;
-
-    // Parse any moves that have taken place after the starting position.
-    iss >> token;
-    if (token == "moves")
+    // Print our recommendation.
     {
-        while (iss >> token)
-        {
-            std::uint32_t move { move::from_algebraic_long(token, bb) };
-            make_move({ .check_legality = false }, bb, move);
-        }
+        uci::command_bestmove resp;
+        resp.move_best = move::to_algebraic_long(recommended_move);
+        resp.print(std::cout);
     }
-    else
-    {
-        std::cerr << "Invalid token following position." << std::endl;
-    }
+    std::cout << "bestmove " << move::to_algebraic_long(recommended_move) << std::endl;
 }
 
-struct go_parameters
+void handle(std::string_view command)
 {
-    std::size_t wtime {}, btime {}, winc {}, binc {};
-
-    friend std::istream& operator>>(std::istream& is, go_parameters& v);
-};
-
-std::istream& operator>>(std::istream& is, go_parameters& v)
-{
-    while (is)
-    {
-        std::string token;
-        is >> token;
-        if (token == "wtime")
-        {
-            is >> token;
-            v.wtime = std::stoull(token);
-        }
-        else if (token == "btime")
-        {
-            is >> token;
-            v.btime = std::stoull(token);
-        }
-        else if (token == "winc")
-        {
-            is >> token;
-            v.winc = std::stoull(token);
-        }
-        else if (token == "binc")
-        {
-            is >> token;
-            v.binc = std::stoull(token);
-        }
-        else
-        {
-            std::cerr << "Unknown go-parameter " << token << " - ";
-            is >> token;
-            std::cerr << token << std::endl;
-        }
-    }
-
-    return is;
-}
-
-void handle_go(std::istringstream& iss)
-{
-    std::uint32_t best_move;
-
-    go_parameters param;
-    iss >> param;
-
-    if (const std::size_t remaining_ms { (bb.is_black_to_play() ? param.btime : param.wtime) }; remaining_ms)
-    {
-        const std::size_t inc_ms { bb.is_black_to_play() ? param.binc : param.winc };
-
-        // If we know the time limit, just spend 1/15 the time playing the actual move.
-        const std::chrono::milliseconds time(remaining_ms/20 + inc_ms/2);
-        best_move = search::recommend_move_id(bb, search::negamax_prune, time, evaluation::raw_material).move;
-    }
-    else
-    {
-        // Otherwise just calculate to depth 6.
-        best_move = search::recommend_move(bb, search::negamax_prune, 6, evaluation::raw_material).move;
-    }
-
-    std::cout << "bestmove " << move::to_algebraic_long(best_move) << std::endl;
-}
-
-void handle_unknown(std::string_view command)
-{
+    // Non-fatal warning that we do not support this command.
     std::cerr << "Unknown command - " << command << std::endl;
 }
 
@@ -178,23 +134,55 @@ int main()
         iss >> command;
 
         if (command == "uci")
-            handle_uci();
+        {
+            uci::command_uci req;
+            req.read(iss);
+            handle(req);
+        }
         else if (command == "isready")
-            handle_isready();
+        {
+            uci::command_isready req;
+            req.read(iss);
+            handle(req);
+        }
         else if (command == "ucinewgame")
-            handle_ucinewgame();
+        {
+            uci::command_ucinewgame req;
+            req.read(iss);
+            handle(req);
+        }
         else if (command == "setoption")
-            handle_setoption(iss);
+        {
+            uci::command_setoption req;
+            req.read(iss);
+            handle(req);
+        }
         else if (command == "debug")
-            handle_debug(iss);
+        {
+            uci::command_debug req;
+            req.read(iss);
+            handle(req);
+        }
         else if (command == "position")
-            handle_position(iss);
+        {
+            uci::command_position req;
+            req.read(iss);
+            handle(req);
+        }
         else if (command == "go")
-            handle_go(iss);
+        {
+            uci::command_go req;
+            req.read(iss);
+            handle(req);
+        }
         else if (command == "quit")
+        {
             return EXIT_SUCCESS;
+        }
         else
-            handle_unknown(command);
+        {
+            handle(command);
+        }
     }
 
     return EXIT_SUCCESS;
