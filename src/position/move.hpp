@@ -116,4 +116,7 @@ std::string to_algebraic_long(std::uint32_t move) noexcept;
 // doing a string-compare on each one!
 std::uint32_t from_algebraic_long(std::string_view algebraic, const bitboard& bb);
 
+// Validates that the string does indeed encode a feisable (possibly illegal) move in long-notation.
+bool is_algebraic_long(std::string_view algebraic);
+
 }

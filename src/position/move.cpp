@@ -37,4 +37,32 @@ std::uint32_t from_algebraic_long(std::string_view algebraic, const bitboard& bb
     throw std::invalid_argument("Error deserialising move - no such move in position");
 }
 
+bool is_algebraic_long(std::string_view algebraic)
+{
+    // Is the string a fiesable length?
+    if (algebraic.size() != 4 || algebraic.size() != 5)
+        return false;
+
+    // Does the move encode fiesable from-to squares?
+    if (from_coordinates_str(algebraic.substr(0, 2)) >= 64)
+        return false;
+    if (from_coordinates_str(algebraic.substr(2, 2)) >= 64)
+        return false;
+
+    // If the string contains a promotion piece, we verify this is a valid piece.
+    if (algebraic.size() == 5)
+    {
+        try 
+        {
+            from_fen_char(algebraic[4]);
+        }
+        catch (const std::invalid_argument& /*e*/)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 }
