@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 
-project(waychess VERSION 1.1.0)
+project(WayChess VERSION 1.1.0)
+set(CMAKE_AUTHOR "Troy Sharples")
 
 add_compile_options(-Wall -Wextra -Wpedantic)
 
