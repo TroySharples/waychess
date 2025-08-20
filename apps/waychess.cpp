@@ -102,7 +102,7 @@ void handle(const uci::command_go& req)
         const std::size_t remaining_ms { bb.is_black_to_play() ? *req.btime : *req.wtime };
         const std::size_t increment_ms { bb.is_black_to_play() ? (req.binc.has_value() ? *req.binc : 0)  : (req.winc.has_value() ? *req.winc : 0) };
 
-        const std::chrono::milliseconds time(remaining_ms/20 + increment_ms/2);
+        const std::chrono::milliseconds time((remaining_ms/20) + (increment_ms/2));
         recommended_move = search::recommend_move_id(bb, search::negamax_prune, time, evaluation::raw_material).move;
     }
 
@@ -112,7 +112,6 @@ void handle(const uci::command_go& req)
         resp.move_best = move::to_algebraic_long(recommended_move);
         resp.print(std::cout);
     }
-    std::cout << "bestmove " << move::to_algebraic_long(recommended_move) << std::endl;
 }
 
 void handle(std::string_view command)

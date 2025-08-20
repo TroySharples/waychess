@@ -25,7 +25,7 @@ void command::print(std::ostream& os) const
 {
     os << get_id() << ' ';
     write(os);
-    os << std::endl;
+    os << '\n' << std::flush;
 }
 
 void command_position::read(std::istream& is)
@@ -51,11 +51,9 @@ void command_position::read(std::istream& is)
         throw std::runtime_error("Invalid position format");
     }
 
-    if (!is)
-        return;
-
     // Parse any moves that have taken place after the starting position.
-    is >> token;
+    if (!(is >> token))
+        return;
     if (token == "moves")
     {
         while (is >> token)
@@ -132,7 +130,8 @@ void command_go::read(std::istream& is)
 
     while (true)
     {
-        is >> token;
+        if (!(is >> token))
+            return;
         if (token == "searchmoves")
         {
             parse_searchmoves = true;
