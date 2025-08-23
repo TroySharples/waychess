@@ -2,6 +2,7 @@
 #include "position/make_move.hpp"
 #include "position/move.hpp"
 #include "utility/perft.hpp"
+#include "utility/logging.hpp"
 
 #include <bits/chrono.h>
 #include <cstdlib>
@@ -103,6 +104,9 @@ int main(int argc, char** argv)
         print_usage(argv[0], std::cerr);
         return EXIT_FAILURE;
     }
+
+    // Setup the logger.
+    set_log_method(log_method::cerr);
 
     // Init hash table, so we can read-back the actual allocated memory (instead of the requested amount) when
     // printing out the telemetry below.

@@ -223,6 +223,11 @@ void command_option::write(std::ostream& os) const
     os << option;
 }
 
+void command_info::write(std::ostream& os) const
+{
+    os << info;
+}
+
 }
 
 std::istream& operator>>(std::istream& is, uci::command& v) { v.read(is); return is; }

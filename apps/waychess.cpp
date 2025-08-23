@@ -1,5 +1,6 @@
 #include "search/algorithms.hpp"
 #include "utility/uci.hpp"
+#include "utility/logging.hpp"
 #include "version.hpp"
 
 #include <cstdlib>
@@ -124,8 +125,10 @@ void handle(std::string_view command)
 
 int main()
 {
-    std::string line;
+    // Setup the logger.
+    set_log_method(log_method::uci);
 
+    std::string line;
     while (std::getline(std::cin, line))
     {
         std::istringstream iss(line);

@@ -211,4 +211,17 @@ struct command_option : command
     void write(std::ostream& os) const override;
 };
 
+// Logs the engine can send to the GUI. There doesn't seem to be a strict format to these logs, so we'll just
+// try our best when reporting the logs.
+struct command_info : command
+{
+    static constexpr const char* ID { "info" };
+    constexpr const char* get_id() const noexcept override { return ID; }
+
+    std::string info;
+
+    void read(std::istream& /*is*/) override { };
+    void write(std::ostream& os) const override;
+};
+
 }

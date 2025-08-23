@@ -1,5 +1,6 @@
 #include "search/algorithms.hpp"
 #include "utility/puzzle.hpp"
+#include "utility/logging.hpp"
 
 #include <chrono>
 #include <cstring>
@@ -85,6 +86,9 @@ int main(int argc, char** argv)
         print_usage(argv[0], std::cout);
         return EXIT_SUCCESS;
     }
+
+    // Setup the logger.
+    set_log_method(log_method::cerr);
 
     std::ifstream is(csv_path);
     if (!is)
