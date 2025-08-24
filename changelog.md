@@ -4,6 +4,20 @@
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
+
+- Added quiescent search to mitigate the horizon effect.
+
+### Changed
+
+- Restructured transposition-table implementation in search.
+
+### Fixed
+
+- Misevaluation of drawn positions as decisive by ignoring the three-fold repetition rule.
+
+## [1.2.0] - 2025-08-24
+
+### Added
 - Configurable and extensible logging framework.
 - Version number in UCI ID.
 - WhyChess as a standalone application (instead of an old version of WayChess).
@@ -11,14 +25,13 @@
 
 ### Changed
 
-- Restructured transposition-table implementation in search.
 - Restructured UCI handling.
 - Made search algorithms use hash-tables by default.
 
 ### Fixed
 
-- Misevaluation of drawn positions as winning by ignoring three-fold repetition rules.
-- Misevaluation of drawn positions as winning by ignoring stalemate resources.
+- Misevaluation of drawn positions as decisive by ignoring the 50-move draw rule.
+- Misevaluation of drawn positions as decisive by ignoring stalemate resources.
 - FEN-serialisation bug.
 
 ## [1.1.0] - 2025-08-10
