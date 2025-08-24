@@ -16,10 +16,10 @@ bitboard bb;
 
 void handle(const uci::command_uci& /*req*/)
 {
-    // Print the WayChess ID.
+    // Print the WhyChess ID.
     {
         uci::command_id resp;
-        resp.id = "name WayChess " + std::string(VERSION);
+        resp.id = "name WhyChess " + std::string(VERSION);
         resp.print(std::cout);
     }
     {
@@ -28,12 +28,7 @@ void handle(const uci::command_uci& /*req*/)
         resp.print(std::cout);
     }
 
-    // Print the options we support.
-    {
-        uci::command_option resp;
-        resp.option = "name Hash type spin default 128 min 0 max 2048";
-        resp.print(std::cout);
-    }
+    // We don't support any options.
 
     // Says we are ready to start.
     uci::command_uciok{}.print(std::cout);
@@ -50,22 +45,9 @@ void handle(const uci::command_ucinewgame& /*req*/)
     bb = bitboard{};
 }
 
-void handle(const uci::command_setoption& req)
+void handle(const uci::command_setoption& /*req*/)
 {
-    if (req.name == "Hash")
-    {
-        if (!req.value.has_value())
-            throw std::runtime_error("Set hash option must contain a value");
-
-        const std::size_t hash_bytes { 1000ULL * std::stoull(*req.value) };
-
-        // This should only affect the search hash-table.
-        search::set_search_hash_table_bytes(hash_bytes);
-    }
-    else
-    {
-        // Ignore unhandled options.
-    }
+    // We currently don't support any options - everything just gets ignored.
 }
 
 void handle(const uci::command_debug& req)
@@ -89,21 +71,19 @@ void handle(const uci::command_position& req)
 
 void handle(const uci::command_go& req)
 {
-    std::uint32_t recommended_move;
+    const auto time_start = std::chrono::steady_clock::now();
 
-    if (bb.is_black_to_play() ? !req.btime.has_value() : !req.wtime.has_value())
+    // Just calculate to depth 6 no matter what (WayChess 1.0.0 behaviour).
+    const std::uint32_t recommended_move = search::recommend_move(bb, search::negamax_prune, 6, evaluation::raw_material).move;
+
+    if (bb.is_black_to_play() ? req.btime.has_value() : req.wtime.has_value())
     {
-        // If we haven't been told anything about out time parameters we just default to calculating to depth 6.
-        recommended_move = search::recommend_move(bb, search::negamax_prune, 6, evaluation::raw_material).move;
-    }
-    else
-    {
-        // Otherwise, we just spend 1/20 of our remaining time and half our increment calculating this.
+        // If we've been given our time parameters, we pretend to spend 1/20 of our remaining time and half our increment thinking.
         const std::size_t remaining_ms { bb.is_black_to_play() ? *req.btime : *req.wtime };
         const std::size_t increment_ms { bb.is_black_to_play() ? (req.binc.has_value() ? *req.binc : 0)  : (req.winc.has_value() ? *req.winc : 0) };
 
         const std::chrono::milliseconds time((remaining_ms/20) + (increment_ms/2));
-        recommended_move = search::recommend_move_id(bb, search::negamax_prune, time, evaluation::raw_material).move;
+        std::this_thread::sleep_until(time_start + time);
     }
 
     // Print our recommendation.
