@@ -1,3 +1,5 @@
 # WayChess
 
-Simple chess engine written from scratch in C++.
+UCI chess engine written from scratch in C++.
+
+![WayChess](assets/waychess.png)
