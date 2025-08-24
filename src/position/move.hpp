@@ -19,7 +19,7 @@ struct bitboard;
 namespace move
 {
 
-// We use a bitmasks of various (not necessarily orthagonal) move information to form the move type.
+// We use a bitmasks of various (not necessarily orthogonal) move information to form the move type.
 namespace move_type
 {
 
@@ -46,7 +46,7 @@ namespace move_info
 constexpr std::uint8_t CASTLE_KS { 0b00 };
 constexpr std::uint8_t CASTLE_QS { 0b01 };
 
-// First three bits of piece ID for unmake captures and pawn promotions. The remaining bit is determed
+// First three bits of piece ID for unmake captures and pawn promotions. The remaining bit is determined
 // by the side to play.
 
 // Pawn push.
@@ -57,7 +57,7 @@ constexpr std::uint8_t PAWN_PUSH_DOUBLE { 0b01 };
 
 // We have 7 bits to encode the unmake-en-passent + unmake-50m-ply. The trick here
 // is that if the previous position contained an en-passent square, we know that
-// the 50m-ply is zero. If the previous posision contained an en-passent square,
+// the 50m-ply is zero. If the previous position contained an en-passent square,
 // we encode this four 1-bits with the least significant 3 bits of the mailbox
 // representation of the en-passent square (whether it is on the black or white
 // side is recoverable from the side-to-play). Otherwise, we just encode the
@@ -116,7 +116,7 @@ std::string to_algebraic_long(std::uint32_t move) noexcept;
 // doing a string-compare on each one!
 std::uint32_t from_algebraic_long(std::string_view algebraic, const bitboard& bb);
 
-// Validates that the string does indeed encode a feisable (possibly illegal) move in long-notation.
+// Validates that the string does indeed encode a feasible (possibly illegal) move in long-notation.
 bool is_algebraic_long(std::string_view algebraic);
 
 }

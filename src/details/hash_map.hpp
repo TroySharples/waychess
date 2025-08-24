@@ -14,7 +14,7 @@ class hash_table
 public:
     using key_type = std::uint64_t;
 
-    // The table also stores the full key so type-2 collisions can be detected (comaprison
+    // The table also stores the full key so type-2 collisions can be detected (comparison
     // with original key).
     struct entry_type
     {

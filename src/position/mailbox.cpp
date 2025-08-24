@@ -77,10 +77,10 @@ mailbox::mailbox(std::string_view fen)
 
         // Each rank should be separated by a forward-slash.
         if (i < 7 && fen.at(pos++) != '/')
-            throw std::invalid_argument("Expected forward-slash charactor in fen string");
+            throw std::invalid_argument("Expected forward-slash character in fen string");
     }
     if (fen.at(pos++) != ' ')
-        throw std::invalid_argument("Expected space charactor in fen string");
+        throw std::invalid_argument("Expected space character in fen string");
 
     // Side to move. We use the LSB of the ply counter to represent which side is to move.
     switch (fen.at(pos++))
@@ -90,9 +90,9 @@ mailbox::mailbox(std::string_view fen)
         default: throw std::invalid_argument("Unknown side to move in fen string");
     }
     if (fen.at(pos++) != ' ')
-        throw std::invalid_argument("Expected space charactor in fen string");
+        throw std::invalid_argument("Expected space character in fen string");
 
-    // Castling ability. We can actually sucessfully parse invalid fen strings here, but
+    // Castling ability. We can actually successfully parse invalid fen strings here, but
     // that's the callers problem (TM).
     castling = 0;
     for (char c = fen.at(pos++); c != ' '; c = fen.at(pos++))
@@ -105,7 +105,7 @@ mailbox::mailbox(std::string_view fen)
             case 'q': castling |= bitboard::CASTLING_B_QS; break;
             case '-': break;
             default:
-                throw std::invalid_argument("Unexpected castling charactor in fen string");
+                throw std::invalid_argument("Unexpected castling character in fen string");
         }
     }
 
@@ -120,7 +120,7 @@ mailbox::mailbox(std::string_view fen)
         pos+=2;
     }
     if (fen.at(pos++) != ' ')
-        throw std::invalid_argument("Expected space charactor in fen string");
+        throw std::invalid_argument("Expected space character in fen string");
 
     // The last two values in the fen string are integers of undetermined length. We use
     // the stream parsing functions for this.

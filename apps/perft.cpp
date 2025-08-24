@@ -19,7 +19,7 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "         -t                   -> Also print the first level tree of possible moves.\n"
               << "         -f [fen]             -> The FEN string for the starting position. Optional, defaults to starting position.\n"
               << "         -d [depth]           -> The perft depth. Optional, default 1.\n"
-              << "         -s [stratagy]        -> The perft search strategy. Can be either copy or unmake, - default copy.\n"
+              << "         -s [strategy]        -> The perft search strategy. Can be either copy or unmake, - default copy.\n"
               << "         -k [hash-table size] -> The size of the hash-table (in MiB) if used. Optional, default 1000.\n";
 }
 
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
     set_perft_hash_table_bytes(hash_table_size_bytes);
 
     // Start printing the JSON. We might clean this up later by having a proper JSON printing class, but this
-    // program seems too simple at the moment to warrent it. We have to do it at the start becausse we print the
+    // program seems too simple at the moment to warrant it. We have to do it at the start because we print the
     // tree of moves structure dynamically.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"

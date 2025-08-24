@@ -98,7 +98,7 @@ int main(int argc, char** argv)
     const auto time_end = std::chrono::steady_clock::now();
 
     // Start printing the JSON file in one go. We might clean this up later by having a proper JSON printing class, but this
-    // program seems too simple at the moment to warrent it.
+    // program seems too simple at the moment to warrant it.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
               << R"(    "depth": )" << depth << ",\n"

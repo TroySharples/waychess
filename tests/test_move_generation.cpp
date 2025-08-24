@@ -76,7 +76,7 @@ TEST(MoveGeneration, Pos6)
 }
 
 // Tests the correctness of make / unmake / zobrist hashing in a non-performant
-// way across a variety of postions.
+// way across a variety of positions.
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);

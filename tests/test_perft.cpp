@@ -101,7 +101,7 @@ TEST(Perft, Pos6)
         EXPECT_EQ(perft({ .depth=i }, bitboard(POS6_FEN)), results[i]);
 }
 
-// Tests performannt perft correctness across a variety of positions.
+// Tests performant perft correctness across a variety of positions.
 int main(int argc, char **argv)
 {
     set_perft_hash_table_bytes(1000000000ULL); 

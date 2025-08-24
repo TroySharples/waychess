@@ -39,11 +39,11 @@ std::uint32_t from_algebraic_long(std::string_view algebraic, const bitboard& bb
 
 bool is_algebraic_long(std::string_view algebraic)
 {
-    // Is the string a fiesable length?
+    // Is the string a feasible length?
     if (algebraic.size() != 4 || algebraic.size() != 5)
         return false;
 
-    // Does the move encode fiesable from-to squares?
+    // Does the move encode feasible from-to squares?
     if (from_coordinates_str(algebraic.substr(0, 2)) >= 64)
         return false;
     if (from_coordinates_str(algebraic.substr(2, 2)) >= 64)

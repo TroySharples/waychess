@@ -25,7 +25,7 @@ std::vector<std::uint64_t> get_1s_combinations(std::uint64_t x)
     if (addrs_bits == 0)
         return ret;
 
-    // Count up in binary to emumerate all the combinations.
+    // Count up in binary to enumerate all the combinations.
     const std::size_t combinations { 0b1ULL << addrs_bits };
     ret.resize(combinations);
     for (std::size_t i = 0; i < combinations; i++)

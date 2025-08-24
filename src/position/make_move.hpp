@@ -54,7 +54,7 @@ constexpr inline bool make_move_impl(const make_move_args& args, bitboard& bb, s
     // Either do or undo black as the side to move.
     hash ^= zobrist::CODE_IS_BLACK_TO_MOVE;
 
-    // Fill out the unmake en-passent / 50m-ply information and undo the zobrist en-passemnt.
+    // Fill out the unmake en-passent / 50m-ply information and undo the zobrist en-passent.
     if (bb.en_passent_bb) [[unlikely]]
     {
         const std::uint8_t en_passent_mb { static_cast<std::uint8_t>(std::countr_zero(bb.en_passent_bb)) };

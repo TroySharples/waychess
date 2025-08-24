@@ -4,7 +4,7 @@
 # PERFT CONVERTER
 #
 # Simple utility script that converts the JSON output of our perft application
-# into a commonly used format for better compatiblity with third-party tools.
+# into a commonly used format for better compatibility with third-party tools.
 #
 # Usage:
 #     perft-converter.sh [DEPTH] [FEN]
