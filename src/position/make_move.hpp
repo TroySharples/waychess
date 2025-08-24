@@ -259,10 +259,7 @@ constexpr inline bool make_move_impl(const make_move_args& args, bitboard& bb, s
         }
         else
         {
-            if (is_black_to_play)
-                ret = !get_attackers_white(bb, std::countr_zero(bb.boards[piece_idx::b_king]));
-            else
-                ret = !get_attackers_black(bb, std::countr_zero(bb.boards[piece_idx::w_king]));
+            ret = !is_in_check(bb, is_black_to_play);
         }
     }
 
