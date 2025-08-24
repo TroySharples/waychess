@@ -20,6 +20,10 @@ int search_maxi(const bitboard& bb, std::size_t depth, evaluation::evaluation ev
 
 inline int search_maxi(const bitboard& bb, std::size_t depth, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
 {
+    // It's a draw if our half-move clock goes too high.
+    if (bb.ply_50m >= 100) [[unlikely]]
+        return 0;
+
     if (depth == 0)
         return eval(bb, args);
 
@@ -47,6 +51,10 @@ inline int search_maxi(const bitboard& bb, std::size_t depth, evaluation::evalua
 
 inline int search_mini(const bitboard& bb, std::size_t depth, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
 {
+    // It's a draw if our half-move clock goes too high.
+    if (bb.ply_50m >= 100) [[unlikely]]
+        return 0;
+
     if (depth == 0)
         return eval(bb, args);
 

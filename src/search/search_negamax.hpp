@@ -17,6 +17,10 @@ namespace details
 
 inline int search_negamax(const bitboard& bb, std::size_t depth, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
 {
+    // It's a draw if our half-move clock goes too high.
+    if (bb.ply_50m >= 100) [[unlikely]]
+        return 0;
+
     if (depth == 0)
         return colour*eval(bb, args);
 
@@ -42,6 +46,10 @@ inline int search_negamax(const bitboard& bb, std::size_t depth, int colour, eva
 
 inline int search_negamax_prune_no_hash(const bitboard& bb, std::size_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
 {
+    // It's a draw if our half-move clock goes too high.
+    if (bb.ply_50m >= 100) [[unlikely]]
+        return 0;
+
     if (depth == 0)
         return colour*eval(bb, args);
 
@@ -71,6 +79,10 @@ inline int search_negamax_prune_no_hash(const bitboard& bb, std::size_t depth, i
 
 inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, std::size_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
 {
+    // It's a draw if our half-move clock goes too high.
+    if (bb.ply_50m >= 100) [[unlikely]]
+        return 0;
+
     if (depth == 0)
         return colour*eval(bb, args);
 
