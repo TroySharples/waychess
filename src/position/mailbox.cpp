@@ -66,7 +66,7 @@ mailbox::mailbox(std::string_view fen)
         for (std::uint8_t j = 0; j < 8; )
         {
             const char c = fen.at(pos++);
-            
+
             // If it's a number between 1 and 1 + j (more horrible ASCII arithmetic)
             // we insert that many empty squares.
             if ('1' <= c and c <= '1' + static_cast<char>(8-j))
@@ -74,7 +74,7 @@ mailbox::mailbox(std::string_view fen)
             else
                 squares[8*(8-i-1)+j++] = from_fen_char(c);
         }
-        
+
         // Each rank should be separated by a forward-slash.
         if (i < 7 && fen.at(pos++) != '/')
             throw std::invalid_argument("Expected forward-slash charactor in fen string");
@@ -123,19 +123,23 @@ mailbox::mailbox(std::string_view fen)
         throw std::invalid_argument("Expected space charactor in fen string");
 
     // The last two values in the fen string are integers of undetermined length. We use
-    // the iostream parsing functions for this.
+    // the stream parsing functions for this.
     std::stringstream ss;
     ss << fen.substr(pos);
-    
-    // Half-move clock.
-    ss >> ply_50m;
+
+    // Half-move clock - we have to read this into a larger type and cast down to prevent just reading the ASCII encoding.
+    {
+        std::uint16_t token;
+        ss >> token;
+        ply_50m = token;
+    }
 
     // Full move counter. This was initialised in the side-to-move section, so we can only
     // add to this value.
     {
-        std::uint16_t move_counter;
-        ss >> move_counter;
-        ply_counter += 2*(move_counter-1);
+        std::uint16_t token;
+        ss >> token;
+        ply_counter += 2*(token-1);
     }
 }
 
