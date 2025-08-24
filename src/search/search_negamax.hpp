@@ -41,6 +41,11 @@ inline int search_negamax(const bitboard& bb, std::size_t depth, int colour, eva
         ret = std::max(ret, -search_negamax(next_position, depth-1, -colour, eval, move_buf.subspan(moves), args));
     }
 
+    // Handle the rare case of stalemate where there are no legal moves in the position but we aren't in
+    // check.
+    if (ret == -std::numeric_limits<int>::max() && !is_in_check(bb, colour == -1)) [[unlikely]]
+        ret = 0;
+
     return ret;
 }
 
@@ -73,6 +78,11 @@ inline int search_negamax_prune_no_hash(const bitboard& bb, std::size_t depth, i
         if (a >= b)
             break;
     }
+
+    // Handle the rare case of stalemate where there are no legal moves in the position but we aren't in
+    // check.
+    if (ret == -std::numeric_limits<int>::max() && !is_in_check(bb, colour == -1)) [[unlikely]]
+        ret = 0;
 
     return ret;
 }
@@ -113,6 +123,11 @@ inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, st
         if (a >= b)
             break;
     }
+
+    // Handle the rare case of stalemate where there are no legal moves in the position but we aren't in
+    // check.
+    if (ret == -std::numeric_limits<int>::max() && !is_in_check(bb, colour == -1)) [[unlikely]]
+        ret = 0;
 
     // Update the hash table with our result - always overriding for now.
     entry.key = hash;

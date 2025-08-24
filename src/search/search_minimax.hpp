@@ -42,9 +42,13 @@ inline int search_maxi(const bitboard& bb, std::size_t depth, evaluation::evalua
             continue;
 
         const int score { search_mini(next_position, depth-1, eval, move_buf.subspan(moves), args) };
-        if (score > ret)
-            ret = score;
+        ret = std::max(ret, score);
     }
+
+    // Handle the rare case of stalemate where there are no legal moves in the position but we aren't in
+    // check.
+    if (ret == std::numeric_limits<int>::min() && !is_in_check(bb, false)) [[unlikely]]
+        ret = 0;
 
     return ret;
 }
@@ -73,9 +77,13 @@ inline int search_mini(const bitboard& bb, std::size_t depth, evaluation::evalua
             continue;
 
         const int score { search_maxi(next_position, depth-1, eval, move_buf.subspan(moves), args) };
-        if (score < ret)
-            ret = score;
+        ret = std::min(ret, score);
     }
+
+    // Handle the rare case of stalemate where there are no legal moves in the position but we aren't in
+    // check.
+    if (ret == std::numeric_limits<int>::max() && !is_in_check(bb, true)) [[unlikely]]
+        ret = 0;
 
     return ret;
 }
