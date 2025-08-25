@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.16)
 
 project(WayChess VERSION 1.2.1)
 set(CMAKE_AUTHOR "Troy Sharples")
