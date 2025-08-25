@@ -15,6 +15,18 @@
 
 - Misevaluation of drawn positions as decisive by ignoring the three-fold repetition rule.
 
+## [1.2.1] - 2025-08-25
+
+### Added
+
+### Changed
+
+- Changed WhyChess simulated thinking time to use the Lichess standard simulation time.
+- Allow up to two take-backs when playing WhyChess.
+- Changed the WayChess default hash-size to 256 MB.
+
+### Fixed
+
 ## [1.2.0] - 2025-08-24
 
 ### Added

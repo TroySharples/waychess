@@ -69,22 +69,10 @@ void handle(const uci::command_position& req)
     }
 }
 
-void handle(const uci::command_go& req)
+void handle(const uci::command_go& /*req*/)
 {
-    const auto time_start = std::chrono::steady_clock::now();
-
     // Just calculate to depth 6 no matter what (WayChess 1.0.0 behaviour).
     const std::uint32_t recommended_move = search::recommend_move(bb, search::negamax_prune, 6, evaluation::raw_material).move;
-
-    if (bb.is_black_to_play() ? req.btime.has_value() : req.wtime.has_value())
-    {
-        // If we've been given our time parameters, we pretend to spend 1/20 of our remaining time and half our increment thinking.
-        const std::size_t remaining_ms { bb.is_black_to_play() ? *req.btime : *req.wtime };
-        const std::size_t increment_ms { bb.is_black_to_play() ? (req.binc.has_value() ? *req.binc : 0)  : (req.winc.has_value() ? *req.winc : 0) };
-
-        const std::chrono::milliseconds time((remaining_ms/20) + (increment_ms/2));
-        std::this_thread::sleep_until(time_start + time);
-    }
 
     // Print our recommendation.
     {
