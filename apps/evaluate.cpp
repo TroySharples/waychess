@@ -19,10 +19,10 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
 int main(int argc, char** argv)
 {
     // Default arguments.
-    bool help { false };
-    std::string fen { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
-    std::size_t depth { 1 };
-    search::search s { search::negamax };
+    bool help                         { false };
+    std::string fen                   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
+    std::uint8_t depth                { 1 };
+    search::search s                  { search::negamax };
     std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
     // program seems too simple at the moment to warrant it.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
-              << R"(    "depth": )" << depth << ",\n"
+              << R"(    "depth": )" << static_cast<int>(depth) << ",\n"
               << R"(    "search": )" << '"' << search::search_to_string(s) << '"' << ",\n"
               << R"(    "hash-table MB": )" << '"' << search::get_search_hash_table_bytes()/1000000 << '"' << ",\n"
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"

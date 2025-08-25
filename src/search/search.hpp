@@ -19,7 +19,7 @@ namespace search
 // searched evaluation. The behaviour of the search may be changed with the args pointer (e.g.
 // max-depth). This must return an absolute centipawn evaluation (i.e. not relative to the
 // playing side).
-using search = int (*)(const bitboard& bb, std::size_t max_depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval);
+using search = int (*)(const bitboard& bb, std::uint8_t max_depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval);
 
 // A global boolean indicating when we must stop searching as soon as possible. All algorithms must
 // respect this.
@@ -52,7 +52,7 @@ struct recommendation
     friend constexpr bool operator>(const recommendation& a, const recommendation& b) noexcept { return a.eval > b.eval; };
 };
 
-recommendation recommend_move(const bitboard& bb, search s, std::size_t max_depth, evaluation::evaluation eval, const void* args_eval = nullptr);
+recommendation recommend_move(const bitboard& bb, search s, std::uint8_t max_depth, evaluation::evaluation eval, const void* args_eval = nullptr);
 
 recommendation recommend_move_id(const bitboard& bb, search s, std::chrono::duration<double> time, evaluation::evaluation eval, const void* args_eval = nullptr);
 
@@ -67,19 +67,19 @@ recommendation recommend_move_id(const bitboard& bb, search s, std::chrono::dura
 namespace search
 {
 
-inline recommendation recommend_move(const bitboard& bb, search s, std::size_t max_depth, evaluation::evaluation eval, const void* args_eval)
+inline recommendation recommend_move(const bitboard& bb, search s, std::uint8_t max_depth, evaluation::evaluation eval, const void* args_eval)
 {
     stop_search = false;
 
-    std::vector<std::uint32_t> move_buf(max_depth*MAX_MOVES_PER_POSITION);
+    std::vector<std::uint32_t> move_buf(static_cast<std::size_t>(max_depth)*MAX_MOVES_PER_POSITION);
     std::span<std::uint32_t> move_span(move_buf);
 
     const bool is_black_to_play { bb.is_black_to_play() };
-    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
     recommendation ret { .move = 0, .eval = is_black_to_play ? std::numeric_limits<int>::max() : std::numeric_limits<int>::min() };
 
-    for (std::size_t i = 0; i < moves; i++)
+    for (std::uint8_t i = 0; i < moves; i++)
     {
         bitboard next_position = bb;
 
@@ -100,7 +100,7 @@ inline recommendation recommend_move_id_future(const bitboard& bb, search s, eva
 {
     stop_search = false;
 
-    std::size_t depth { 1 };
+    std::uint8_t depth { 1 };
     recommendation ret;
 
     // Do the iterative deepening - we make sure to only update our recommendation if we weren't interrupted.

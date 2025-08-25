@@ -15,7 +15,7 @@ namespace search
 namespace details
 {
 
-inline int search_negamax(const bitboard& bb, std::size_t depth, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
+inline int search_negamax(const bitboard& bb, std::uint8_t depth, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
 {
     // It's a draw if our half-move clock goes too high.
     if (bb.ply_50m >= 100) [[unlikely]]
@@ -26,9 +26,9 @@ inline int search_negamax(const bitboard& bb, std::size_t depth, int colour, eva
 
     int ret { -std::numeric_limits<int>::max() };
 
-    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
-    for (std::size_t i = 0; i < moves; i++)
+    for (std::uint8_t i = 0; i < moves; i++)
     {
         if (stop_search) [[unlikely]]
             return ret;
@@ -49,7 +49,7 @@ inline int search_negamax(const bitboard& bb, std::size_t depth, int colour, eva
     return ret;
 }
 
-inline int search_negamax_prune_no_hash(const bitboard& bb, std::size_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
+inline int search_negamax_prune_no_hash(const bitboard& bb, std::uint8_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
 {
     // It's a draw if our half-move clock goes too high.
     if (bb.ply_50m >= 100) [[unlikely]]
@@ -60,9 +60,9 @@ inline int search_negamax_prune_no_hash(const bitboard& bb, std::size_t depth, i
 
     int ret { -std::numeric_limits<int>::max() };
 
-    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
-    for (std::size_t i = 0; i < moves; i++)
+    for (std::uint8_t i = 0; i < moves; i++)
     {
         if (stop_search) [[unlikely]]
             return ret;
@@ -87,7 +87,7 @@ inline int search_negamax_prune_no_hash(const bitboard& bb, std::size_t depth, i
     return ret;
 }
 
-inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, std::size_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
+inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, std::uint8_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
 {
     // It's a draw if our half-move clock goes too high.
     if (bb.ply_50m >= 100) [[unlikely]]
@@ -103,9 +103,9 @@ inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, st
 
     int ret { -std::numeric_limits<int>::max() };
 
-    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
-    for (std::size_t i = 0; i < moves; i++)
+    for (std::uint8_t i = 0; i < moves; i++)
     {
         if (stop_search) [[unlikely]]
             return ret;
@@ -139,14 +139,14 @@ inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, st
 
 }
 
-inline int search_negamax(const bitboard& bb, std::size_t depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval)
+inline int search_negamax(const bitboard& bb, std::uint8_t depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval)
 {
     const int colour = (bb.is_black_to_play() ? -1 : 1);
 
     return colour*details::search_negamax(bb, depth, colour, eval, move_buf, args_eval);
 }
 
-inline int search_negamax_prune(const bitboard& bb, std::size_t depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval)
+inline int search_negamax_prune(const bitboard& bb, std::uint8_t depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval, const void* args_eval)
 {
     const int colour = (bb.is_black_to_play() ? -1 : 1);
 

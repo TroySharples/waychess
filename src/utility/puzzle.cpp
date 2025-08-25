@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-bool puzzle::solve(search::search s, std::size_t max_depth, evaluation::evaluation eval, const void* args_eval) const
+bool puzzle::solve(search::search s, std::uint8_t max_depth, evaluation::evaluation eval, const void* args_eval) const
 {
     bool ret { true };
 

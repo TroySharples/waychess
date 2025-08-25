@@ -45,7 +45,7 @@ inline int evaluate_raw_material(const bitboard& bb, const void* /*args*/) noexc
     int ret {};
 
     // At the moment this is purely materialistic.
-    for (std::size_t i = 0; i < 14; i++)
+    for (std::uint8_t i = 0; i < 14; i++)
         ret += details::material_cp[i]*std::popcount(bb.boards[i]);
 
     return ret;

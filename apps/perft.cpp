@@ -26,10 +26,10 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
 int main(int argc, char** argv)
 {
     // Default arguments.
-    bool help { false };
-    bool tree { false };
-    std::string fen { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
-    perft_args args { .depth=1, .strategy=perft_args::copy };
+    bool help                         { false };
+    bool tree                         { false };
+    std::string fen                   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
+    perft_args args                   { .depth=1, .strategy=perft_args::copy };
     std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
     // tree of moves structure dynamically.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
-              << R"(    "depth": )" << args.depth << ",\n"
+              << R"(    "depth": )" << static_cast<int>(args.depth) << ",\n"
               << R"(    "strategy": )" << '"' << perft_args::strategy_type_to_string(args.strategy) << '"' << ",\n"
               << R"(    "hash-table MB": )"   << '"' << get_perft_hash_table_bytes()/1000000 << '"' << ",\n";
 
@@ -131,15 +131,15 @@ int main(int argc, char** argv)
 
         bool array_first { true };
         std::array<std::uint32_t, 256> move_buf;
-        const std::size_t moves { generate_pseudo_legal_moves(position_start, move_buf) };
-        for (std::size_t i = 0; i < moves; i++)
+        const std::uint8_t moves { generate_pseudo_legal_moves(position_start, move_buf) };
+        for (std::uint8_t i = 0; i < moves; i++)
         {
             bitboard next_position { position_start };
 
             if (!make_move({ .check_legality = true }, next_position, move_buf[i]))
                 continue;
 
-            const std::size_t nodes { perft({ .depth=args.depth-1, .strategy=args.strategy }, next_position) };
+            const std::size_t nodes { perft({ .depth=static_cast<std::uint8_t>(args.depth-1), .strategy=args.strategy }, next_position) };
             total_nodes += nodes;
 
             // Handle trailing-comma printing.

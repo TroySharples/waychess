@@ -8,13 +8,13 @@
 
 // The maximum number of legal moves in any one position (I think one with lots of queens everywhere). In reality
 // it's usually about 20, but this constant is important for working out how much RAM to allocate.
-constexpr std::size_t MAX_MOVES_PER_POSITION { 218 };
+constexpr std::uint8_t MAX_MOVES_PER_POSITION { 218 };
 
 // Generates all legal moves, as well as moves that would be legal were it not for "checking" rules (i.e. the
 // king is left in check after the move is played, the king is castling out of check, or the king is castling
 // into check). We take in a span to hold our moves, and return a subspan containing the actual moves. Note
 // that the input span must be large enough to hold all generated moves.
-inline std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept;
+inline std::uint8_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept;
 
 // ####################################
 // IMPLEMENTATION
@@ -25,9 +25,9 @@ inline std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std
 namespace details
 {
 
-inline std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::size_t ret {};
+    std::uint8_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn };
@@ -98,9 +98,9 @@ inline std::size_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> m
     return ret;
 }
 
-inline std::size_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::size_t ret {};
+    std::uint8_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_king : piece_idx::w_king };
@@ -168,9 +168,9 @@ inline std::size_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> m
     return ret;
 }
 
-inline std::size_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::size_t ret {};
+    std::uint8_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_knight : piece_idx::w_knight };
@@ -200,9 +200,9 @@ inline std::size_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t>
     return ret;
 }
 
-inline std::size_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::size_t ret {};
+    std::uint8_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_bishop : piece_idx::w_bishop };
@@ -233,9 +233,9 @@ inline std::size_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t>
     return ret;
 }
 
-inline std::size_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::size_t ret {};
+    std::uint8_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_rook : piece_idx::w_rook };
@@ -266,9 +266,9 @@ inline std::size_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> m
     return ret;
 }
 
-inline std::size_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::size_t ret {};
+    std::uint8_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_queen : piece_idx::w_queen };
@@ -301,9 +301,9 @@ inline std::size_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> 
 
 }
 
-inline std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::size_t ret {};
+    std::uint8_t ret {};
 
     // We probably want to be a bit smarter about what order these are generated in to improve the alpha-beta pruning
     // later on. This could look like just generating piece moves that are likely to be good first, or possibly running

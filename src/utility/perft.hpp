@@ -8,7 +8,7 @@ std::size_t get_perft_hash_table_bytes();
 
 struct perft_args
 {
-    std::size_t depth;
+    std::uint8_t depth;
     enum strategy_type : std::uint8_t { copy, unmake } strategy { copy };
 
     static strategy_type strategy_type_from_string(std::string_view str);

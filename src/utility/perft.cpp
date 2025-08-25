@@ -8,16 +8,16 @@
 namespace
 {
 
-std::size_t perft_recursive_copy_no_hash(bitboard& bb, std::size_t depth, std::span<std::uint32_t> move_buf)
+std::size_t perft_recursive_copy_no_hash(bitboard& bb, std::uint8_t depth, std::span<std::uint32_t> move_buf)
 {
     if (depth == 0) [[unlikely]]
         return 1;
 
     std::size_t ret {};
 
-    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
-    for (std::size_t i = 0; i < moves; i++)
+    for (std::uint8_t i = 0; i < moves; i++)
     {
         bitboard next_position = bb;
 
@@ -31,16 +31,16 @@ std::size_t perft_recursive_copy_no_hash(bitboard& bb, std::size_t depth, std::s
     return ret;
 }
 
-std::size_t perft_recursive_unmake_no_hash(bitboard& bb, std::size_t depth, std::span<std::uint32_t> move_buf)
+std::size_t perft_recursive_unmake_no_hash(bitboard& bb, std::uint8_t depth, std::span<std::uint32_t> move_buf)
 {
     if (depth == 0) [[unlikely]]
         return 1;
 
     std::size_t ret {};
 
-    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
-    for (std::size_t i = 0; i < moves; i++)
+    for (std::uint8_t i = 0; i < moves; i++)
     {
         std::uint32_t unmake;
         if (make_move({ .check_legality = true }, bb, move_buf[i], unmake)) [[likely]]
@@ -62,7 +62,7 @@ using perft_hash_table_type = details::hash_table<perft_value_type>;
 std::vector<perft_hash_table_type::entry_type> perft_hash_buf;
 perft_hash_table_type perft_hash_table;
 
-std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::size_t depth, std::span<std::uint32_t> move_buf)
+std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::uint8_t depth, std::span<std::uint32_t> move_buf)
 {
     if (depth == 0) [[unlikely]]
         return 1;
@@ -74,9 +74,9 @@ std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::
 
     std::size_t ret {};
 
-    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
-    for (std::size_t i = 0; i < moves; i++)
+    for (std::uint8_t i = 0; i < moves; i++)
     {
         std::uint32_t unmake;
         if (make_move({ .check_legality = true }, bb, move_buf[i], unmake, hash)) [[likely]]
@@ -93,7 +93,7 @@ std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::
     return ret;
 }
 
-std::size_t perft_recursive_copy_hash(bitboard& bb, std::uint64_t hash, std::size_t depth, std::span<std::uint32_t> move_buf)
+std::size_t perft_recursive_copy_hash(bitboard& bb, std::uint64_t hash, std::uint8_t depth, std::span<std::uint32_t> move_buf)
 {
     if (depth == 0) [[unlikely]]
         return 1;
@@ -105,9 +105,9 @@ std::size_t perft_recursive_copy_hash(bitboard& bb, std::uint64_t hash, std::siz
 
     std::size_t ret {};
 
-    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
-    for (std::size_t i = 0; i < moves; i++)
+    for (std::uint8_t i = 0; i < moves; i++)
     {
         bitboard bitboard_copy { bb };
         std::uint64_t hash_copy { hash };
@@ -163,7 +163,7 @@ std::string perft_args::strategy_type_to_string(strategy_type strategy)
 
 std::size_t perft(const perft_args& args, const bitboard& start)
 {
-    std::vector<std::uint32_t> move_buf(args.depth*MAX_MOVES_PER_POSITION);
+    std::vector<std::uint32_t> move_buf(static_cast<std::size_t>(args.depth)*MAX_MOVES_PER_POSITION);
 
     bitboard bb { start };
 
