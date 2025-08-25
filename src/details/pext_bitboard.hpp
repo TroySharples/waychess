@@ -18,8 +18,7 @@ struct pext_bitboard
 {
     std::span<std::uint64_t> table;
     std::uint64_t mask;
-    const std::uint64_t& operator[](std::uint64_t x) const noexcept { return table[_pext_u64(x, mask)];}
-    std::uint64_t& operator[](std::uint64_t x) noexcept { return table[_pext_u64(x, mask)]; }
+    std::uint64_t& operator[](std::uint64_t x) const noexcept { return table[_pext_u64(x, mask)]; }
 };
 
 }
