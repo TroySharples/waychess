@@ -12,6 +12,14 @@
             "externalConsole": false,
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "GDB Attach WayChess",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${command:cmake.buildDirectory}/apps/waychess",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb"
         }
     ]
 }
