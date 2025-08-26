@@ -3,7 +3,7 @@
 #include "position/generate_moves.hpp"
 #include "position/make_move.hpp"
 #include "position/move.hpp"
-#include "details/hash_map.hpp"
+#include "details/hash_table.hpp"
 
 namespace
 {
@@ -58,9 +58,7 @@ struct perft_value_type
     std::size_t  nodes;
 };
 
-using perft_hash_table_type = details::hash_table<perft_value_type>;
-std::vector<perft_hash_table_type::entry_type> perft_hash_buf;
-perft_hash_table_type perft_hash_table;
+details::hash_table<perft_value_type> perft_hash_table;
 
 std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::uint8_t depth, std::span<std::uint32_t> move_buf)
 {
@@ -129,11 +127,7 @@ std::size_t perft_recursive_copy_hash(bitboard& bb, std::uint64_t hash, std::uin
 
 void set_perft_hash_table_bytes(std::size_t bytes)
 {
-    // We only allocate the log2-floor of the requested entries.
-    const std::size_t entries { std::bit_floor(bytes/sizeof(perft_hash_table_type::entry_type)) };
-
-    perft_hash_buf.resize(entries);
-    perft_hash_table = perft_hash_table_type(perft_hash_buf);
+    perft_hash_table.set_table_bytes(bytes);
 }
 
 std::size_t get_perft_hash_table_bytes()

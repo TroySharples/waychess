@@ -1,6 +1,7 @@
 #include "search/algorithms.hpp"
 #include "utility/uci.hpp"
 #include "utility/logging.hpp"
+#include "search/transposition_table.hpp"
 #include "version.hpp"
 
 #include <cstdlib>
@@ -60,7 +61,7 @@ void handle(const uci::command_setoption& req)
         const std::size_t hash_bytes { 1000ULL * std::stoull(*req.value) };
 
         // This should only affect the search hash-table.
-        search::set_search_hash_table_bytes(hash_bytes);
+        search::transposition_table.set_table_bytes(hash_bytes);
     }
     else
     {

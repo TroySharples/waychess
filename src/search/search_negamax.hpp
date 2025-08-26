@@ -4,6 +4,8 @@
 
 #include "evaluation/evaluation.hpp"
 
+#include "search/transposition_table.hpp"
+
 #include "position/generate_moves.hpp"
 #include "position/make_move.hpp"
 
@@ -97,7 +99,7 @@ inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, st
         return colour*eval(bb, args);
 
     // Loop up the value in the hash table and return immediately if we hit.
-    auto& entry { search_hash_table[hash] };
+    auto& entry { transposition_table[hash] };
     if (entry.key == hash && entry.value.depth <= depth)
         return entry.value.eval;
 
@@ -150,7 +152,7 @@ inline int search_negamax_prune(const bitboard& bb, std::uint8_t depth, std::spa
 {
     const int colour = (bb.is_black_to_play() ? -1 : 1);
 
-    if (get_search_hash_table_bytes() == 0)
+    if (transposition_table.get_table_entries() == 0)
     {
         return colour*details::search_negamax_prune_no_hash(bb, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, eval, move_buf, args_eval);
     }

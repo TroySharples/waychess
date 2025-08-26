@@ -5,7 +5,6 @@
 // ####################################
 
 #include "evaluation/evaluation.hpp"
-#include "details/hash_map.hpp"
 #include "position/generate_moves.hpp"
 #include "position/make_move.hpp"
 
@@ -24,24 +23,6 @@ using search = int (*)(const bitboard& bb, std::uint8_t max_depth, std::span<std
 // A global boolean indicating when we must stop searching as soon as possible. All algorithms must
 // respect this.
 extern bool stop_search;
-
-// Entry type for search algorithms that use Zobrist hash-tables. We may add more things to this in the future.
-struct __attribute__ ((__packed__)) search_value_type
-{
-    std::uint8_t depth;
-    int eval;
-
-    // A generic meta-field that can be used for various purposes depending on the search.
-    std::uint8_t meta;
-};
-
-using search_hash_table_type = ::details::hash_table<search_value_type>;
-extern std::vector<search_hash_table_type::entry_type> search_hash_buf;
-inline search_hash_table_type search_hash_table { search_hash_buf };
-
-// Note only allocates the log2_floor the entries.
-void set_search_hash_table_bytes(std::size_t bytes);
-std::size_t get_search_hash_table_bytes();
 
 struct recommendation
 {
