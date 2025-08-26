@@ -15,6 +15,16 @@
 
 - Misevaluation of drawn positions as decisive by ignoring the three-fold repetition rule.
 
+## [1.2.2] - 2025-08-26
+
+### Added
+
+### Changed
+
+- Fixed erroneous early-return from search by implementing transposition-table-entry ageing (hacky implementation for now).
+
+### Fixed
+
 ## [1.2.1] - 2025-08-25
 
 ### Added
