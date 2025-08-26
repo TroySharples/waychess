@@ -23,13 +23,13 @@ void unmake_move(bitboard& bb, std::uint32_t& unmake, std::uint64_t& hash) noexc
 // ####################################
 
 #include "position/move.hpp"
-#include "position/position.hpp"
+#include "position/attacks.hpp"
 #include "position/zobrist_hash.hpp"
 
 namespace details
 {
 
-constexpr inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move, std::uint32_t& unmake, std::uint64_t& hash) noexcept
+inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t move, std::uint32_t& unmake, std::uint64_t& hash) noexcept
 {
     bool ret { true };
 
