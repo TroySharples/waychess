@@ -43,6 +43,8 @@ recommendation recommend_move_id(const bitboard& bb, search s, std::chrono::dura
 // IMPLEMENTATION
 // ####################################
 
+#include "search/transposition_table.hpp"
+
 #include <future>
 
 namespace search
@@ -59,6 +61,9 @@ inline recommendation recommend_move(const bitboard& bb, search s, std::uint8_t 
     const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
     recommendation ret { .move = 0, .eval = is_black_to_play ? std::numeric_limits<int>::max() : std::numeric_limits<int>::min() };
+
+    // Clear the transposition table.
+    transposition_age++;
 
     for (std::uint8_t i = 0; i < moves; i++)
     {
