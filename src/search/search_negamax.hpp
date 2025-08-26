@@ -89,7 +89,7 @@ inline int search_negamax_prune_no_hash(const bitboard& bb, std::uint8_t depth, 
     return ret;
 }
 
-inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, std::uint8_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
+inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, std::uint8_t depth, int a, int b, int colour, const std::uint8_t age, evaluation::evaluation eval, std::span<std::uint32_t> move_buf, const void* args) noexcept
 {
     // It's a draw if our half-move clock goes too high.
     if (bb.ply_50m >= 100) [[unlikely]]
@@ -100,7 +100,7 @@ inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, st
 
     // Loop up the value in the hash table and return immediately if we hit.
     auto& entry { transposition_table[hash] };
-    if (entry.key == hash && entry.value.depth <= depth)
+    if (entry.key == hash && entry.value.age == age && entry.value.depth <= depth)
         return entry.value.eval;
 
     int ret { -std::numeric_limits<int>::max() };
@@ -119,7 +119,7 @@ inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, st
         if (!make_move({ .check_legality = true }, bitboard_copy, move_buf[i], unmake, hash_copy)) [[unlikely]]
             continue;
 
-        ret = std::max(ret, -search_negamax_prune_hash(bitboard_copy, hash_copy, depth-1, -b, -a, -colour, eval, move_buf.subspan(moves), args));
+        ret = std::max(ret, -search_negamax_prune_hash(bitboard_copy, hash_copy, depth-1, -b, -a, -colour, age, eval, move_buf.subspan(moves), args));
 
         a = std::max(a, ret);
         if (a >= b)
@@ -133,6 +133,7 @@ inline int search_negamax_prune_hash(const bitboard& bb, std::uint64_t& hash, st
 
     // Update the hash table with our result - always overriding for now.
     entry.key = hash;
+    entry.value.age   = age;
     entry.value.depth = depth;
     entry.value.eval  = ret;
 
@@ -159,7 +160,7 @@ inline int search_negamax_prune(const bitboard& bb, std::uint8_t depth, std::spa
     else
     {
         std::uint64_t hash = zobrist::hash_init(bb);
-        return colour*details::search_negamax_prune_hash(bb, hash, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, eval, move_buf, args_eval);
+        return colour*details::search_negamax_prune_hash(bb, hash, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, bb.ply_counter, eval, move_buf, args_eval);
     }
 }
 

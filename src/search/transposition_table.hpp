@@ -8,6 +8,7 @@ namespace search
 // The value type in our hash table for search - we may expand this in the future.
 struct __attribute__ ((__packed__)) search_value_type
 {
+    std::uint8_t age;
     std::uint8_t depth;
     int eval;
 
