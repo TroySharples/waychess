@@ -58,7 +58,7 @@ void handle(const uci::command_setoption& req)
         if (!req.value.has_value())
             throw std::runtime_error("Set hash option must contain a value");
 
-        const std::size_t hash_bytes { 1000ULL * std::stoull(*req.value) };
+        const std::size_t hash_bytes { 1000000ULL * std::stoull(*req.value) };
 
         // This should only affect the search hash-table.
         search::transposition_table.set_table_bytes(hash_bytes);
