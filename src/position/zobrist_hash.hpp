@@ -8,7 +8,7 @@ namespace zobrist
 
 constexpr std::uint64_t get_code_piece(piece_idx id, std::uint8_t mb) noexcept
 {
-    return details::PRN_CODE_ARRAY[(id << 6) | mb];
+    return id == piece_idx::empty ? 0 : details::PRN_CODE_ARRAY[(id << 6) | mb];
 }
 
 constexpr std::uint64_t get_code_en_passent(std::uint8_t en_passent_mb) noexcept
