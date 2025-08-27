@@ -16,7 +16,6 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "         -h                   -> Print this help menu.\n"
               << "         -f [file]            -> The path to the Lichess CSV containing the puzzles.\n"
               << "         -d [depth]           -> The perft depth. Optional, default 4.\n"
-              << "         -s [search]          -> The search strategy to use. Can either be minimax, negamax, or negamax-prune. Optional, default negamax-prune.\n"
               << "         -k [hash-table size] -> The size of the hash-table (in MiB) if used. Optional, default 1000.\n";
 }
 
@@ -26,7 +25,6 @@ int main(int argc, char** argv)
     bool help { false };
     std::filesystem::path csv_path;
     std::uint8_t depth { 4 };
-    search::search s  { search::negamax };
     std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
@@ -50,12 +48,6 @@ int main(int argc, char** argv)
             case 'd':
             {
                 depth = std::stoul(optarg);
-                break;
-            }
-            // Search strategy.
-            case 's':
-            {
-                s = search::search_from_string(optarg);
                 break;
             }
             // Hash size.
@@ -122,7 +114,7 @@ int main(int argc, char** argv)
         ss >> p;
 
         puzzles_total++;
-        if (p.solve(s, depth, evaluation::raw_material))
+        if (p.solve(&search::search_negamax, depth, evaluation::raw_material))
             puzzles_solved++;
     }
     const auto time_end = std::chrono::steady_clock::now();
@@ -133,7 +125,6 @@ int main(int argc, char** argv)
     std::cout << R"({)" << '\n'
               << R"(    "file": )"   << csv_path.filename() << ",\n"
               << R"(    "depth": )" << static_cast<int>(depth) << ",\n"
-              << R"(    "search": )" << '"' << search::search_to_string(s) << '"' << ",\n"
               << R"(    "hash-table MB": )" << '"' << search::transposition_table.get_table_bytes()/1000000 << '"' << ",\n"
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"

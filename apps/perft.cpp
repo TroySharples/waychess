@@ -19,7 +19,6 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "         -t                   -> Also print the first level tree of possible moves.\n"
               << "         -f [fen]             -> The FEN string for the starting position. Optional, defaults to starting position.\n"
               << "         -d [depth]           -> The perft depth. Optional, default 1.\n"
-              << "         -s [strategy]        -> The perft search strategy. Can be either copy or unmake, - default copy.\n"
               << "         -k [hash-table size] -> The size of the hash-table (in MiB) if used. Optional, default 1000.\n";
 }
 
@@ -29,7 +28,7 @@ int main(int argc, char** argv)
     bool help                         { false };
     bool tree                         { false };
     std::string fen                   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
-    perft_args args                   { .depth=1, .strategy=perft_args::copy };
+    std::uint8_t depth                { 1 };
     std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
@@ -58,13 +57,7 @@ int main(int argc, char** argv)
             // Depth.
             case 'd':
             {
-                args.depth = std::stoull(optarg);
-                break;
-            }
-            // Strategy.
-            case 's':
-            {
-                args.strategy = perft_args::strategy_type_from_string(optarg);
+                depth = std::stoull(optarg);
                 break;
             }
             // Hash size.
@@ -98,7 +91,7 @@ int main(int argc, char** argv)
     }
 
     // Check option consistency.
-    if (args.depth == 0 && tree)
+    if (depth == 0 && tree)
     {
         std::cerr << "Depth must cannot be 0 when tree-printing is enabled.\n";
         print_usage(argv[0], std::cerr);
@@ -117,8 +110,7 @@ int main(int argc, char** argv)
     // tree of moves structure dynamically.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
-              << R"(    "depth": )" << static_cast<int>(args.depth) << ",\n"
-              << R"(    "strategy": )" << '"' << perft_args::strategy_type_to_string(args.strategy) << '"' << ",\n"
+              << R"(    "depth": )" << static_cast<int>(depth) << ",\n"
               << R"(    "hash-table MB": )"   << '"' << get_perft_hash_table_bytes()/1000000 << '"' << ",\n";
 
     const bitboard position_start(fen);
@@ -139,7 +131,7 @@ int main(int argc, char** argv)
             if (!make_move({ .check_legality = true }, next_position, move_buf[i]))
                 continue;
 
-            const std::size_t nodes { perft({ .depth=static_cast<std::uint8_t>(args.depth-1), .strategy=args.strategy }, next_position) };
+            const std::size_t nodes { perft(next_position, depth-1) };
             total_nodes += nodes;
 
             // Handle trailing-comma printing.
@@ -157,7 +149,7 @@ int main(int argc, char** argv)
     }
     else
     {
-        total_nodes = perft(args, position_start);
+        total_nodes = perft(position_start, depth);
     }
     const auto time_end = std::chrono::steady_clock::now();
 

@@ -1,4 +1,5 @@
 #include "search/algorithms.hpp"
+#include "search/transposition_table.hpp"
 #include "utility/puzzle.hpp"
 
 #include <gtest/gtest.h>
@@ -27,7 +28,7 @@ void test_puzzles(const std::filesystem::path& csv_path, double pass_accuracy)
         ss >> p;
 
         puzzles_total++;
-        if (p.solve(search::negamax_prune, 4, evaluation::raw_material))
+        if (p.solve(&search::search_negamax, 4, evaluation::raw_material))
             puzzles_solved++;
     }
 
@@ -52,6 +53,9 @@ TEST(Puzzle, Endgame500)
 // performance across a variety of position types.
 int main(int argc, char **argv)
 {
+    // Allocate 128 MB for our transposition table.
+    search::transposition_table.set_table_bytes(128*1000000ULL);
+
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

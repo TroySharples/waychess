@@ -18,7 +18,5 @@ struct __attribute__ ((__packed__)) search_value_type
 
 // We have one global transposition table.
 extern ::details::hash_table<search_value_type> transposition_table;
-// We have one global transposition age - increment this when you want to clear the hash table.
-extern std::uint8_t transposition_age;
 
 }

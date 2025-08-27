@@ -12,8 +12,11 @@
 namespace
 {
 
-// Our global bitboard - we'll think about wrapping this in a nice class at some point.
-bitboard bb;
+// Our global game state.
+game_state gs;
+
+// Default argument values.
+constexpr std::size_t TRANSPOSITION_TABLE_MB_DEFAULT { 128 };
 
 void handle(const uci::command_uci& /*req*/)
 {
@@ -32,7 +35,7 @@ void handle(const uci::command_uci& /*req*/)
     // Print the options we support.
     {
         uci::command_option resp;
-        resp.option = "name Hash type spin default 128 min 0 max 2048";
+        resp.option = "name Hash type spin default " + std::to_string(TRANSPOSITION_TABLE_MB_DEFAULT) + " min 1 max 2048";
         resp.print(std::cout);
     }
 
@@ -42,13 +45,18 @@ void handle(const uci::command_uci& /*req*/)
 
 void handle(const uci::command_isready& /*req*/)
 {
+    // If we haven't already initialised our transposition table, we do it here with the default 128 MB.
+    if (search::transposition_table.get_table_bytes() == 0)
+        search::transposition_table.set_table_bytes(1000000ULL*TRANSPOSITION_TABLE_MB_DEFAULT);
+
+    // Say we are ready.
     uci::command_readyok{}.print(std::cout);
 }
 
 void handle(const uci::command_ucinewgame& /*req*/)
 {
-    // Clear the position.
-    bb = bitboard{};
+    // Clear the game state.
+    gs = game_state{};
 }
 
 void handle(const uci::command_setoption& req)
@@ -78,13 +86,14 @@ void handle(const uci::command_debug& req)
 
 void handle(const uci::command_position& req)
 {
-    bb = req.bb;
+    gs = game_state(req.bb);
 
-    // Apply the subsequent moves if necessary.
+    // Apply the subsequent moves and increment the root ply if necessary.
     for (const auto& move_str : req.moves)
     {
-        std::uint32_t move { move::from_algebraic_long(move_str, bb) };
-        make_move({ .check_legality = false }, bb, move);
+        std::uint32_t move { move::from_algebraic_long(move_str, gs.bb) };
+        make_move({ .check_legality = false }, gs, move);
+        gs.root_ply++;
     }
 }
 
@@ -92,19 +101,19 @@ void handle(const uci::command_go& req)
 {
     std::uint32_t recommended_move;
 
-    if (bb.is_black_to_play() ? !req.btime.has_value() : !req.wtime.has_value())
+    if (gs.bb.is_black_to_play() ? !req.btime.has_value() : !req.wtime.has_value())
     {
         // If we haven't been told anything about out time parameters we just default to calculating to depth 6.
-        recommended_move = search::recommend_move(bb, search::negamax_prune, 6, evaluation::raw_material).move;
+        recommended_move = search::recommend_move(gs, &search::search_negamax, 6, evaluation::raw_material).move;
     }
     else
     {
         // Otherwise, we just spend 1/20 of our remaining time and half our increment calculating this.
-        const std::size_t remaining_ms { bb.is_black_to_play() ? *req.btime : *req.wtime };
-        const std::size_t increment_ms { bb.is_black_to_play() ? (req.binc.has_value() ? *req.binc : 0)  : (req.winc.has_value() ? *req.winc : 0) };
+        const std::size_t remaining_ms { gs.bb.is_black_to_play() ? *req.btime : *req.wtime };
+        const std::size_t increment_ms { gs.bb.is_black_to_play() ? (req.binc.has_value() ? *req.binc : 0)  : (req.winc.has_value() ? *req.winc : 0) };
 
         const std::chrono::milliseconds time((remaining_ms/20) + (increment_ms/2));
-        recommended_move = search::recommend_move_id(bb, search::negamax_prune, time, evaluation::raw_material).move;
+        recommended_move = search::recommend_move_id(gs, &search::search_negamax, time, evaluation::raw_material).move;
     }
 
     // Print our recommendation.

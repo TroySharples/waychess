@@ -11,8 +11,11 @@
 namespace
 {
 
-// Our global bitboard - we'll think about wrapping this in a nice class at some point.
-bitboard bb;
+// Our global game state.
+game_state gs;
+
+// Default argument values.
+constexpr std::size_t TRANSPOSITION_TABLE_MB_DEFAULT { 16 };
 
 void handle(const uci::command_uci& /*req*/)
 {
@@ -28,7 +31,12 @@ void handle(const uci::command_uci& /*req*/)
         resp.print(std::cout);
     }
 
-    // We don't support any options.
+    // Print the options we support.
+    {
+        uci::command_option resp;
+        resp.option = "name Hash type spin default " + std::to_string(TRANSPOSITION_TABLE_MB_DEFAULT) + " min 1 max 2048";
+        resp.print(std::cout);
+    }
 
     // Says we are ready to start.
     uci::command_uciok{}.print(std::cout);
@@ -36,13 +44,18 @@ void handle(const uci::command_uci& /*req*/)
 
 void handle(const uci::command_isready& /*req*/)
 {
+    // If we haven't already initialised our transposition table, we do it here with the default 128 MB.
+    if (search::transposition_table.get_table_bytes() == 0)
+        search::transposition_table.set_table_bytes(1000000ULL*TRANSPOSITION_TABLE_MB_DEFAULT);
+
+    // Say we are ready.
     uci::command_readyok{}.print(std::cout);
 }
 
 void handle(const uci::command_ucinewgame& /*req*/)
 {
-    // Clear the position.
-    bb = bitboard{};
+    // Clear the game state.
+    gs = game_state{};
 }
 
 void handle(const uci::command_setoption& /*req*/)
@@ -59,20 +72,21 @@ void handle(const uci::command_debug& req)
 
 void handle(const uci::command_position& req)
 {
-    bb = req.bb;
+    gs = game_state(req.bb);
 
-    // Apply the subsequent moves if necessary.
+    // Apply the subsequent moves and increment the root ply if necessary.
     for (const auto& move_str : req.moves)
     {
-        std::uint32_t move { move::from_algebraic_long(move_str, bb) };
-        make_move({ .check_legality = false }, bb, move);
+        std::uint32_t move { move::from_algebraic_long(move_str, gs.bb) };
+        make_move({ .check_legality = false }, gs, move);
+        gs.root_ply++;
     }
 }
 
 void handle(const uci::command_go& /*req*/)
 {
     // Just calculate to depth 6 no matter what (WayChess 1.0.0 behaviour).
-    const std::uint32_t recommended_move = search::recommend_move(bb, search::negamax_prune, 6, evaluation::raw_material).move;
+    const std::uint32_t recommended_move = search::recommend_move(gs, &search::search_negamax, 6, evaluation::raw_material).move;
 
     // Print our recommendation.
     {

@@ -6,7 +6,6 @@
             "type": "shell",
             "command": "${workspaceFolder}/regression/perft.sh",
             "args": [
-                "\"${input:strategy}\"",
                 "\"${input:depth}\"",
                 "\"${input:hash-size}\"",
                 "\"${input:label}\""
@@ -19,7 +18,6 @@
             "type": "shell",
             "command": "${workspaceFolder}/regression/evaluate.sh",
             "args": [
-                "\"${input:search}\"",
                 "\"${input:depth}\"",
                 "\"${input:hash-size}\"",
                 "\"${input:label}\""
@@ -33,7 +31,6 @@
             "command": "${workspaceFolder}/regression/puzzler.sh",
             "args": [
                 "\"puzzles/${input:puzzle-file}.csv\"",
-                "\"${input:search}\"",
                 "\"${input:depth}\"",
                 "\"${input:hash-size}\"",
                 "\"${input:label}\""
@@ -57,29 +54,8 @@
         {
             "id": "hash-size",
             "type": "promptString",
-            "description": "Upper-limit of hash-table size in MB.",
-            "default": "1000"
-        },
-        {
-            "id": "strategy",
-            "type": "pickString",
-            "description": "Perft tree-traversal strategy",
-            "options": [
-                "copy",
-                "unmake"
-            ],
-            "default": "copy"
-        },
-        {
-            "id": "search",
-            "type": "pickString",
-            "description": "Search algorithm",
-            "options": [
-                "negamax",
-                "minimax",
-                "negamax-prune"
-            ],
-            "default": "negamax-prune"
+            "description": "Upper-limit of hash-table size in MB. Must be positive.",
+            "default": "256"
         },
         {
             "id": "puzzle-file",

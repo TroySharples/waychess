@@ -40,7 +40,7 @@ constexpr std::array<int, 14> material_cp {
 };
 
 // Simply counts the material points - this is super basic and we don't expect it to be very good.
-inline int evaluate_raw_material(const bitboard& bb, const void* /*args*/) noexcept
+inline int evaluate_raw_material(const bitboard& bb) noexcept
 {
     int ret {};
 

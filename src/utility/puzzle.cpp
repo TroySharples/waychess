@@ -4,19 +4,23 @@
 
 #include <sstream>
 
-bool puzzle::solve(search::search s, std::uint8_t max_depth, evaluation::evaluation eval, const void* args_eval) const
+bool puzzle::solve(search::search s, std::uint8_t max_depth, evaluation::evaluation eval) const
 {
     bool ret { true };
 
-    bitboard bb_copy { bb };
+    game_state gs   { bb };
     bool is_to_move { false };
 
     for (auto move : moves)
     {
-        if (is_to_move && move != search::recommend_move(bb_copy, s, max_depth, eval, args_eval).move)
+        if (is_to_move && move != search::recommend_move(gs, s, max_depth, eval).move)
             ret = false;
 
-        make_move({ .check_legality = false }, bb_copy, move);
+        make_move({ .check_legality = false }, gs, move);
+
+        // Increment the actual root ply.
+        gs.root_ply++;
+
         is_to_move = !is_to_move;
     }
 

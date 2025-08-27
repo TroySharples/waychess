@@ -1,4 +1,5 @@
 #include "search/algorithms.hpp"
+#include "search/search_negamax.hpp"
 #include "search/transposition_table.hpp"
 #include "utility/logging.hpp"
 
@@ -13,7 +14,6 @@ static std::ostream& print_usage(const char* argv0, std::ostream& os)
               << "         -h                   -> Print this help menu.\n"
               << "         -f [fen]             -> The FEN string for the starting position. Optional, defaults to starting position.\n"
               << "         -d [depth]           -> The evaluation depth. Optional, default 1.\n"
-              << "         -s [search]          -> The search strategy to use. Can either be minimax, negamax, or negamax-prune. Optional, default negamax-prune.\n"
               << "         -k [hash-table size] -> The size of the hash-table (in MiB) if used. Optional, default 1000.\n";
 }
 
@@ -23,7 +23,6 @@ int main(int argc, char** argv)
     bool help                         { false };
     std::string fen                   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
     std::uint8_t depth                { 1 };
-    search::search s                  { search::negamax };
     std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
@@ -47,12 +46,6 @@ int main(int argc, char** argv)
             case 'd':
             {
                 depth = std::stoull(optarg);
-                break;
-            }
-            // Search strategy.
-            case 's':
-            {
-                s = search::search_from_string(optarg);
                 break;
             }
             // Hash size.
@@ -88,14 +81,14 @@ int main(int argc, char** argv)
     // Setup the logger.
     set_log_method(log_method::cerr);
 
-    const bitboard position_start(fen);
+    game_state gs { bitboard(fen) };
 
     // Init hash table, so we can read-back the actual allocated memory (instead of the requested amount) when
     // printing out the telemetry below.
     search::transposition_table.set_table_bytes(hash_table_size_bytes);
 
     const auto time_start = std::chrono::steady_clock::now();
-    const search::recommendation rec { search::recommend_move(position_start, s, depth, evaluation::raw_material) };
+    const search::recommendation rec { search::recommend_move(gs, &search::search_negamax, depth, evaluation::raw_material) };
     const auto time_end = std::chrono::steady_clock::now();
 
     // Start printing the JSON file in one go. We might clean this up later by having a proper JSON printing class, but this
@@ -103,7 +96,6 @@ int main(int argc, char** argv)
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
               << R"(    "depth": )" << static_cast<int>(depth) << ",\n"
-              << R"(    "search": )" << '"' << search::search_to_string(s) << '"' << ",\n"
               << R"(    "hash-table MB": )" << '"' << search::transposition_table.get_table_bytes()/1000000 << '"' << ",\n"
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
