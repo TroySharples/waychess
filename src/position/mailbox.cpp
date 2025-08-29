@@ -168,7 +168,6 @@ std::string mailbox::get_fen_string() const noexcept
         }
         if (empty_counter > 0)
             ss << empty_counter;
-        empty_counter = 0;
         if (i < 7)
             ss << '/';
     }

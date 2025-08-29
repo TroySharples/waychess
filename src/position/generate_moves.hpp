@@ -59,7 +59,7 @@ inline std::uint8_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> 
                 else
                 {
                     // Remember to set the en-passent meta-bit if necessary (note this is mutually-exclusive with promotion).
-                    move_buf[ret++] = move | (attack & bb.en_passent_bb ? move::serialise_move_type(move::move_type::EN_PASSENT) : 0);
+                    move_buf[ret++] = move | ((attack & bb.en_passent_bb) ? move::serialise_move_type(move::move_type::EN_PASSENT) : 0);
                 }
             }
 
@@ -118,7 +118,7 @@ inline std::uint8_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> 
         const std::uint64_t attack { ls1b_isolate(attacks) };
 
         {
-            const std::uint32_t move { move::serialise_make(king_mailbox, std::countr_zero(attack), to_move_idx, attack & opponent_pieces ? move::move_type::CAPTURE : 0) };
+            const std::uint32_t move { move::serialise_make(king_mailbox, std::countr_zero(attack), to_move_idx, (attack & opponent_pieces) ? move::move_type::CAPTURE : 0) };
             move_buf[ret++] = move;
         }
 
@@ -187,7 +187,7 @@ inline std::uint8_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t
             const std::uint64_t attack { ls1b_isolate(attacks) };
 
             {
-                const std::uint32_t move { move::serialise_make(knight_mailbox, std::countr_zero(attack), to_move_idx, attack & opponent_pieces ? move::move_type::CAPTURE : 0) };
+                const std::uint32_t move { move::serialise_make(knight_mailbox, std::countr_zero(attack), to_move_idx, (attack & opponent_pieces) ? move::move_type::CAPTURE : 0) };
                 move_buf[ret++] = move;
             }
 
@@ -220,7 +220,7 @@ inline std::uint8_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t
             const std::uint64_t attack { ls1b_isolate(attacks) };
 
             {
-                const std::uint32_t move { move::serialise_make(bishop_mailbox, std::countr_zero(attack), to_move_idx, attack & opponent_pieces ? move::move_type::CAPTURE : 0) };
+                const std::uint32_t move { move::serialise_make(bishop_mailbox, std::countr_zero(attack), to_move_idx, (attack & opponent_pieces) ? move::move_type::CAPTURE : 0) };
                 move_buf[ret++] = move;
             }
 
@@ -253,7 +253,7 @@ inline std::uint8_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> 
             const std::uint64_t attack { ls1b_isolate(attacks) };
 
             {
-                const std::uint32_t move { move::serialise_make(rook_mailbox, std::countr_zero(attack), to_move_idx, attack & opponent_pieces ? move::move_type::CAPTURE : 0) };
+                const std::uint32_t move { move::serialise_make(rook_mailbox, std::countr_zero(attack), to_move_idx, (attack & opponent_pieces) ? move::move_type::CAPTURE : 0) };
                 move_buf[ret++] = move;
             }
 
@@ -286,7 +286,7 @@ inline std::uint8_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t>
             const std::uint64_t attack { ls1b_isolate(attacks) };
 
             {
-                const std::uint32_t move { move::serialise_make(queen_mailbox, std::countr_zero(attack), to_move_idx, attack & opponent_pieces ? move::move_type::CAPTURE : 0) };
+                const std::uint32_t move { move::serialise_make(queen_mailbox, std::countr_zero(attack), to_move_idx, (attack & opponent_pieces) ? move::move_type::CAPTURE : 0) };
                 move_buf[ret++] = move;
             }
 
