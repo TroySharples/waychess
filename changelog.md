@@ -9,11 +9,20 @@
 
 ### Changed
 
-- Restructured transposition-table implementation in search.
+### Fixed
+
+## [1.2.3] - 2025-08-29
+
+### Added
+
+### Changed
+
+- Saved the type of alpha/beta node in the transposition-table.
 
 ### Fixed
 
 - Misevaluation of drawn positions as decisive by ignoring the three-fold repetition rule.
+- Critical error in transposition-table depth where we were preferring positions that were evaluated to a shallower depth.
 
 ## [1.2.2] - 2025-08-26
 
@@ -21,9 +30,9 @@
 
 ### Changed
 
-- Fixed erroneous early-return from search by implementing transposition-table-entry ageing (hacky implementation for now).
-
 ### Fixed
+
+- Erroneous early-return from search by implementing transposition-table-entry ageing (hacky implementation for now).
 
 ## [1.2.1] - 2025-08-25
 
