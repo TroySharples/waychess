@@ -68,7 +68,7 @@ inline recommendation recommend_move(game_state& gs, search s, std::uint8_t max_
     for (std::uint8_t i = 0; i < moves; i++)
     {
         std::uint32_t unmake;
-        if (make_move({ .check_legality = true }, gs, move_buf[i], unmake)) [[unlikely]]
+        if (make_move({ .check_legality = true }, gs, move_buf[i], unmake)) [[likely]]
             if (const int score { s(gs, max_depth-1, move_span.subspan(moves), eval) }; (is_black_to_play ? score < ret.eval : score > ret.eval) )
                 ret = { .move = move_buf[i], .eval = score };;
         unmake_move(gs, unmake);
