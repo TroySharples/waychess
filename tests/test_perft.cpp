@@ -104,7 +104,8 @@ TEST(Perft, Pos6)
 // Tests performant perft correctness across a variety of positions.
 int main(int argc, char **argv)
 {
-    set_perft_hash_table_bytes(1000000000ULL); 
+    // Allocate 128 MB for our perft hash table.
+    set_perft_hash_table_bytes(128*1000000ULL);
 
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
