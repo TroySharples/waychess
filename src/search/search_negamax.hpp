@@ -23,8 +23,8 @@ constexpr std::uint8_t META_LOWERBOUND { 2 };
 
 inline int search_negamax_recursive(game_state& gs, std::uint8_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf) noexcept
 {
-    // It's a draw if our half-move clock goes too high.
-    if (gs.bb.ply_50m >= 100) [[unlikely]]
+    // Return draw-score immediately if this position can claim a repetition / 50-move-rule based draw).
+    if (gs.is_repetition_draw())
         return 0;
 
     if (depth == 0)

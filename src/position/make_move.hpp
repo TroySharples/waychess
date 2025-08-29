@@ -70,9 +70,6 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
         unmake |= move::serialise_unmake_ply_50m(bb.ply_50m);
     }
 
-    // Increment the ply counter.
-    bb.ply_counter++;
-
     // Handle the removal of castling rights. We use the from-to bitboard instead of just the from one as we also have
     // to remember to remove castling rights in the event one of our rooks gets captured - this is actually quite subtle...
     unmake |= move::serialise_unmake_castling(bb.castling);
@@ -288,9 +285,6 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
     // Either do or undo black as the side to move.
     hash ^= zobrist::CODE_IS_BLACK_TO_MOVE;
 
-    // Decrement the ply counter.
-    bb.ply_counter--;
-
     // Undo any current en-passent squares from the Zobrist hash.
     if (bb.en_passent_bb)
         hash ^= zobrist::get_code_en_passent(std::countr_zero(bb.en_passent_bb));
@@ -449,7 +443,12 @@ inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t mo
 {
     // Dummy hash (will get optimised away if necessary).
     std::uint64_t hash_dummy;
-    return details::make_move_impl(args, bb, move, unmake, hash_dummy);
+    const bool ret { details::make_move_impl(args, bb, move, unmake, hash_dummy) };
+
+    // Increment the ply-counter.
+    bb.ply_counter++;
+
+    return ret;
 }
 
 inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t move) noexcept
@@ -461,16 +460,27 @@ inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t 
 
 inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t move, std::uint32_t& unmake) noexcept
 {
-    return details::make_move_impl(args, gs.bb, move, unmake, gs.hash);
+    const bool ret { details::make_move_impl(args, gs.bb, move, unmake, gs.hash) };
+
+    // Add our move to our game-state history and increment the ply-counter.
+    gs.position_history[gs.bb.ply_counter++] = gs.hash;
+
+    return ret;
 }
 
 inline void unmake_move(bitboard& bb, std::uint32_t& unmake) noexcept
 {
     std::uint64_t hash;
     details::unmake_move_impl(bb, unmake, hash);
+
+    // Decrement the ply-counter.
+    bb.ply_counter--;
 }
 
 inline void unmake_move(game_state& gs, std::uint32_t& unmake) noexcept
 {
     details::unmake_move_impl(gs.bb, unmake, gs.hash);
+
+    // Decrement the ply-counter.
+    gs.bb.ply_counter--;
 }
