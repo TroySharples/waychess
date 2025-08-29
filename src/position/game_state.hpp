@@ -43,8 +43,6 @@ struct game_state
 // IMPLEMENTATION
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#include <algorithm>
-
 inline bool game_state::is_repetition_draw() const noexcept
 {
     // These kinds of draws are impossible if we haven't even made enough non-reversible moves.
