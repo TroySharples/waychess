@@ -86,7 +86,8 @@ void handle(const uci::command_debug& req)
 
 void handle(const uci::command_position& req)
 {
-    gs = game_state(req.bb);
+    // We use copy-assignment of the position only so we don't clear othe meta-data that affects search (e.g. hash-age).
+    gs = req.bb;
 
     // Apply the subsequent moves and increment the root ply if necessary.
     for (const auto& move_str : req.moves)

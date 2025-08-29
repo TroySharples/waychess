@@ -28,7 +28,7 @@ inline int search_negamax_recursive(game_state& gs, std::uint8_t depth, int a, i
 
     // Loop up the value in the hash table and return immediately if we hit. Note that we implement hash-ageing based on the root search node.
     auto& entry { transposition_table[gs.hash] };
-    if (entry.key == gs.hash && entry.value.age == gs.root_ply && entry.value.depth <= depth)
+    if (entry.key == gs.hash && entry.value.age == gs.age && entry.value.depth <= depth)
         return entry.value.eval;
 
     int ret { -std::numeric_limits<int>::max() };
@@ -62,7 +62,7 @@ inline int search_negamax_recursive(game_state& gs, std::uint8_t depth, int a, i
 
     // Update the hash table with our result - always overriding for now.
     entry.key         = gs.hash;
-    entry.value.age   = gs.root_ply;
+    entry.value.age   = gs.age;
     entry.value.depth = depth;
     entry.value.eval  = ret;
 

@@ -9,6 +9,8 @@ struct game_state
     game_state() = default;
     game_state(const bitboard& bb);
 
+    game_state& operator=(const bitboard& bb);
+
     // The bitboard itself. We use a bitboard for obvious reasons.
     bitboard bb;
 
@@ -26,6 +28,10 @@ struct game_state
     // The ply of some key move positions in the tree.
     std::uint16_t root_ply {};
     std::uint16_t last_non_reversible_ply {};
+
+    // The age of the current game-state. This is for things like invalidating hash lookups for when we need to consider
+    // new positions.
+    std::uint8_t age;
 
     // TODO: There are a lot more things we should add to do with the evaluation (e.g. pawn-structure tables).
 };

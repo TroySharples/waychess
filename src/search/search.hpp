@@ -62,6 +62,9 @@ inline recommendation recommend_move(game_state& gs, search s, std::uint8_t max_
 
     recommendation ret { .move = 0, .eval = is_black_to_play ? std::numeric_limits<int>::max() : std::numeric_limits<int>::min() };
 
+    // Clean the hash-table for the next search.
+    gs.age++;
+
     for (std::uint8_t i = 0; i < moves; i++)
     {
         std::uint32_t unmake;

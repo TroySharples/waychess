@@ -8,3 +8,11 @@ game_state::game_state(const bitboard& bb)
 {
 
 }
+
+game_state& game_state::operator=(const bitboard& bb)
+{
+    this->bb = bb;
+    hash = zobrist::hash_init(mailbox(bb));
+
+    return *this;
+}
