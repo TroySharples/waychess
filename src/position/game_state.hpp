@@ -48,7 +48,7 @@ struct game_state
 inline bool game_state::is_repetition_draw() const noexcept
 {
     // These kinds of draws are impossible if we haven't even made enough non-reversible moves.
-    if (bb.ply_50m < 4) [[unlikely]]
+    if (bb.ply_50m < 6) [[likely]]
         return false;
 
     // It's an immediate 50-move-rule draw if our half-move clock goes too high.
@@ -60,10 +60,10 @@ inline bool game_state::is_repetition_draw() const noexcept
     const int last_reversible_ply { bb.ply_counter - bb.ply_50m };
 
     std::size_t repetitions {};
-    for (int ply { bb.ply_counter }; ply >= last_reversible_ply; ply -= 2)
-        if (position_history[ply] == hash) [[unlikely]]
+    for (int ply { bb.ply_counter-2 }; ply >= last_reversible_ply; ply -= 2)
+        if (position_history[ply] == static_cast<std::uint32_t>(hash)) [[unlikely]]
             repetitions++;
 
-    // If this is at least our third repetition then it is a draw.
-    return repetitions >= 3;
+    // If we've seen this position at least twice before, then this is at least our third repetition and it is a draw.
+    return repetitions >= 2;
 }

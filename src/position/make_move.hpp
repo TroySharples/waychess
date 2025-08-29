@@ -463,7 +463,7 @@ inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t 
     const bool ret { details::make_move_impl(args, gs.bb, move, unmake, gs.hash) };
 
     // Add our move to our game-state history and increment the ply-counter.
-    gs.position_history[gs.bb.ply_counter++] = gs.hash;
+    gs.position_history[++gs.bb.ply_counter] = gs.hash;
 
     return ret;
 }
