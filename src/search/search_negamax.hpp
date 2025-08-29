@@ -17,6 +17,10 @@ namespace search
 namespace details
 {
 
+constexpr std::uint8_t META_EXACT      { 0 };
+constexpr std::uint8_t META_UPPERBOUND { 1 };
+constexpr std::uint8_t META_LOWERBOUND { 2 };
+
 inline int search_negamax_recursive(game_state& gs, std::uint8_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf) noexcept
 {
     // It's a draw if our half-move clock goes too high.
@@ -29,12 +33,18 @@ inline int search_negamax_recursive(game_state& gs, std::uint8_t depth, int a, i
     // Loop up the value in the hash table and return immediately if we hit. Note that we implement hash-ageing based on the root search node.
     auto& entry { transposition_table[gs.hash] };
     if (entry.key == gs.hash && entry.value.age == gs.age && entry.value.depth >= depth)
+    {
+        if (entry.value.meta == META_EXACT
+            || (entry.value.meta == META_LOWERBOUND && entry.value.eval >= b)
+            || (entry.value.meta == META_UPPERBOUND && entry.value.eval <= a))
         return entry.value.eval;
+    }
 
     int ret { -std::numeric_limits<int>::max() };
 
     const std::uint8_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
 
+    const int a_orig { a };
     for (std::uint8_t i = 0; i < moves; i++)
     {
         if (stop_search) [[unlikely]]
@@ -65,6 +75,12 @@ inline int search_negamax_recursive(game_state& gs, std::uint8_t depth, int a, i
     entry.value.age   = gs.age;
     entry.value.depth = depth;
     entry.value.eval  = ret;
+    if (ret <= a_orig)
+        entry.value.meta = META_UPPERBOUND;
+    else if (ret >= b)
+        entry.value.meta = META_LOWERBOUND;
+    else
+        entry.value.meta = META_EXACT;
 
     return ret;
 }
