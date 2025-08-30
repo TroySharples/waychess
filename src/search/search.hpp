@@ -37,6 +37,8 @@ recommendation recommend_move(game_state& gs, search s, std::uint8_t max_depth, 
 
 recommendation recommend_move_id(game_state& gs, search s, std::chrono::duration<double> time, evaluation::evaluation eval);
 
+recommendation recommend_move_id(game_state& gs, search s, std::uint8_t max_depth, evaluation::evaluation eval);
+
 }
 
 // ####################################
@@ -116,6 +118,20 @@ inline recommendation recommend_move_id(game_state& gs, search s, std::chrono::d
     stop_search = true;
 
     return f.get();
+}
+
+inline recommendation recommend_move_id(game_state& gs, search s, std::uint8_t max_depth, evaluation::evaluation eval)
+{
+    recommendation ret;
+
+    // Only clear the PV table at the start of the ID search.
+    gs.pv.clear();
+
+    // Do the iterative deepening.
+    for (std::uint8_t i = 1; i <= max_depth; i++)
+        ret = recommend_move(gs, s, i, eval);
+
+    return ret;
 }
 
 }
