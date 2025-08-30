@@ -62,9 +62,8 @@ inline recommendation recommend_move(game_state& gs, search s, std::uint8_t max_
 
     recommendation ret { .move = 0, .eval = is_black_to_play ? std::numeric_limits<int>::max() : std::numeric_limits<int>::min() };
 
-    // Set our root node, and clear our hash-table and PV tables.
+    // Set our root node and clear our transposition table.
     gs.root_ply = gs.bb.ply_counter;
-    gs.pv.clear();
     gs.age++;
 
     for (std::uint8_t i = 0; i < moves; i++)
@@ -90,6 +89,9 @@ inline recommendation recommend_move_id_future(game_state& gs, search s, evaluat
 
     std::uint8_t depth { 1 };
     recommendation ret;
+
+    // Only clear the PV table at the start of the ID search.
+    gs.pv.clear();
 
     // Do the iterative deepening - we make sure to only update our recommendation if we weren't interrupted.
     while (true)
