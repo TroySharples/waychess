@@ -80,7 +80,6 @@ void handle(const uci::command_position& req)
     {
         std::uint32_t move { move::from_algebraic_long(move_str, gs.bb) };
         make_move({ .check_legality = false }, gs, move);
-        gs.root_ply++;
     }
 }
 

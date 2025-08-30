@@ -60,7 +60,13 @@ inline int search_negamax_recursive(game_state& gs, std::uint8_t depth, int a, i
         ret = std::max(ret, -search_negamax_recursive(gs, depth-1, -b, -a, -colour, eval, move_buf.subspan(moves)));
         unmake_move(gs, unmake);
 
-        a = std::max(a, ret);
+        // Update our PV table when we've found a new best move.
+        if (ret > a)
+        {
+            a = ret;
+            gs.pv.update(gs.bb.ply_counter-gs.root_ply, move_buf[i]);
+        }
+
         if (a >= b)
             break;
     }

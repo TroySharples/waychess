@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bitboard.hpp"
+#include "details/pv_table.hpp"
 
 // The main game state that is used in the search and evaluation. This includes the position itself (i.e. bitboard) as well
 // as other incrementally updated fields (e.g. hash).
@@ -25,12 +26,15 @@ struct game_state
     // move.
     std::array<std::uint32_t, MAX_GAME_LENGTH> position_history;
 
-    // The ply of some key move positions in the tree.
-    std::uint16_t root_ply {};
+    // The ply of our root node in our search.
+    std::uint16_t root_ply;
 
     // The age of the current game-state. This is for things like invalidating hash lookups for when we need to consider
     // new positions.
     std::uint8_t age;
+
+    // PV table for collection.
+    details::pv_table pv;
 
     // TODO: There are a lot more things we should add to do with the evaluation (e.g. pawn-structure tables).
 

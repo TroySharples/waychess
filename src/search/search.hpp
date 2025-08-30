@@ -62,7 +62,9 @@ inline recommendation recommend_move(game_state& gs, search s, std::uint8_t max_
 
     recommendation ret { .move = 0, .eval = is_black_to_play ? std::numeric_limits<int>::max() : std::numeric_limits<int>::min() };
 
-    // Clean the hash-table for the next search.
+    // Set our root node, and clear our hash-table and PV tables.
+    gs.root_ply = gs.bb.ply_counter;
+    gs.pv.clear();
     gs.age++;
 
     for (std::uint8_t i = 0; i < moves; i++)
@@ -73,6 +75,8 @@ inline recommendation recommend_move(game_state& gs, search s, std::uint8_t max_
                 ret = { .move = move_buf[i], .eval = score };
         unmake_move(gs, unmake);
     }
+
+    gs.pv.update(0, ret.move);
 
     return ret;
 }
