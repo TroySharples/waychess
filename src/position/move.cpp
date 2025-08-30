@@ -24,6 +24,20 @@ std::string to_algebraic_long(std::uint32_t move) noexcept
     return ret;
 }
 
+std::string to_algebraic_long(std::span<const std::uint32_t> moves) noexcept
+{
+    std::string ret;
+
+    for (const auto move : moves)
+    {
+        ret.append(to_algebraic_long(move));
+        ret.push_back(' ');
+    }
+    ret.pop_back();
+
+    return ret;
+}
+
 std::uint32_t from_algebraic_long(std::string_view algebraic, const bitboard& bb)
 {
     // This is very hacky, but it's easy and works, and doesn't need to be fast.

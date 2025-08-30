@@ -108,8 +108,10 @@ constexpr std::uint8_t deserialise_unmake_castling(std::uint32_t move)   noexcep
 constexpr std::uint8_t deserialise_unmake_en_passent(std::uint32_t move) noexcept { return move >> 25 & 0x07; }
 constexpr std::uint8_t deserialise_unmake_ply_50m(std::uint32_t move)    noexcept { return move >> 25 & 0x7f; }
 
-// A variant of algebraic long notation that is used by UCI.
+// A variant of algebraic long notation that is used by UCI. We also provide an overload that serialises a variation
+// of moves.
 std::string to_algebraic_long(std::uint32_t move) noexcept;
+std::string to_algebraic_long(std::span<const std::uint32_t> moves) noexcept;
 
 // Very slow implementation of long-notation to our internal move representation. This needs the bitboard the move
 // is made from to fill in all the additional meta fields. This works by generating all the legal moves, and then
