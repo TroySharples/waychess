@@ -28,7 +28,7 @@ void test_puzzles(const std::filesystem::path& csv_path, double pass_accuracy)
         ss >> p;
 
         puzzles_total++;
-        if (p.solve(&search::search_negamax, 4, evaluation::raw_material))
+        if (p.solve(&search::search_negamax, 5, evaluation::raw_material))
             puzzles_solved++;
     }
 
