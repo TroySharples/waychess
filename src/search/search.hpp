@@ -5,10 +5,12 @@
 // ####################################
 
 #include "position/game_state.hpp"
-#include "evaluation/evaluation.hpp"
 #include "position/generate_moves.hpp"
 #include "position/make_move.hpp"
+#include "evaluation/evaluation.hpp"
+#include "utility/logging.hpp"
 
+#include <sstream>
 #include <vector>
 #include <chrono>
 
@@ -54,6 +56,9 @@ namespace search
 
 inline recommendation recommend_move(game_state& gs, search s, std::uint8_t max_depth, evaluation::evaluation eval)
 {
+    // We time this whole thing for logging.
+    const auto start = std::chrono::steady_clock::now();
+
     stop_search = false;
 
     std::vector<std::uint32_t> move_buf(static_cast<std::size_t>(max_depth)*MAX_MOVES_PER_POSITION);
@@ -78,6 +83,17 @@ inline recommendation recommend_move(game_state& gs, search s, std::uint8_t max_
     }
 
     gs.pv.update(0, ret.move);
+
+    const auto end = std::chrono::steady_clock::now();
+    const std::size_t duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+    // Log in UCI format if we weren't stopped
+    if (!stop_search)
+    {
+        std::ostringstream ss;
+        ss << "depth " << static_cast<int>(max_depth) << " score cp " << ret.eval << " time " << duration_ms << " pv " << move::to_algebraic_long(gs.pv.get_pv());
+        log(ss.str(), log_level::informational);
+    }
 
     return ret;
 }
