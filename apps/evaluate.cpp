@@ -100,6 +100,7 @@ int main(int argc, char** argv)
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
               << R"(    "recommendation": )" << '"' << move::to_algebraic_long(rec.move) << '"' << ",\n"
+              << R"(    "pv": )" << '"' << move::to_algebraic_long(gs.pv.get_pv()) << '"' << ",\n"
               << R"(    "evaluation-cp": )" << rec.eval << '\n'
               << R"(})" << '\n';
 
