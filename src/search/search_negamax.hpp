@@ -17,9 +17,9 @@ namespace search
 namespace details
 {
 
-constexpr std::uint8_t META_EXACT      { 0 };
-constexpr std::uint8_t META_UPPERBOUND { 1 };
-constexpr std::uint8_t META_LOWERBOUND { 2 };
+constexpr std::uint8_t META_EXACT    { 0 };
+constexpr std::uint8_t META_ALL_NODE { 1 };
+constexpr std::uint8_t META_CUT_NODE { 2 };
 
 inline void sort_moves_pv(game_state& gs, std::span<std::uint32_t> move_buf) noexcept
 {
@@ -42,76 +42,102 @@ inline void sort_moves_pv(game_state& gs, std::span<std::uint32_t> move_buf) noe
 
 inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf) noexcept
 {
+    int ret { -std::numeric_limits<int>::max() };
+
+    // Some constants that will be broadly useful throughout the search.
+    const auto a_orig = a ;
+    const auto draft = static_cast<std::uint8_t>(gs.bb.ply_counter-gs.root_ply);
+
+    // Update stats.
     stats.nodes++;
 
-    // Return draw-score immediately if this position can claim a repetition / 50-move-rule based draw).
-    if (gs.is_repetition_draw())
+    // Handle repetition-based draws first - we currently don't implement and contempt factor when playing against weaker opponents.
+    // It is faster doing this here before the hash-lookup as in practice almost all hash-lookups will probably result in a cache-miss.
+    if (gs.is_repetition_draw()) [[unlikely]]
         return 0;
 
+    // If this is a leaf of our search tree we just use our terminal evaluation function. We have to multiply by the colour here
+    // as in negamax our heuristic needs to be relative to the side-to-play of the node. We currently do this before the hash-lookup
+    // to avoid possible cache-misses as our terminal evaluation function is cheap, but after we implement quiescent-search it will
+    // probably be better to do this after the lookup.
     if (depth == 0)
         return colour*eval(gs.bb);
 
-    // Loop up the value in the hash table and return immediately if we hit. Note that we implement hash-ageing based on the root search node.
+    // Loop up the value in the hash table.
     auto& entry { transposition_table[gs.hash] };
-    if (entry.key == gs.hash && entry.value.age == gs.age && entry.value.depth >= depth)
+    const bool hash_hit { entry.key == gs.hash && entry.value.age == gs.age };
+
+    // Only consider returning early if our hash entry has a higher depth (i.e. lower draft) than this current node.
+    if (hash_hit && entry.value.depth >= depth)
     {
         if (entry.value.meta == META_EXACT
-            || (entry.value.meta == META_LOWERBOUND && entry.value.eval >= b)
-            || (entry.value.meta == META_UPPERBOUND && entry.value.eval <= a))
+            || (entry.value.meta == META_CUT_NODE && entry.value.eval >= b)
+            || (entry.value.meta == META_ALL_NODE && entry.value.eval <= a))
         return entry.value.eval;
     }
 
-    int ret { -std::numeric_limits<int>::max() };
-
-    const std::uint8_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
-
-    // Sort the moves favourably to improve alpha/beta performance.
-    sort_moves_pv(gs, move_buf.subspan(0, moves));
-    
-    const int a_orig { a };
-    for (std::uint8_t i = 0; i < moves; i++)
+    // The actual evaluation bit.
     {
-        if (stop_search) [[unlikely]]
-            return ret;
+        // Otherwise, we need to continue the search by generating all nodes from here.
+        const std::uint8_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
+        const std::span<std::uint32_t> move_list { move_buf.subspan(0, moves) };
 
-        std::uint32_t unmake;
-        if (!make_move({ .check_legality = true }, gs, move_buf[i], unmake)) [[unlikely]]
+        // Sort the moves favourably to increase the chance of early beta-cutoffs.
+        sort_moves_pv(gs, move_list);
+
+        for (const auto move : move_list)
         {
+            // Allow us to break out of the search early if needed.
+            if (stop_search) [[unlikely]]
+                return ret;
+
+            std::uint32_t unmake;
+            if (!make_move({ .check_legality = true }, gs, move, unmake)) [[unlikely]]
+            {
+                // Simply unmake the move and move on to the next one if it's illegal (note that the move is still applied in make_move
+                // even if it ends up being illegal).
+                unmake_move(gs, unmake);
+                continue;
+            }
+
+            // Recurse this algorithm, and make sure to unmake after the fact.
+            ret = std::max(ret, -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, eval, move_buf.subspan(moves)));
             unmake_move(gs, unmake);
-            continue;
-        }
-        
-        ret = std::max(ret, -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, eval, move_buf.subspan(moves)));
-        unmake_move(gs, unmake);
 
-        // Update our PV table when we've found a new best move.
-        if (ret > a)
-        {
-            a = ret;
-            const auto draft = static_cast<std::uint8_t>(gs.bb.ply_counter-gs.root_ply);
-            gs.pv.update(draft, move_buf[i]);
+            // Update our PV table when we've found a new best move at this depth.
+            if (ret > a)
+            {
+                a = ret;
+                gs.pv.update(draft, move);
+            }
+
+            // Break early if we encounter a beta-cutoff (fantastic news!).
+            if (a >= b)
+                break;
         }
 
-        if (a >= b)
-            break;
+        // Handle the rare case of stalemate where there are no legal moves in the position but we aren't in check. We detect this by
+        // making seeing if we haven't updated our evaluation from the start.
+        if (ret == -std::numeric_limits<int>::max() && !is_in_check(gs.bb, colour == -1)) [[unlikely]]
+            ret = 0;
     }
 
-    // Handle the rare case of stalemate where there are no legal moves in the position but we aren't in
-    // check.
-    if (ret == -std::numeric_limits<int>::max() && !is_in_check(gs.bb, colour == -1)) [[unlikely]]
-        ret = 0;
-
-    // Update the hash table with our result - always overriding for now.
-    entry.key         = gs.hash;
-    entry.value.age   = gs.age;
-    entry.value.depth = depth;
-    entry.value.eval  = ret;
-    if (ret <= a_orig)
-        entry.value.meta = META_UPPERBOUND;
-    else if (ret >= b)
-        entry.value.meta = META_LOWERBOUND;
-    else
-        entry.value.meta = META_EXACT;
+    // Handle updating our transposition table. We currently employ the very simple strategy of always overwriting unless the other
+    // entry recent (i.e. not from a previous search) and was at a higher depth.
+    if ((entry.value.age != gs.age || entry.value.depth <= depth))
+    {
+        entry.key             = gs.hash;
+        entry.value.age       = gs.age;
+        entry.value.depth     = depth;
+        entry.value.eval      = ret;
+        entry.value.best_move = (ret > a_orig) ? gs.pv.table[draft][0] : 0;
+        if (ret <= a_orig)
+            entry.value.meta = META_ALL_NODE;
+        else if (ret >= b)
+            entry.value.meta = META_CUT_NODE;
+        else
+            entry.value.meta = META_EXACT;
+    }
 
     return ret;
 }
