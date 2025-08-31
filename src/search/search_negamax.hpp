@@ -5,6 +5,7 @@
 #include "evaluation/evaluation.hpp"
 
 #include "search/transposition_table.hpp"
+#include "search/search_quiescent.hpp"
 
 #include "position/generate_moves.hpp"
 #include "position/make_move.hpp"
@@ -71,13 +72,6 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
     if (gs.is_repetition_draw()) [[unlikely]]
         return 0;
 
-    // If this is a leaf of our search tree we just use our terminal evaluation function. We have to multiply by the colour here
-    // as in negamax our heuristic needs to be relative to the side-to-play of the node. We currently do this before the hash-lookup
-    // to avoid possible cache-misses as our terminal evaluation function is cheap, but after we implement quiescent-search it will
-    // probably be better to do this after the lookup.
-    if (depth == 0)
-        return colour*eval(gs.bb);
-
     // Loop up the value in the hash table.
     auto& entry { transposition_table[gs.hash] };
     const bool hash_hit { entry.key == gs.hash && entry.value.age == gs.age };
@@ -92,6 +86,13 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
     }
 
     // The actual evaluation bit.
+    if (depth == 0)
+    {
+        // If this is a leaf of our search tree we just use our quiescent-search function to avoid the horizon-effect. We have to
+        // multiply by the colour here as in negamax our heuristic needs to be relative to the side-to-play of the node.
+        ret = search_quiescence(gs, stats, a, b, colour, eval, move_buf);
+    }
+    else
     {
         // Otherwise, we need to continue the search by generating all nodes from here.
         const std::uint8_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };

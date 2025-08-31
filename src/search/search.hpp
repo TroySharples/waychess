@@ -70,7 +70,7 @@ inline recommendation recommend_move(game_state& gs, search s, std::uint8_t max_
 
     stop_search = false;
 
-    std::vector<std::uint32_t> move_buf(static_cast<std::size_t>(max_depth)*MAX_MOVES_PER_POSITION);
+    std::vector<std::uint32_t> move_buf(static_cast<std::size_t>(::details::pv_table::MAX_DEPTH*MAX_MOVES_PER_POSITION));
     std::span<std::uint32_t> move_span(move_buf);
 
     const bool is_black_to_play { gs.bb.is_black_to_play() };
