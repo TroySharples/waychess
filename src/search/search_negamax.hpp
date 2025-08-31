@@ -40,6 +40,21 @@ inline void sort_moves_pv(game_state& gs, std::span<std::uint32_t> move_buf) noe
     }
 }
 
+inline void sort_moves_tt(const std::uint32_t tt_move, std::span<std::uint32_t> move_buf) noexcept
+{
+    if (tt_move == 0)
+        return;
+
+    for (std::size_t i = 0; i < move_buf.size(); ++i)
+    {
+        if (move_buf[i] == tt_move)
+        {
+            std::swap(move_buf[0], move_buf[i]);
+            break;
+        }
+    }
+}
+
 inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf) noexcept
 {
     int ret { -std::numeric_limits<int>::max() };
@@ -83,6 +98,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
         const std::span<std::uint32_t> move_list { move_buf.subspan(0, moves) };
 
         // Sort the moves favourably to increase the chance of early beta-cutoffs.
+        if (hash_hit)
+            sort_moves_tt(entry.value.best_move, move_list);
         sort_moves_pv(gs, move_list);
 
         for (const auto move : move_list)
