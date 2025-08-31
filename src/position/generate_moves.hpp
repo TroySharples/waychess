@@ -16,6 +16,10 @@ constexpr std::uint8_t MAX_MOVES_PER_POSITION { 218 };
 // that the input span must be large enough to hold all generated moves.
 inline std::uint8_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept;
 
+
+// Currently just implemented as a filter on all pseudo-legal-moves, but might make this more efficient later on.
+inline std::uint8_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept;
+
 // ####################################
 // IMPLEMENTATION
 // ####################################
@@ -315,6 +319,19 @@ inline std::uint8_t generate_pseudo_legal_moves(const bitboard& bb, std::span<st
     ret += details::get_bishop_moves(bb, move_buf.subspan(ret));
     ret += details::get_rook_moves(bb, move_buf.subspan(ret));
     ret += details::get_queen_moves(bb, move_buf.subspan(ret));
+
+    return ret;
+}
+
+inline std::uint8_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+{
+    std::uint8_t moves = generate_pseudo_legal_moves(bb, move_buf);
+
+    // Filter out all the non-captures.
+    std::uint8_t ret {};
+    for (std::uint8_t i = 0; i < moves; i++)
+        if (const auto type = move::deserialise_move_type(move_buf[i]); move::move_type::is_capture(type))
+            move_buf[ret++] = move_buf[i];
 
     return ret;
 }
