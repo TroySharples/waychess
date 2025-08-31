@@ -21,10 +21,12 @@ constexpr std::uint8_t META_EXACT      { 0 };
 constexpr std::uint8_t META_UPPERBOUND { 1 };
 constexpr std::uint8_t META_LOWERBOUND { 2 };
 
-inline void sort_moves(game_state& gs, std::span<std::uint32_t> move_buf) noexcept
+inline void sort_moves_pv(game_state& gs, std::span<std::uint32_t> move_buf) noexcept
 {
+    const auto draft = static_cast<std::uint8_t>(gs.bb.ply_counter-gs.root_ply);
+
     // Find the PV move (null if one doesn't exist).
-    const std::uint32_t pv_move { gs.pv.lengths[gs.bb.ply_counter-gs.root_ply] > 0 ? gs.pv.table[gs.bb.ply_counter - gs.root_ply][0] : 0 };
+    const std::uint32_t pv_move { gs.pv.lengths[draft] > 0 ? gs.pv.table[draft][0] : 0 };
 
     // If this is in our move list, bring it to the front.
     for (std::size_t i = 0; i < move_buf.size(); i++)
@@ -64,8 +66,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
     const std::uint8_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
 
     // Sort the moves favourably to improve alpha/beta performance.
-    sort_moves(gs, move_buf.subspan(0, moves));
-
+    sort_moves_pv(gs, move_buf.subspan(0, moves));
+    
     const int a_orig { a };
     for (std::uint8_t i = 0; i < moves; i++)
     {
@@ -86,7 +88,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
         if (ret > a)
         {
             a = ret;
-            gs.pv.update(gs.bb.ply_counter-gs.root_ply, move_buf[i]);
+            const auto draft = static_cast<std::uint8_t>(gs.bb.ply_counter-gs.root_ply);
+            gs.pv.update(draft, move_buf[i]);
         }
 
         if (a >= b)
