@@ -38,8 +38,10 @@ inline void sort_moves(game_state& gs, std::span<std::uint32_t> move_buf) noexce
     }
 }
 
-inline int search_negamax_recursive(game_state& gs, std::uint8_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf) noexcept
+inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf) noexcept
 {
+    stats.nodes++;
+
     // Return draw-score immediately if this position can claim a repetition / 50-move-rule based draw).
     if (gs.is_repetition_draw())
         return 0;
@@ -76,8 +78,8 @@ inline int search_negamax_recursive(game_state& gs, std::uint8_t depth, int a, i
             unmake_move(gs, unmake);
             continue;
         }
-
-        ret = std::max(ret, -search_negamax_recursive(gs, depth-1, -b, -a, -colour, eval, move_buf.subspan(moves)));
+        
+        ret = std::max(ret, -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, eval, move_buf.subspan(moves)));
         unmake_move(gs, unmake);
 
         // Update our PV table when we've found a new best move.
@@ -113,11 +115,11 @@ inline int search_negamax_recursive(game_state& gs, std::uint8_t depth, int a, i
 
 }
 
-inline int search_negamax(game_state& gs, std::uint8_t depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval)
+inline int search_negamax(game_state& gs, statistics& stats, std::uint8_t depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval)
 {
     const int colour = (gs.bb.is_black_to_play() ? -1 : 1);
 
-    return colour*details::search_negamax_recursive(gs, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, eval, move_buf);
+    return colour*details::search_negamax_recursive(gs, stats, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, eval, move_buf);
 }
 
 }

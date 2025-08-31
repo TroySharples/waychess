@@ -17,10 +17,17 @@
 namespace search
 {
 
+// Structure for recording metrics from the search. Will extend this later on.
+struct statistics
+{
+    std::size_t nodes {};
+    std::chrono::steady_clock::duration duration;
+};
+
 // A general search signature. Functions of this type take a terminal heuristic, and return the
 // searched evaluation. This must return an absolute centipawn evaluation (i.e. not relative to the
 // playing side).
-using search = int (*)(game_state& gs, std::uint8_t max_depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval);
+using search = int (*)(game_state& gs, statistics& stats, std::uint8_t max_depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval);
 
 // A global boolean indicating when we must stop searching as soon as possible. All algorithms must
 // respect this.
@@ -54,6 +61,8 @@ recommendation recommend_move_id(game_state& gs, search s, std::uint8_t max_dept
 namespace search
 {
 
+namespace details { void log_search_info(game_state& gs, statistics& stats, int eval); }
+
 inline recommendation recommend_move(game_state& gs, search s, std::uint8_t max_depth, evaluation::evaluation eval)
 {
     // We time this whole thing for logging.
@@ -73,11 +82,14 @@ inline recommendation recommend_move(game_state& gs, search s, std::uint8_t max_
     gs.root_ply = gs.bb.ply_counter;
     gs.age++;
 
+    // Initialise our statistics.
+    statistics stats;
+
     for (std::uint8_t i = 0; i < moves; i++)
     {
         std::uint32_t unmake;
         if (make_move({ .check_legality = true }, gs, move_buf[i], unmake)) [[likely]]
-            if (const int score { s(gs, max_depth-1, move_span.subspan(moves), eval) }; (is_black_to_play ? score < ret.eval : score > ret.eval) )
+            if (const int score { s(gs, stats, max_depth-1, move_span.subspan(moves), eval) }; (is_black_to_play ? score < ret.eval : score > ret.eval) )
                 ret = { .move = move_buf[i], .eval = score };
         unmake_move(gs, unmake);
     }
@@ -85,21 +97,32 @@ inline recommendation recommend_move(game_state& gs, search s, std::uint8_t max_
     gs.pv.update(0, ret.move);
 
     const auto end = std::chrono::steady_clock::now();
-    const std::size_t duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    stats.duration = end - start;
 
-    // Log in UCI format if we weren't stopped
+    // Log our search info if we weren't stopped.
     if (!stop_search)
-    {
-        std::ostringstream ss;
-        ss << "depth " << static_cast<int>(max_depth) << " score cp " << ret.eval << " time " << duration_ms << " pv " << move::to_algebraic_long(gs.pv.get_pv());
-        log(ss.str(), log_level::informational);
-    }
+        details::log_search_info(gs, stats, ret.eval);
 
     return ret;
 }
 
 namespace details
 {
+
+inline void log_search_info(game_state& gs, statistics& stats, int eval)
+{
+    const auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(stats.duration).count();
+    const auto nps = static_cast<std::size_t>(static_cast<double>(stats.nodes) / std::chrono::duration<double>(stats.duration).count());
+
+    std::ostringstream ss;
+    ss << "depth "     << static_cast<int>(gs.pv.lengths[0])
+       << " score cp " << eval
+       << " time "     << duration_ms
+       << " nodes "    << stats.nodes
+       << " nps "      << nps
+       << " pv "       << move::to_algebraic_long(gs.pv.get_pv());
+    log(ss.str(), log_level::informational);
+}
 
 inline recommendation recommend_move_id_future(game_state& gs, search s, evaluation::evaluation eval)
 {
