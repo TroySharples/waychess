@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pieces/pieces.hpp"
+#include "position/bitboard.hpp"
 
 struct bitboard;
 
@@ -107,6 +108,20 @@ constexpr std::uint8_t deserialise_move_info(std::uint32_t move)         noexcep
 constexpr std::uint8_t deserialise_unmake_castling(std::uint32_t move)   noexcept { return move >> 21 & 0x0f; }
 constexpr std::uint8_t deserialise_unmake_en_passent(std::uint32_t move) noexcept { return move >> 25 & 0x07; }
 constexpr std::uint8_t deserialise_unmake_ply_50m(std::uint32_t move)    noexcept { return move >> 25 & 0x7f; }
+
+// Retrieves the piece-type of a captured piece. Note that this function must be called for moves that are captures.
+constexpr piece_idx get_victim_piece_idx(std::uint32_t move, const bitboard& bb)
+{
+    const bool is_black_to_play { bb.is_black_to_play() };
+    const std::uint64_t to_bb   { 1ULL << move::deserialise_to_mb(move) };
+
+    for (std::uint8_t capture_idx = (is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn); capture_idx <= (is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen); capture_idx++)
+        if (const std::uint64_t capture_bitboard = bb.boards[capture_idx]; capture_bitboard & to_bb)
+            return static_cast<piece_idx>(capture_idx);
+
+    // If we haven't hit already, it must be an en-passent capture.
+    return is_black_to_play ? w_pawn : b_pawn;
+}
 
 // A variant of algebraic long notation that is used by UCI. We also provide an overload that serialises a variation
 // of moves.
