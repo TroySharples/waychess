@@ -135,26 +135,6 @@ inline std::uint8_t get_king_moves(const bitboard& bb, const generate_move_param
     const std::uint64_t king_bitboard { bb.boards[to_move_idx] };
     const std::uint8_t king_mailbox = std::countr_zero(king_bitboard);
 
-    // Generate regular king moves.
-    for (std::uint64_t attacks { get_king_attacked_squares_from_mailbox(king_mailbox) & ~to_move_pieces }; attacks; )
-    {
-        const std::uint64_t attack { ls1b_isolate(attacks) };
-
-        const bool is_capture = attack & opponent_pieces;
-        if (params.allow_captures && is_capture)
-        {
-            const std::uint32_t move { move::serialise_make(king_mailbox, std::countr_zero(attack), to_move_idx, move::move_type::CAPTURE) };
-            move_buf[ret++] = move;
-        }
-        else if (params.allow_non_captures && !is_capture)
-        {
-            const std::uint32_t move { move::serialise_make(king_mailbox, std::countr_zero(attack), to_move_idx, 0) };
-            move_buf[ret++] = move;
-        }
-
-        attacks ^= attack;
-    }
-
     // Generate pseudo-legal castling moves (we test for castling-through-check legality in make_move).
     if (params.allow_non_captures)
     {
@@ -196,6 +176,26 @@ inline std::uint8_t get_king_moves(const bitboard& bb, const generate_move_param
                 move_buf[ret++] = move;
             }
         }
+    }
+
+    // Generate regular king moves.
+    for (std::uint64_t attacks { get_king_attacked_squares_from_mailbox(king_mailbox) & ~to_move_pieces }; attacks; )
+    {
+        const std::uint64_t attack { ls1b_isolate(attacks) };
+
+        const bool is_capture = attack & opponent_pieces;
+        if (params.allow_captures && is_capture)
+        {
+            const std::uint32_t move { move::serialise_make(king_mailbox, std::countr_zero(attack), to_move_idx, move::move_type::CAPTURE) };
+            move_buf[ret++] = move;
+        }
+        else if (params.allow_non_captures && !is_capture)
+        {
+            const std::uint32_t move { move::serialise_make(king_mailbox, std::countr_zero(attack), to_move_idx, 0) };
+            move_buf[ret++] = move;
+        }
+
+        attacks ^= attack;
     }
 
     return ret;
