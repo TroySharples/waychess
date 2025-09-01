@@ -20,7 +20,16 @@ namespace search
 // Structure for recording metrics from the search. Will extend this later on.
 struct statistics
 {
+    // Number of nodes visited in search.
     std::size_t nodes {};
+
+    // Transposition-table metrics.
+    std::size_t tt_probes {};
+    std::size_t tt_hits {};
+    std::size_t tt_moves {};
+    std::size_t tt_reorders {};
+
+    // Time for current search - handled by the outer loop.
     std::chrono::steady_clock::duration duration;
 };
 
@@ -115,12 +124,16 @@ inline void log_search_info(game_state& gs, statistics& stats, int eval)
     const auto nps = static_cast<std::size_t>(static_cast<double>(stats.nodes) / std::chrono::duration<double>(stats.duration).count());
 
     std::ostringstream ss;
-    ss << "depth "     << static_cast<int>(gs.pv.lengths[0])
-       << " score cp " << eval
-       << " time "     << duration_ms
-       << " nodes "    << stats.nodes
-       << " nps "      << nps
-       << " pv "       << move::to_algebraic_long(gs.pv.get_pv());
+    ss << "depth "        << static_cast<int>(gs.pv.lengths[0])
+       << " score cp "    << eval
+       << " time "        << duration_ms
+       << " nodes "       << stats.nodes
+       << " nps "         << nps
+       << " pv "          << move::to_algebraic_long(gs.pv.get_pv())
+       << " tt-probes "   << stats.tt_probes
+       << " tt-hits "     << stats.tt_hits
+       << " tt-moves "    << stats.tt_moves
+       << " tt-reorders " << stats.tt_reorders;
     log(ss.str(), log_level::informational);
 }
 

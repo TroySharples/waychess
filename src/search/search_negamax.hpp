@@ -41,7 +41,7 @@ inline void sort_moves_pv(game_state& gs, std::span<std::uint32_t> move_buf) noe
     }
 }
 
-inline void sort_moves_tt(const std::uint32_t tt_move, std::span<std::uint32_t> move_buf) noexcept
+inline void sort_moves_tt(const std::uint32_t tt_move, std::span<std::uint32_t> move_buf, statistics& stats) noexcept
 {
     if (tt_move == 0)
         return;
@@ -50,6 +50,7 @@ inline void sort_moves_tt(const std::uint32_t tt_move, std::span<std::uint32_t> 
     {
         if (move_buf[i] == tt_move)
         {
+            stats.tt_reorders++;
             std::swap(move_buf[0], move_buf[i]);
             break;
         }
@@ -73,23 +74,28 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
         return 0;
 
     // Loop up the value in the hash table.
+    stats.tt_probes++;
     auto& entry { transposition_table[gs.hash] };
-    const bool hash_hit { entry.key == gs.hash && entry.value.age == gs.age };
+    const bool hash_hit { entry.key == gs.hash };
+    if (hash_hit)
+        stats.tt_hits++;
 
-    // Only consider returning early if our hash entry has a higher depth (i.e. lower draft) than this current node.
-    if (hash_hit && entry.value.depth >= depth)
-    {
-        if (entry.value.meta == META_EXACT
-            || (entry.value.meta == META_CUT_NODE && entry.value.eval >= b)
-            || (entry.value.meta == META_ALL_NODE && entry.value.eval <= a))
+    // Only consider returning early if our hash entry is the right age (i.e. is from this search) and has a higher depth (i.e. lower
+    // draft) than this current node.
+    if (hash_hit && entry.value.depth >= depth &&
+            (entry.value.meta == META_EXACT
+         || (entry.value.meta == META_CUT_NODE && entry.value.eval >= b)
+         || (entry.value.meta == META_ALL_NODE && entry.value.eval <= a)))
+     {
+        stats.tt_moves++;
         return entry.value.eval;
-    }
+     }
 
     // The actual evaluation bit.
+    std::uint32_t best_move {};
     if (depth == 0)
     {
-        // If this is a leaf of our search tree we just use our quiescent-search function to avoid the horizon-effect. We have to
-        // multiply by the colour here as in negamax our heuristic needs to be relative to the side-to-play of the node.
+        // If this is a leaf of our search tree we just use our quiescent-search function to mitigate the horizon-effect.
         ret = search_quiescence(gs, stats, a, b, colour, eval, move_buf);
     }
     else
@@ -98,9 +104,9 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
         const std::uint8_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
         const std::span<std::uint32_t> move_list { move_buf.subspan(0, moves) };
 
-        // Sort the moves favourably to increase the chance of early beta-cutoffs.
+        // Sort the moves favourably to increase the chance of early beta-cutoffs. We're happy to use hints from previous searches here.
         if (hash_hit)
-            sort_moves_tt(entry.value.best_move, move_list);
+            sort_moves_tt(entry.value.best_move, move_list, stats);
         sort_moves_pv(gs, move_list);
 
         for (const auto move : move_list)
@@ -119,8 +125,13 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
             }
 
             // Recurse this algorithm, and make sure to unmake after the fact.
-            ret = std::max(ret, -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, eval, move_buf.subspan(moves)));
+            const int score { -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, eval, move_buf.subspan(moves)) };
             unmake_move(gs, unmake);
+            if (score > ret)
+            {
+                ret = score;
+                best_move = move;
+            }
 
             // Update our PV table when we've found a new best move at this depth.
             if (ret > a)
@@ -142,13 +153,14 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
 
     // Handle updating our transposition table. We currently employ the very simple strategy of always overwriting unless the other
     // entry recent (i.e. not from a previous search) and was at a higher depth.
-    if ((entry.value.age != gs.age || entry.value.depth <= depth))
+    if (!hash_hit || entry.value.age != gs.age || entry.value.depth <= depth)
     {
         entry.key             = gs.hash;
         entry.value.age       = gs.age;
         entry.value.depth     = depth;
         entry.value.eval      = ret;
-        entry.value.best_move = (ret > a_orig) ? gs.pv.table[draft][0] : 0;
+        if (entry.value.best_move == 0 || ret > a_orig)
+            entry.value.best_move = best_move;
         if (ret <= a_orig)
             entry.value.meta = META_ALL_NODE;
         else if (ret >= b)
