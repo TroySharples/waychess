@@ -29,7 +29,14 @@ inline std::uint8_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::sp
 namespace details
 {
 
-inline std::uint8_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+struct generate_move_parameters
+{
+    bool allow_non_captures;
+    bool allow_captures;
+    bool allow_promotions;
+};
+
+inline std::uint8_t get_pawn_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
     std::uint8_t ret {};
 
@@ -45,55 +52,67 @@ inline std::uint8_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> 
         const std::uint8_t pawn_mailbox = std::countr_zero(pawn_bitboard);
 
         // Handle attacking moves.
-        for (std::uint64_t attacks { (is_black_to_play ? get_black_pawn_all_attacked_squares_from_mailbox(pawn_mailbox) : get_white_pawn_all_attacked_squares_from_mailbox(pawn_mailbox)) & (opponent_pieces | bb.en_passent_bb) }; attacks; )
+        if (params.allow_captures)
         {
-            const std::uint64_t attack { ls1b_isolate(attacks) };
-
+            for (std::uint64_t attacks { (is_black_to_play ? get_black_pawn_all_attacked_squares_from_mailbox(pawn_mailbox) : get_white_pawn_all_attacked_squares_from_mailbox(pawn_mailbox)) & (opponent_pieces | bb.en_passent_bb) }; attacks; )
             {
-                const std::uint32_t move { move::serialise_make(pawn_mailbox, std::countr_zero(attack), to_move_idx, move::move_type::CAPTURE) };
+                const std::uint64_t attack { ls1b_isolate(attacks) };
+
+                {
+                    const std::uint32_t move { move::serialise_make(pawn_mailbox, std::countr_zero(attack), to_move_idx, move::move_type::CAPTURE) };
+
+                    // Test if this pawn move will result in promotion.
+                    if (attack & (is_black_to_play ? RANK_1 : RANK_8)) [[unlikely]]
+                    {
+                        if (params.allow_promotions)
+                        {
+                            move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_queen);
+                            move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_knight);
+                            move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_rook);
+                            move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_bishop);
+                        }
+                    }
+                    else
+                    {
+                        // Remember to set the en-passent meta-bit if necessary (note this is mutually-exclusive with promotion).
+                        move_buf[ret++] = move | ((attack & bb.en_passent_bb) ? move::serialise_move_type(move::move_type::EN_PASSENT) : 0);
+                    }
+                }
+
+                attacks ^= attack;
+            }
+        }
+
+        if (params.allow_non_captures)
+        {
+            // Handle single pawn pushes.
+            if (std::uint64_t push { is_black_to_play ? get_black_pawn_single_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) : get_white_pawn_single_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) }; push)
+            {
+                const std::uint32_t move { move::serialise_make(pawn_mailbox, std::countr_zero(push), to_move_idx, move::move_type::PAWN_PUSH, move::move_info::PAWN_PUSH_SINGLE)};
 
                 // Test if this pawn move will result in promotion.
-                if (attack & (is_black_to_play ? RANK_1 : RANK_8)) [[unlikely]]
+                if (push & (is_black_to_play ? RANK_1 : RANK_8)) [[unlikely]]
                 {
-                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_queen);
-                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_knight);
-                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_rook);
-                    move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_bishop);
+                    if (params.allow_promotions)
+                    {
+                        move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_queen);
+                        move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_knight);
+                        move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_rook);
+                        move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_bishop);
+                    }
                 }
                 else
                 {
-                    // Remember to set the en-passent meta-bit if necessary (note this is mutually-exclusive with promotion).
-                    move_buf[ret++] = move | ((attack & bb.en_passent_bb) ? move::serialise_move_type(move::move_type::EN_PASSENT) : 0);
+                    move_buf[ret++] = move;
                 }
             }
 
-            attacks ^= attack;
-        }
-
-        // Handle single pawn pushes.
-        if (std::uint64_t push { is_black_to_play ? get_black_pawn_single_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) : get_white_pawn_single_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) }; push)
-        {
-            const std::uint32_t move { move::serialise_make(pawn_mailbox, std::countr_zero(push), to_move_idx, move::move_type::PAWN_PUSH, move::move_info::PAWN_PUSH_SINGLE)};
-
-            // Test if this pawn move will result in promotion.
-            if (push & (is_black_to_play ? RANK_1 : RANK_8)) [[unlikely]]
+            // Handle double pawn pushes.
+            if (const std::uint64_t push { is_black_to_play ? get_black_pawn_double_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) : get_white_pawn_double_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) }; push)
             {
-                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_queen);
-                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_knight);
-                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_rook);
-                move_buf[ret++] = move | move::serialise_move_type(move::move_type::PROMOTION) | move::serialise_move_info(piece_idx::w_bishop);
-            }
-            else
-            {
+                const std::uint32_t move { move::serialise_make(pawn_mailbox, std::countr_zero(push), to_move_idx, move::move_type::PAWN_PUSH, move::move_info::PAWN_PUSH_DOUBLE) };
                 move_buf[ret++] = move;
             }
-        }
-
-        // Handle double pawn pushes.
-        if (const std::uint64_t push { is_black_to_play ? get_black_pawn_double_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) : get_white_pawn_double_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) }; push)
-        {
-            const std::uint32_t move { move::serialise_make(pawn_mailbox, std::countr_zero(push), to_move_idx, move::move_type::PAWN_PUSH, move::move_info::PAWN_PUSH_DOUBLE) };
-            move_buf[ret++] = move;
         }
 
         to_move_pawns ^= pawn_bitboard;
@@ -102,7 +121,7 @@ inline std::uint8_t get_pawn_moves(const bitboard& bb, std::span<std::uint32_t> 
     return ret;
 }
 
-inline std::uint8_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t get_king_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
     std::uint8_t ret {};
 
@@ -121,8 +140,15 @@ inline std::uint8_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> 
     {
         const std::uint64_t attack { ls1b_isolate(attacks) };
 
+        const bool is_capture = attack & opponent_pieces;
+        if (params.allow_captures && is_capture)
         {
-            const std::uint32_t move { move::serialise_make(king_mailbox, std::countr_zero(attack), to_move_idx, (attack & opponent_pieces) ? move::move_type::CAPTURE : 0) };
+            const std::uint32_t move { move::serialise_make(king_mailbox, std::countr_zero(attack), to_move_idx, move::move_type::CAPTURE) };
+            move_buf[ret++] = move;
+        }
+        else if (params.allow_non_captures && !is_capture)
+        {
+            const std::uint32_t move { move::serialise_make(king_mailbox, std::countr_zero(attack), to_move_idx, 0) };
             move_buf[ret++] = move;
         }
 
@@ -130,49 +156,52 @@ inline std::uint8_t get_king_moves(const bitboard& bb, std::span<std::uint32_t> 
     }
 
     // Generate pseudo-legal castling moves (we test for castling-through-check legality in make_move).
-    if (is_black_to_play)
+    if (params.allow_non_captures)
     {
-        constexpr std::uint8_t from_square { std::countr_zero(FILE_E & RANK_8) };
-
-        if (bb.castling & bitboard::CASTLING_B_KS && !(all_pieces & RANK_8 & (FILE_F | FILE_G)))
+        if (is_black_to_play)
         {
-            constexpr std::uint8_t to_mb { std::countr_zero(FILE_G & RANK_8) };
-            constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::b_king, move::move_type::CASTLE, move::move_info::CASTLE_KS) };
+            constexpr std::uint8_t from_square { std::countr_zero(FILE_E & RANK_8) };
 
-            move_buf[ret++] = move;
+            if (bb.castling & bitboard::CASTLING_B_KS && !(all_pieces & RANK_8 & (FILE_F | FILE_G)))
+            {
+                constexpr std::uint8_t to_mb { std::countr_zero(FILE_G & RANK_8) };
+                constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::b_king, move::move_type::CASTLE, move::move_info::CASTLE_KS) };
+
+                move_buf[ret++] = move;
+            }
+            if (bb.castling & bitboard::CASTLING_B_QS && !(all_pieces & RANK_8 & (FILE_B | FILE_C | FILE_D)))
+            {
+                constexpr std::uint8_t to_mb { std::countr_zero(FILE_C & RANK_8) };
+                constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::b_king, move::move_type::CASTLE, move::move_info::CASTLE_QS) };
+
+                move_buf[ret++] = move;
+            }
         }
-        if (bb.castling & bitboard::CASTLING_B_QS && !(all_pieces & RANK_8 & (FILE_B | FILE_C | FILE_D)))
+        else
         {
-            constexpr std::uint8_t to_mb { std::countr_zero(FILE_C & RANK_8) };
-            constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::b_king, move::move_type::CASTLE, move::move_info::CASTLE_QS) };
+            constexpr std::uint8_t from_square { std::countr_zero(FILE_E & RANK_1) };
 
-            move_buf[ret++] = move;
-        }
-    }
-    else
-    {
-        constexpr std::uint8_t from_square { std::countr_zero(FILE_E & RANK_1) };
+            if (bb.castling & bitboard::CASTLING_W_KS && !(all_pieces & RANK_1 & (FILE_F | FILE_G)))
+            {
+                constexpr std::uint8_t to_mb { std::countr_zero(FILE_G & RANK_1) };
+                constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::w_king, move::move_type::CASTLE, move::move_info::CASTLE_KS) };
 
-        if (bb.castling & bitboard::CASTLING_W_KS && !(all_pieces & RANK_1 & (FILE_F | FILE_G)))
-        {
-            constexpr std::uint8_t to_mb { std::countr_zero(FILE_G & RANK_1) };
-            constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::w_king, move::move_type::CASTLE, move::move_info::CASTLE_KS) };
+                move_buf[ret++] = move;
+            }
+            if (bb.castling & bitboard::CASTLING_W_QS && !(all_pieces & RANK_1 & (FILE_B | FILE_C | FILE_D)))
+            {
+                constexpr std::uint8_t to_mb { std::countr_zero(FILE_C & RANK_1) };
+                constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::w_king, move::move_type::CASTLE, move::move_info::CASTLE_QS) };
 
-            move_buf[ret++] = move;
-        }
-        if (bb.castling & bitboard::CASTLING_W_QS && !(all_pieces & RANK_1 & (FILE_B | FILE_C | FILE_D)))
-        {
-            constexpr std::uint8_t to_mb { std::countr_zero(FILE_C & RANK_1) };
-            constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::w_king, move::move_type::CASTLE, move::move_info::CASTLE_QS) };
-
-            move_buf[ret++] = move;
+                move_buf[ret++] = move;
+            }
         }
     }
 
     return ret;
 }
 
-inline std::uint8_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t get_knight_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
     std::uint8_t ret {};
 
@@ -190,8 +219,15 @@ inline std::uint8_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t
         {
             const std::uint64_t attack { ls1b_isolate(attacks) };
 
+            const bool is_capture = attack & opponent_pieces;
+            if (params.allow_captures && is_capture)
             {
-                const std::uint32_t move { move::serialise_make(knight_mailbox, std::countr_zero(attack), to_move_idx, (attack & opponent_pieces) ? move::move_type::CAPTURE : 0) };
+                const std::uint32_t move { move::serialise_make(knight_mailbox, std::countr_zero(attack), to_move_idx, move::move_type::CAPTURE) };
+                move_buf[ret++] = move;
+            }
+            else if (params.allow_non_captures && !is_capture)
+            {
+                const std::uint32_t move { move::serialise_make(knight_mailbox, std::countr_zero(attack), to_move_idx, 0) };
                 move_buf[ret++] = move;
             }
 
@@ -204,7 +240,7 @@ inline std::uint8_t get_knight_moves(const bitboard& bb, std::span<std::uint32_t
     return ret;
 }
 
-inline std::uint8_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t get_bishop_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
     std::uint8_t ret {};
 
@@ -223,8 +259,15 @@ inline std::uint8_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t
         {
             const std::uint64_t attack { ls1b_isolate(attacks) };
 
+            const bool is_capture = attack & opponent_pieces;
+            if (params.allow_captures && is_capture)
             {
-                const std::uint32_t move { move::serialise_make(bishop_mailbox, std::countr_zero(attack), to_move_idx, (attack & opponent_pieces) ? move::move_type::CAPTURE : 0) };
+                const std::uint32_t move { move::serialise_make(bishop_mailbox, std::countr_zero(attack), to_move_idx, move::move_type::CAPTURE) };
+                move_buf[ret++] = move;
+            }
+            else if (params.allow_non_captures && !is_capture)
+            {
+                const std::uint32_t move { move::serialise_make(bishop_mailbox, std::countr_zero(attack), to_move_idx, 0) };
                 move_buf[ret++] = move;
             }
 
@@ -237,7 +280,7 @@ inline std::uint8_t get_bishop_moves(const bitboard& bb, std::span<std::uint32_t
     return ret;
 }
 
-inline std::uint8_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t get_rook_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
     std::uint8_t ret {};
 
@@ -256,8 +299,15 @@ inline std::uint8_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> 
         {
             const std::uint64_t attack { ls1b_isolate(attacks) };
 
+            const bool is_capture = attack & opponent_pieces;
+            if (params.allow_captures && is_capture)
             {
-                const std::uint32_t move { move::serialise_make(rook_mailbox, std::countr_zero(attack), to_move_idx, (attack & opponent_pieces) ? move::move_type::CAPTURE : 0) };
+                const std::uint32_t move { move::serialise_make(rook_mailbox, std::countr_zero(attack), to_move_idx, move::move_type::CAPTURE) };
+                move_buf[ret++] = move;
+            }
+            else if (params.allow_non_captures && !is_capture)
+            {
+                const std::uint32_t move { move::serialise_make(rook_mailbox, std::countr_zero(attack), to_move_idx, 0) };
                 move_buf[ret++] = move;
             }
 
@@ -270,7 +320,7 @@ inline std::uint8_t get_rook_moves(const bitboard& bb, std::span<std::uint32_t> 
     return ret;
 }
 
-inline std::uint8_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::uint8_t get_queen_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
     std::uint8_t ret {};
 
@@ -289,8 +339,15 @@ inline std::uint8_t get_queen_moves(const bitboard& bb, std::span<std::uint32_t>
         {
             const std::uint64_t attack { ls1b_isolate(attacks) };
 
+            const bool is_capture = attack & opponent_pieces;
+            if (params.allow_captures && is_capture)
             {
-                const std::uint32_t move { move::serialise_make(queen_mailbox, std::countr_zero(attack), to_move_idx, (attack & opponent_pieces) ? move::move_type::CAPTURE : 0) };
+                const std::uint32_t move { move::serialise_make(queen_mailbox, std::countr_zero(attack), to_move_idx, move::move_type::CAPTURE) };
+                move_buf[ret++] = move;
+            }
+            else if (params.allow_non_captures && !is_capture)
+            {
+                const std::uint32_t move { move::serialise_make(queen_mailbox, std::countr_zero(attack), to_move_idx, 0) };
                 move_buf[ret++] = move;
             }
 
@@ -309,29 +366,32 @@ inline std::uint8_t generate_pseudo_legal_moves(const bitboard& bb, std::span<st
 {
     std::uint8_t ret {};
 
-    // We probably want to be a bit smarter about what order these are generated in to improve the alpha-beta pruning
-    // later on. This could look like just generating piece moves that are likely to be good first, or possibly running
-    // some sort of sorting algorithm on the moves vector before returning.
+    // Allow all moves.
+    const details::generate_move_parameters params { .allow_non_captures=true, .allow_captures=true, .allow_promotions=true };
 
-    ret += details::get_pawn_moves(bb, move_buf.subspan(ret));
-    ret += details::get_king_moves(bb, move_buf.subspan(ret));
-    ret += details::get_knight_moves(bb, move_buf.subspan(ret));
-    ret += details::get_bishop_moves(bb, move_buf.subspan(ret));
-    ret += details::get_rook_moves(bb, move_buf.subspan(ret));
-    ret += details::get_queen_moves(bb, move_buf.subspan(ret));
+    ret += details::get_pawn_moves(bb,   params, move_buf.subspan(ret));
+    ret += details::get_king_moves(bb,   params, move_buf.subspan(ret));
+    ret += details::get_knight_moves(bb, params, move_buf.subspan(ret));
+    ret += details::get_bishop_moves(bb, params, move_buf.subspan(ret));
+    ret += details::get_rook_moves(bb,   params, move_buf.subspan(ret));
+    ret += details::get_queen_moves(bb,  params, move_buf.subspan(ret));
 
     return ret;
 }
 
 inline std::uint8_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::uint8_t moves = generate_pseudo_legal_moves(bb, move_buf);
-
-    // Filter out all the non-captures.
     std::uint8_t ret {};
-    for (std::uint8_t i = 0; i < moves; i++)
-        if (const auto type = move::deserialise_move_type(move_buf[i]); move::move_type::is_capture(type))
-            move_buf[ret++] = move_buf[i];
+
+    // Only allow captures - we might want to change this to also include promotions at some point.
+    const details::generate_move_parameters params { .allow_non_captures=false, .allow_captures=true, .allow_promotions=false };
+
+    ret += details::get_pawn_moves(bb,   params, move_buf.subspan(ret));
+    ret += details::get_king_moves(bb,   params, move_buf.subspan(ret));
+    ret += details::get_knight_moves(bb, params, move_buf.subspan(ret));
+    ret += details::get_bishop_moves(bb, params, move_buf.subspan(ret));
+    ret += details::get_rook_moves(bb,   params, move_buf.subspan(ret));
+    ret += details::get_queen_moves(bb,  params, move_buf.subspan(ret));
 
     return ret;
 }
