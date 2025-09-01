@@ -19,38 +19,19 @@ namespace details
 
 inline int mvv_lva_score(const bitboard& bb, std::uint32_t move)
 {
-    const bool is_black_to_play { bb.is_black_to_play() };
+    const auto attacker = static_cast<std::uint8_t>(0x07 & move::deserialise_piece_idx(move));
+    const auto victim   = static_cast<std::uint8_t>(0x07 & move::get_victim_piece_idx(move, bb));
 
-    const piece_idx attacker { move::deserialise_piece_idx(move) };
+    const int victim_val   { ::evaluation::details::material_cp[static_cast<std::uint8_t>(victim)] };
+    const int attacker_val { ::evaluation::details::material_cp[static_cast<std::uint8_t>(attacker)] };
 
-    // Working out the victim is a bit more involved...
-    const piece_idx victim { [&]()
-    {
-        const std::uint64_t to_bb { 1ULL << move::deserialise_to_mb(move) };
-
-        for (std::uint8_t capture_idx = (is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn); capture_idx <= (is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen); capture_idx++)
-            if (const std::uint64_t capture_bitboard = bb.boards[capture_idx]; capture_bitboard & to_bb)
-                return static_cast<piece_idx>(capture_idx & 0x07);
-
-        // If we haven't hit already, it must be an en-passent capture.
-        return w_pawn;
-    }() };
-
-    const int victim_val   = ::evaluation::details::material_cp[static_cast<std::uint8_t>(victim)];
-    const int attacker_val = ::evaluation::details::material_cp[static_cast<std::uint8_t>(attacker)];
-
-    // MVV-LVA = Victim value * big factor - Attacker value
-    // Multiplying victim_val ensures it's the dominant term.
+    // Multiplying the victim score ensures it's the dominant term.
     return (10*victim_val) - attacker_val;
 }
 
 inline void sort_mvv_lva(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::sort(move_buf.begin(), move_buf.end(),
-              [&bb](std::uint32_t a, std::uint32_t b)
-              {
-                  return mvv_lva_score(bb, a) > mvv_lva_score(bb, b);
-              });
+    std::sort(move_buf.begin(), move_buf.end(), [&bb](std::uint32_t a, std::uint32_t b) { return mvv_lva_score(bb, a) > mvv_lva_score(bb, b); });
 }
 
 }
@@ -80,8 +61,17 @@ inline int search_quiescence( game_state& gs, statistics& stats, int a, int b, i
         if (stop_search) [[unlikely]]
             return stand_pat;
 
+        // Delta-prunning.
+        {
+            constexpr int delta { 200 };
+            const auto victim = static_cast<std::uint8_t>(0x07 & move::get_victim_piece_idx(move, gs.bb));
+            const int victim_val { ::evaluation::details::material_cp[victim] };
+            if (victim_val + delta + stand_pat < a) [[unlikely]]
+                continue;
+        }
+
         std::uint32_t unmake;
-        if (!make_move({ .check_legality = true }, gs, move, unmake))
+        if (!make_move({ .check_legality = true }, gs, move, unmake)) [[unlikely]]
         {
             unmake_move(gs, unmake);
             continue;
