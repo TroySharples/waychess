@@ -10,3 +10,4 @@ Diagnostics:
       cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor: true
 InlayHints:
   ParameterNames: false
+  DeducedTypes: false
