@@ -115,11 +115,11 @@ constexpr piece_idx get_victim_piece_idx(std::uint32_t move, const bitboard& bb)
     const bool is_black_to_play { bb.is_black_to_play() };
     const std::uint64_t to_bb   { 1ULL << move::deserialise_to_mb(move) };
 
-    for (std::uint8_t capture_idx = (is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn); capture_idx <= (is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen); capture_idx++)
-        if (const std::uint64_t capture_bitboard = bb.boards[capture_idx]; capture_bitboard & to_bb)
-            return static_cast<piece_idx>(capture_idx);
+    // Return a piece if we find one.
+    if (const piece_idx ret { bb.get_piece_type_colour(to_bb, !is_black_to_play) }; ret != piece_idx::empty)
+        return ret;
 
-    // If we haven't hit already, it must be an en-passent capture.
+    // If we didn't find one on this square, it must be an en-passent capture.
     return is_black_to_play ? w_pawn : b_pawn;
 }
 
