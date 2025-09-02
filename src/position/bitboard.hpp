@@ -50,8 +50,8 @@ struct bitboard
 
     // Gets the piece type on a particular square. The colour variant assumes the colour of the
     // piece is known beforehand.
-    constexpr piece_idx get_piece_type(std::uint8_t bb) const noexcept;
-    constexpr piece_idx get_piece_type_colour(std::uint8_t bb, bool is_black) const noexcept;
+    constexpr piece_idx get_piece_type(std::uint64_t bb) const noexcept;
+    constexpr piece_idx get_piece_type_colour(std::uint64_t bb, bool is_black) const noexcept;
 
     constexpr bool is_black_to_play() const noexcept { return ply_counter & 1; }
     constexpr bool is_white_to_play() const noexcept { return !is_black_to_play(); }
@@ -74,14 +74,14 @@ struct bitboard
     bool operator!=(const bitboard& other) const noexcept { return !this->operator==(other); }
 };
 
-constexpr piece_idx bitboard::get_piece_type(std::uint8_t bb) const noexcept
+constexpr piece_idx bitboard::get_piece_type(std::uint64_t bb) const noexcept
 {
     return get_piece_type_colour(bb, boards[piece_idx::b_any] & bb);
 }
 
-constexpr piece_idx bitboard::get_piece_type_colour(std::uint8_t bb, bool is_black) const noexcept
+constexpr piece_idx bitboard::get_piece_type_colour(std::uint64_t bb, bool is_black) const noexcept
 {
-    for (std::uint8_t idx = (is_black ? piece_idx::w_pawn : piece_idx::b_pawn); idx <= (is_black ? piece_idx::w_queen : piece_idx::b_queen); idx++)
+    for (std::uint8_t idx = (is_black ? piece_idx::b_pawn : piece_idx::w_pawn); idx <= (is_black ? piece_idx::b_queen : piece_idx::w_queen); idx++)
         if (boards[idx] & bb)
             return static_cast<piece_idx>(idx);
     return piece_idx::empty;
