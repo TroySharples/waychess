@@ -183,6 +183,9 @@ inline int search_negamax_aspiration_window_recursive(game_state& gs, statistics
     while (true)
     {
         const int score { details::search_negamax_recursive(gs, stats, depth, a, b, colour, eval, move_buf) };
+        if (gs.stop_search)
+            return score;
+
         if (score < a)
             a -= d;
         else if (score > b)
