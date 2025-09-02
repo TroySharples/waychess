@@ -8,7 +8,7 @@ namespace evaluation
 namespace details
 {
 
-constexpr std::array<int, 14> material_cp {
+constexpr std::array<int, 15> material_cp {
     // White pawn.
     100,
     // White king.
@@ -34,7 +34,9 @@ constexpr std::array<int, 14> material_cp {
     // Black rook.
     -500,
     // Black queen.
-    -900
+    -900,
+    // Any.
+    0
 };
 
 };
