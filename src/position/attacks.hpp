@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bitboard.hpp"
+#include "pieces/pieces.hpp"
 
 inline std::uint64_t get_attackers(const bitboard& bb, std::uint8_t mb) noexcept
 {
@@ -34,6 +35,32 @@ inline std::uint64_t get_attackers_black(const bitboard& bb, auto... mb) noexcep
          | (get_knight_attacked_squares_from_mailboxes(mb...)            & bb.boards[piece_idx::b_knight])
          | (get_bishop_attacked_squares_from_mailboxes(pieces_bb, mb...) & (bb.boards[piece_idx::b_bishop] | bb.boards[piece_idx::b_queen]))
          | (get_rook_attacked_squares_from_mailboxes(pieces_bb, mb...)   & (bb.boards[piece_idx::b_rook]   | bb.boards[piece_idx::b_queen]));
+}
+
+inline std::pair<piece_idx, std::uint64_t> get_smallest_attacker_white(const bitboard& bb, auto... mb) noexcept
+{
+    const std::uint64_t pieces_bb  { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
+
+    if (const std::uint64_t from_bb { bb.boards[piece_idx::w_pawn]   & get_black_pawn_all_attacked_squares_from_mailboxes(mb...)    }; from_bb) return { piece_idx::w_pawn,   from_bb };
+    if (const std::uint64_t from_bb { bb.boards[piece_idx::w_knight] & get_knight_attacked_squares_from_mailboxes(mb...)            }; from_bb) return { piece_idx::w_knight, from_bb };
+    if (const std::uint64_t from_bb { bb.boards[piece_idx::w_bishop] & get_bishop_attacked_squares_from_mailboxes(pieces_bb, mb...) }; from_bb) return { piece_idx::w_bishop, from_bb };
+    if (const std::uint64_t from_bb { bb.boards[piece_idx::w_rook]   & get_rook_attacked_squares_from_mailboxes(pieces_bb, mb...)   }; from_bb) return { piece_idx::w_rook,   from_bb };
+    if (const std::uint64_t from_bb { bb.boards[piece_idx::w_queen]  & get_queen_attacked_squares_from_mailboxes(pieces_bb, mb...)  }; from_bb) return { piece_idx::w_queen,  from_bb };
+
+    return { piece_idx::empty, 0 };
+}
+
+inline std::pair<piece_idx, std::uint64_t> get_smallest_attacker_black(const bitboard& bb, auto... mb) noexcept
+{
+    const std::uint64_t pieces_bb  { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
+
+    if (const std::uint64_t from_bb { bb.boards[piece_idx::b_pawn]   & get_white_pawn_all_attacked_squares_from_mailboxes(mb...)    }; from_bb) return { piece_idx::b_pawn,   from_bb };
+    if (const std::uint64_t from_bb { bb.boards[piece_idx::b_knight] & get_knight_attacked_squares_from_mailboxes(mb...)            }; from_bb) return { piece_idx::b_knight, from_bb };
+    if (const std::uint64_t from_bb { bb.boards[piece_idx::b_bishop] & get_bishop_attacked_squares_from_mailboxes(pieces_bb, mb...) }; from_bb) return { piece_idx::b_bishop, from_bb };
+    if (const std::uint64_t from_bb { bb.boards[piece_idx::b_rook]   & get_rook_attacked_squares_from_mailboxes(pieces_bb, mb...)   }; from_bb) return { piece_idx::b_rook,   from_bb };
+    if (const std::uint64_t from_bb { bb.boards[piece_idx::b_queen]  & get_queen_attacked_squares_from_mailboxes(pieces_bb, mb...)  }; from_bb) return { piece_idx::b_queen,  from_bb };
+
+    return { piece_idx::empty, 0 };
 }
 
 inline bool is_attacked_white(const bitboard& bb, auto... mb) noexcept
