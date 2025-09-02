@@ -28,6 +28,8 @@ inline void sort_moves_pv(game_state& gs, std::span<std::uint32_t> move_buf) noe
 
     // Find the PV move (null if one doesn't exist).
     const std::uint32_t pv_move { gs.pv.lengths[draft] > 0 ? gs.pv.table[draft][0] : 0 };
+    if (pv_move == 0)
+        return;
 
     // If this is in our move list, bring it to the front.
     for (std::size_t i = 0; i < move_buf.size(); i++)
@@ -46,6 +48,7 @@ inline void sort_moves_tt(const std::uint32_t tt_move, std::span<std::uint32_t> 
     if (tt_move == 0)
         return;
 
+    // If this is in our move list, bring it to the front.
     for (std::size_t i = 0; i < move_buf.size(); ++i)
     {
         if (move_buf[i] == tt_move)
