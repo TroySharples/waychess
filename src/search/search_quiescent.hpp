@@ -58,7 +58,7 @@ inline int search_quiescence( game_state& gs, statistics& stats, int a, int b, i
 
     for (const auto move : move_list)
     {
-        if (stop_search) [[unlikely]]
+        if (gs.stop_search) [[unlikely]]
             return stand_pat;
 
         // Delta-prunning.

@@ -22,6 +22,9 @@ struct game_state
     // moves = 934 ply). This is well below the theoretical limit of 11798 ply, but I like my memory...
     static constexpr std::uint16_t MAX_GAME_LENGTH { 1024 };
 
+    // A boolean indicating when we must stop searching as soon as possible. All search algorithms must respect this.
+    bool stop_search;
+
     // History of hashes (LSB 32b) of previous positions indexed by the ply, as well as the ply of the last non-reversible
     // move.
     std::array<std::uint32_t, MAX_GAME_LENGTH> position_history;

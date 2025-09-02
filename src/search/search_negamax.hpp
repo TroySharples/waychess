@@ -4,6 +4,7 @@
 
 #include "evaluation/evaluation.hpp"
 
+#include "search/statistics.hpp"
 #include "search/transposition_table.hpp"
 #include "search/search_quiescent.hpp"
 
@@ -115,7 +116,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
         for (const auto move : move_list)
         {
             // Allow us to break out of the search early if needed.
-            if (stop_search) [[unlikely]]
+            if (gs.stop_search) [[unlikely]]
                 return ret;
 
             std::uint32_t unmake;

@@ -1,4 +1,3 @@
-#include "search/algorithms.hpp"
 #include "search/transposition_table.hpp"
 #include "utility/puzzle.hpp"
 
@@ -28,7 +27,7 @@ void test_puzzles(const std::filesystem::path& csv_path, double pass_accuracy)
         ss >> p;
 
         puzzles_total++;
-        if (p.solve(&search::search_negamax, 5, evaluation::raw_material))
+        if (p.solve(5, evaluation::raw_material))
             puzzles_solved++;
     }
 

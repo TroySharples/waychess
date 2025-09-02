@@ -1,5 +1,4 @@
-#include "search/algorithms.hpp"
-#include "search/search_negamax.hpp"
+#include "search/search.hpp"
 #include "search/transposition_table.hpp"
 #include "utility/logging.hpp"
 
@@ -88,7 +87,7 @@ int main(int argc, char** argv)
     search::transposition_table.set_table_bytes(hash_table_size_bytes);
 
     const auto time_start = std::chrono::steady_clock::now();
-    const search::recommendation rec { search::recommend_move_id(gs, &search::search_negamax, depth, evaluation::raw_material) };
+    const search::recommendation rec { search::recommend_move_id(gs, depth, evaluation::raw_material) };
     const auto time_end = std::chrono::steady_clock::now();
 
     // Start printing the JSON file in one go. We might clean this up later by having a proper JSON printing class, but this

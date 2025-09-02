@@ -7,7 +7,7 @@ struct puzzle
     bitboard bb;
     std::vector<std::uint32_t> moves;
 
-    bool solve(search::search s, std::uint8_t max_depth, evaluation::evaluation eval) const;
+    bool solve(std::uint8_t max_depth, evaluation::evaluation eval) const;
 
     friend std::istream& operator>>(std::istream& is, puzzle& v);
 };

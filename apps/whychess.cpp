@@ -1,4 +1,4 @@
-#include "search/algorithms.hpp"
+#include "search/search.hpp"
 #include "utility/uci.hpp"
 #include "utility/logging.hpp"
 #include "version.hpp"
@@ -86,7 +86,7 @@ void handle(const uci::command_position& req)
 void handle(const uci::command_go& /*req*/)
 {
     // Just calculate to depth 6 no matter what (WayChess 1.0.0 behaviour).
-    const std::uint32_t recommended_move = search::recommend_move(gs, &search::search_negamax, 6, evaluation::raw_material).move;
+    const std::uint32_t recommended_move = search::recommend_move(gs, 6, evaluation::raw_material).move;
 
     // Print our recommendation.
     {
