@@ -39,6 +39,9 @@ struct game_state
     // PV table for collection.
     details::pv_table pv;
 
+    // Last ID run score.
+    int last_score;
+
     // TODO: There are a lot more things we should add to do with the evaluation (e.g. pawn-structure tables).
 
     // Determines whether the current position a draw by either the 50-move rule, or the three-fold-repetition rule - should

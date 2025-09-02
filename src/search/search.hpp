@@ -73,7 +73,7 @@ inline recommendation recommend_move(game_state& gs, std::uint8_t max_depth, eva
     {
         std::uint32_t unmake;
         if (make_move({ .check_legality = true }, gs, move_buf[i], unmake)) [[likely]]
-            if (const int score { search_negamax(gs, stats, max_depth-1, move_span.subspan(moves), eval) }; (is_black_to_play ? score < ret.eval : score > ret.eval) )
+            if (const int score { search_negamax_aspiration_window(gs, stats, max_depth-1, move_span.subspan(moves), eval) }; (is_black_to_play ? score < ret.eval : score > ret.eval) )
                 ret = { .move = move_buf[i], .eval = score };
         unmake_move(gs, unmake);
     }
