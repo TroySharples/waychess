@@ -1,13 +1,29 @@
-
 # Change Log
 
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
 
-- Added quiescent search to mitigate the horizon effect.
+### Changed
+
+### Fixed
+
+## [1.3.0] - 2025-09-05
+
+### Added
+
+- Principle variation collection and ordering in main search.
+- Hash-move ordering in main search.
+- Aspiration window in main search.
+- Quiescent search to mitigate the horizon effect.
+  - MVV-LVA-sort.
+  - Delta-pruning.
+- UCI informational printing of nodes, depth, and PV.
 
 ### Changed
+
+- Refactored general search and negamax code.
+- Early return on checkmate.
 
 ### Fixed
 
