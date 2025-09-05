@@ -39,6 +39,10 @@ struct game_state
     // PV table for collection.
     details::pv_table pv;
 
+    // Prints the PV, assuming this game state is ply-deep into the search (0 if we aren't searching). The additional work
+    // this does is that it ensures only legal PVs are printed.
+    std::span<const std::uint32_t> get_pv(std::uint8_t ply = 0) const noexcept;
+
     // Last ID run score.
     int last_score;
 

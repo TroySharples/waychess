@@ -15,8 +15,6 @@ struct statistics
     // Transposition-table metrics.
     std::size_t tt_probes {};
     std::size_t tt_hits {};
-    std::size_t tt_moves {};
-    std::size_t tt_reorders {};
 
     // Time for current search - handled by the outer loop.
     std::chrono::steady_clock::duration duration;

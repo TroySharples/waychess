@@ -13,13 +13,10 @@ bool puzzle::solve(std::uint8_t max_depth, evaluation::evaluation eval) const
 
     for (auto move : moves)
     {
-        if (is_to_move && move != search::recommend_move(gs, max_depth, eval).move)
+        if (is_to_move && move != search::recommend_move_id(gs, max_depth, eval).move)
             ret = false;
 
         make_move({ .check_legality = false }, gs, move);
-
-        // Increment the actual root ply.
-        gs.root_ply++;
 
         is_to_move = !is_to_move;
     }

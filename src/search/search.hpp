@@ -45,7 +45,7 @@ recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, std::ch
 namespace search
 {
 
-namespace details { void log_search_info(game_state& gs, const statistics& stats, int eval); }
+namespace details { void log_search_info(std::uint8_t depth, const game_state& gs, const statistics& stats, int eval); }
 
 inline recommendation recommend_move(game_state& gs, std::uint8_t max_depth, evaluation::evaluation eval)
 {
@@ -54,39 +54,44 @@ inline recommendation recommend_move(game_state& gs, std::uint8_t max_depth, eva
 
     gs.stop_search = false;
 
-    std::vector<std::uint32_t> move_buf(static_cast<std::size_t>(::details::pv_table::MAX_DEPTH*MAX_MOVES_PER_POSITION));
+    std::array<std::uint32_t, static_cast<std::size_t>(::details::pv_table::MAX_DEPTH*MAX_MOVES_PER_POSITION)> move_buf;
     std::span<std::uint32_t> move_span(move_buf);
 
-    const bool is_black_to_play { gs.bb.is_black_to_play() };
-    const std::uint8_t moves    { generate_pseudo_legal_moves(gs.bb, move_buf) };
-
-    recommendation ret { .move = 0, .eval = is_black_to_play ? std::numeric_limits<int>::max() : std::numeric_limits<int>::min() };
-
-    // Set our root node and clear our transposition table.
+    // Set our root node, update our transposition table age, and propagate our root PV to our upper ply.
     gs.root_ply = gs.bb.ply_counter;
     gs.age++;
+    gs.pv.init_from_root();
 
     // Initialise our statistics.
     statistics stats;
 
+    const bool is_black_to_play { gs.bb.is_black_to_play() };
+    const std::uint8_t moves    { generate_pseudo_legal_moves(gs.bb, move_span) };
+    const std::span<std::uint32_t> move_list { move_span.subspan(0, moves) };
+
+    // Sort our move by PV to at least we get to use the upper-ply information before it gets corrupted - there's no harm in
+    // doing this for our initial depth-1 search.
+    details::sort_moves(move_list, gs.pv.table[0][0]);
+
+    recommendation ret { .move = 0, .eval = is_black_to_play ? std::numeric_limits<int>::max() : std::numeric_limits<int>::min() };
     for (std::uint8_t i = 0; i < moves; i++)
     {
         std::uint32_t unmake;
-        if (make_move({ .check_legality = true }, gs, move_buf[i], unmake)) [[likely]]
-            if (const int score { search_negamax_aspiration_window(gs, stats, max_depth-1, move_span.subspan(moves), eval) }; (is_black_to_play ? score < ret.eval : score > ret.eval) )
-                ret = { .move = move_buf[i], .eval = score };
+        if (const std::uint32_t move { move_list[i] }; make_move({ .check_legality = true }, gs, move, unmake)) [[likely]]
+            if (const int score { max_depth == 1 ? search_negamax(gs, stats, max_depth-1, move_span.subspan(moves), eval) : search_negamax_aspiration_window(gs, stats, max_depth-1, move_span.subspan(moves), eval) }; (is_black_to_play ? score <= ret.eval : score >= ret.eval) )
+                ret = { .move = move, .eval = score };
         unmake_move(gs, unmake);
     }
 
     gs.last_score = ret.eval;
-    gs.pv.update(0, ret.move);
+    gs.pv.update_variation(0, ret.move);
 
     const auto end = std::chrono::steady_clock::now();
     stats.duration = end - start;
 
     // Log our search info if we weren't stopped.
     if (!gs.stop_search)
-        details::log_search_info(gs, stats, ret.eval);
+        details::log_search_info(max_depth, gs, stats, ret.eval);
 
     return ret;
 }
@@ -94,22 +99,18 @@ inline recommendation recommend_move(game_state& gs, std::uint8_t max_depth, eva
 namespace details
 {
 
-inline void log_search_info(game_state& gs, const statistics& stats, int eval)
+inline void log_search_info(std::uint8_t depth, const game_state& gs, const statistics& stats, int eval)
 {
     const auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(stats.duration).count();
     const auto nps = static_cast<std::size_t>(static_cast<double>(stats.nodes) / std::chrono::duration<double>(stats.duration).count());
 
     std::ostringstream ss;
-    ss << "depth "        << static_cast<int>(gs.pv.lengths[0])
-       << " score cp "    << eval
-       << " time "        << duration_ms
-       << " nodes "       << stats.nodes
-       << " nps "         << nps
-       << " pv "          << move::to_algebraic_long(gs.pv.get_pv())
-       << " tt-probes "   << stats.tt_probes
-       << " tt-hits "     << stats.tt_hits
-       << " tt-moves "    << stats.tt_moves
-       << " tt-reorders " << stats.tt_reorders;
+    ss << "depth "      << static_cast<int>(depth)
+       << " score cp "  << eval
+       << " time "      << duration_ms
+       << " nodes "     << stats.nodes
+       << " nps "       << nps
+       << " pv "        << move::to_algebraic_long(gs.get_pv());
     log(ss.str(), log_level::informational);
 }
 
@@ -122,9 +123,6 @@ inline recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, 
     std::uint8_t depth { 1 };
     recommendation ret;
 
-    // Only clear the PV table at the start of the ID search.
-    gs.pv.clear();
-
     // Do the iterative deepening - we make sure to only update our recommendation if we weren't interrupted.
     while (depth <= max_depth)
     {
@@ -132,6 +130,10 @@ inline recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, 
         if (gs.stop_search)
             break;
         ret = id;
+
+        // If we've found checkmate we return immediately.
+        if (std::abs(id.eval) == std::numeric_limits<int>::max())
+            break;
     }
 
     return ret;

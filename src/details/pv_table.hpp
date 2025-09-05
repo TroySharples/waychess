@@ -16,47 +16,32 @@ struct pv_table
 {
     static constexpr std::uint8_t MAX_DEPTH { 64 };
 
-    // Only clears the length storage.
-    void clear() noexcept;
+    // Sets our current best move, and propagates childs variation into this ply. This should be set after finding a new best
+    // move by searching.
+    void update_variation(std::uint8_t ply, std::uint32_t move) noexcept;
 
-    // Called when we find a new best move at a given ply (distance from root).
-    void update(std::uint8_t ply, std::uint32_t move);
-
-    // Retrieve root PV after a search.
-    std::span<const std::uint32_t> get_pv() const noexcept;
+    // Fill out the upper-ply PVs assuming that we search the mainline PV first.
+    void init_from_root() noexcept;
 
     std::array<std::array<std::uint32_t, MAX_DEPTH>, MAX_DEPTH> table;
-    std::array<std::uint8_t, MAX_DEPTH> lengths {};
 };
 
 // ####################################
 // IMPLEMENTATION
 // ####################################
 
-inline void pv_table::clear() noexcept
-{
-    lengths.fill(0);
-}
-
-inline void pv_table::update(std::uint8_t ply, std::uint32_t move)
+inline void pv_table::update_variation(std::uint8_t ply, std::uint32_t move) noexcept
 {
     table[ply][0] = move;
-
-    // Copy the child's PV into this one.
-    if (lengths[ply + 1] > 0)
-    {
-        std::copy_n(table[ply + 1].begin(), lengths[ply + 1], table[ply].begin() + 1);
-        lengths[ply] = lengths[ply + 1] + 1;
-    }
-    else
-    {
-        lengths[ply] = 1;
-    }
+    std::copy_n(table[ply + 1].begin(), MAX_DEPTH-1, table[ply].begin() + 1);
 }
 
-inline std::span<const std::uint32_t> pv_table::get_pv() const noexcept
+inline void pv_table::init_from_root() noexcept
 {
-    return { table[0].data(), lengths[0] };
+    for (std::size_t i = 1; i < table.size(); i++)
+    {
+        std::copy_n(table[0].begin() + i, MAX_DEPTH-i, table[i].begin());
+    }
 }
 
 }

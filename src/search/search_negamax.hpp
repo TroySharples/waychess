@@ -17,42 +17,18 @@ namespace search
 namespace details
 {
 
-constexpr std::uint8_t META_EXACT    { 0 };
-constexpr std::uint8_t META_ALL_NODE { 1 };
-constexpr std::uint8_t META_CUT_NODE { 2 };
+constexpr std::uint8_t META_EXACT       { 0 };
+constexpr std::uint8_t META_LOWER_BOUND { 1 };
+constexpr std::uint8_t META_UPPER_BOUND { 2 };
 
-inline void sort_moves_pv(game_state& gs, std::span<std::uint32_t> move_buf) noexcept
+inline void sort_moves(std::span<std::uint32_t> move_buf, std::uint32_t move) noexcept
 {
-    const auto draft = static_cast<std::uint8_t>(gs.bb.ply_counter-gs.root_ply);
-
-    // Find the PV move (null if one doesn't exist).
-    const std::uint32_t pv_move { gs.pv.lengths[draft] > 0 ? gs.pv.table[draft][0] : 0 };
-    if (pv_move == 0)
-        return;
-
     // If this is in our move list, bring it to the front.
     for (std::size_t i = 0; i < move_buf.size(); i++)
     {
-        if (move_buf[i] == pv_move)
+        if (move_buf[i] == move)
         {
             // Search this move first
-            std::swap(move_buf[0], move_buf[i]);
-            break;
-        }
-    }
-}
-
-inline void sort_moves_tt(const std::uint32_t tt_move, std::span<std::uint32_t> move_buf, statistics& stats) noexcept
-{
-    if (tt_move == 0)
-        return;
-
-    // If this is in our move list, bring it to the front.
-    for (std::size_t i = 0; i < move_buf.size(); ++i)
-    {
-        if (move_buf[i] == tt_move)
-        {
-            stats.tt_reorders++;
             std::swap(move_buf[0], move_buf[i]);
             break;
         }
@@ -84,14 +60,33 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
 
     // Only consider returning early if our hash entry is the right age (i.e. is from this search) and has a higher depth (i.e. lower
     // draft) than this current node.
-    if (hash_hit && entry.value.depth >= depth &&
-            (entry.value.meta == META_EXACT
-         || (entry.value.meta == META_CUT_NODE && entry.value.eval >= b)
-         || (entry.value.meta == META_ALL_NODE && entry.value.eval <= a)))
-     {
-        stats.tt_moves++;
-        return entry.value.eval;
-     }
+    if (hash_hit && entry.value.age == gs.age && entry.value.depth >= depth)
+    {
+        const int eval { entry.value.eval };
+
+        // PV-node.
+        if (entry.value.meta == META_EXACT)
+        {
+            // We have an exact score - lucky us! We might be able to retrieve a PV from it as well!
+            if (entry.value.best_move)
+                gs.pv.table[draft][0] = entry.value.best_move;
+            return eval;
+        }
+
+        // All-node (fail-low). We have an upperbound for how good this move can be. If this is less than our alpha there's no point in
+        // continuing this search.
+        if (entry.value.meta == META_UPPER_BOUND && eval <= a)
+            return eval;
+
+        // Cut-node (fail-high). We have a lowerbound for how good this move can be. If this is greater than our beta, there's no point
+        // in trying to find a stronger refutation.
+        if (entry.value.meta == META_LOWER_BOUND && eval >= b)
+            return eval;
+    }
+
+    // Loop up our PV and hash moves from previous searches.
+    const std::uint32_t pv_move   { gs.pv.table[draft][0] };
+    const std::uint32_t hash_move { hash_hit ? entry.value.best_move : 0 };
 
     // The actual evaluation bit.
     std::uint32_t best_move {};
@@ -107,9 +102,10 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
         const std::span<std::uint32_t> move_list { move_buf.subspan(0, moves) };
 
         // Sort the moves favourably to increase the chance of early beta-cutoffs. We're happy to use hints from previous searches here.
-        if (hash_hit)
-            sort_moves_tt(entry.value.best_move, move_list, stats);
-        sort_moves_pv(gs, move_list);
+        if (hash_move)
+            sort_moves(move_list, hash_move);
+        if (pv_move)
+            sort_moves(move_list, pv_move);
 
         for (const auto move : move_list)
         {
@@ -131,15 +127,15 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
             unmake_move(gs, unmake);
             if (score > ret)
             {
-                ret = score;
                 best_move = move;
+                ret = score;
             }
 
             // Update our PV table when we've found a new best move at this depth.
             if (ret > a)
             {
                 a = ret;
-                gs.pv.update(draft, move);
+                gs.pv.update_variation(draft, move);
             }
 
             // Break early if we encounter a beta-cutoff (fantastic news!).
@@ -147,9 +143,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
                 break;
         }
 
-        // Handle the rare case of stalemate where there are no legal moves in the position but we aren't in check. We detect this by
-        // making seeing if we haven't updated our evaluation from the start.
-        if (ret == -std::numeric_limits<int>::max() && !is_in_check(gs.bb, colour == -1)) [[unlikely]]
+        // Handle the rare case of there being no legal moves in this position, but us not being in check (i.e. stalemate).
+        if (!best_move && !is_in_check(gs.bb, colour == -1)) [[unlikely]]
             ret = 0;
     }
 
@@ -157,16 +152,20 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
     // entry recent (i.e. not from a previous search) and was at a higher depth.
     if (!hash_hit || entry.value.age != gs.age || entry.value.depth <= depth)
     {
-        entry.key             = gs.hash;
-        entry.value.age       = gs.age;
-        entry.value.depth     = depth;
-        entry.value.eval      = ret;
-        if (entry.value.best_move == 0 || ret > a_orig)
-            entry.value.best_move = best_move;
+        // Set basic parameters.
+        entry.key         = gs.hash;
+        entry.value.age   = gs.age;
+        entry.value.depth = depth;
+        entry.value.eval  = ret;
+
+        // Set the best move if we've at least raised our alpha.
+        entry.value.best_move = (ret > a_orig ? best_move : 0);
+
+        // Set our node-type.
         if (ret <= a_orig)
-            entry.value.meta = META_ALL_NODE;
+            entry.value.meta = META_UPPER_BOUND;
         else if (ret >= b)
-            entry.value.meta = META_CUT_NODE;
+            entry.value.meta = META_LOWER_BOUND;
         else
             entry.value.meta = META_EXACT;
     }
@@ -176,9 +175,12 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
 
 inline int search_negamax_aspiration_window_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf) noexcept
 {
-    int d = 50;
-    int a = (gs.pv.lengths[0] ? (gs.last_score*colour)-d : -std::numeric_limits<int>::max());
-    int b = (gs.pv.lengths[0] ? (gs.last_score*colour)+d : std::numeric_limits<int>::max());
+    // TODO: Narrow this after improving our evaluation function.
+    constexpr int initial_delta { 201 };
+
+    int d = initial_delta;
+    int a = gs.last_score*colour-d;
+    int b = gs.last_score*colour+d;
 
     while (true)
     {
@@ -186,10 +188,15 @@ inline int search_negamax_aspiration_window_recursive(game_state& gs, statistics
         if (gs.stop_search)
             return score;
 
-        if (score < a)
+        // We return if we hit checkmate.
+        if (std::abs(score) == std::numeric_limits<int>::max())
+            return score;
+
+        // Otherwise check that it fits within the window - adjust otherwise!
+        if (score <= a)
             a -= d;
-        else if (score > b)
-            b -= d;
+        else if (score >= b)
+            b += d;
         else
             return score;
 
