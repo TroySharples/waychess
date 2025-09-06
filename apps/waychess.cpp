@@ -104,7 +104,7 @@ void handle(const uci::command_go& req)
     if (gs.bb.is_black_to_play() ? !req.btime.has_value() : !req.wtime.has_value())
     {
         // If we haven't been told anything about out time parameters we just default to calculating to depth 6.
-        recommended_move = search::recommend_move(gs, 6, evaluation::raw_material).move;
+        recommended_move = search::recommend_move(gs, 6).move;
     }
     else
     {
@@ -113,7 +113,7 @@ void handle(const uci::command_go& req)
         const std::size_t increment_ms { gs.bb.is_black_to_play() ? (req.binc.has_value() ? *req.binc : 0)  : (req.winc.has_value() ? *req.winc : 0) };
 
         const std::chrono::milliseconds time((remaining_ms/20) + (increment_ms/2));
-        recommended_move = search::recommend_move_id(gs, 32, time, evaluation::raw_material).move;
+        recommended_move = search::recommend_move_id(gs, 32, time).move;
     }
 
     // Print our recommendation.

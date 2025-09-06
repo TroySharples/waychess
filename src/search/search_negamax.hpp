@@ -1,6 +1,5 @@
 #pragma once
 
-#include "evaluation/evaluation.hpp"
 
 #include "search/statistics.hpp"
 #include "search/transposition_table.hpp"
@@ -35,7 +34,7 @@ inline void sort_moves(std::span<std::uint32_t> move_buf, std::uint32_t move) no
     }
 }
 
-inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int a, int b, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf) noexcept
+inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int a, int b, int colour, std::span<std::uint32_t> move_buf) noexcept
 {
     int ret { -std::numeric_limits<int>::max() };
 
@@ -93,7 +92,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
     if (depth == 0)
     {
         // If this is a leaf of our search tree we just use our quiescent-search function to mitigate the horizon-effect.
-        ret = search_quiescence(gs, stats, a, b, colour, eval, move_buf);
+        ret = search_quiescence(gs, stats, a, b, colour, move_buf);
     }
     else
     {
@@ -123,7 +122,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
             }
 
             // Recurse this algorithm, and make sure to unmake after the fact.
-            const int score { -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, eval, move_buf.subspan(moves)) };
+            const int score { -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, move_buf.subspan(moves)) };
             unmake_move(gs, unmake);
             if (score > ret)
             {
@@ -173,10 +172,10 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
     return ret;
 }
 
-inline int search_negamax_aspiration_window_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int colour, evaluation::evaluation eval, std::span<std::uint32_t> move_buf) noexcept
+inline int search_negamax_aspiration_window_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int colour, std::span<std::uint32_t> move_buf) noexcept
 {
     // TODO: Narrow this after improving our evaluation function.
-    constexpr int initial_delta { 201 };
+    constexpr int initial_delta { 50 };
 
     int d = initial_delta;
     int a = gs.last_score*colour-d;
@@ -184,7 +183,7 @@ inline int search_negamax_aspiration_window_recursive(game_state& gs, statistics
 
     while (true)
     {
-        const int score { details::search_negamax_recursive(gs, stats, depth, a, b, colour, eval, move_buf) };
+        const int score { details::search_negamax_recursive(gs, stats, depth, a, b, colour, move_buf) };
         if (gs.stop_search)
             return score;
 
@@ -206,18 +205,18 @@ inline int search_negamax_aspiration_window_recursive(game_state& gs, statistics
 
 }
 
-inline int search_negamax(game_state& gs, statistics& stats, std::uint8_t depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval)
+inline int search_negamax(game_state& gs, statistics& stats, std::uint8_t depth, std::span<std::uint32_t> move_buf)
 {
     const int colour = (gs.bb.is_black_to_play() ? -1 : 1);
 
-    return colour*details::search_negamax_recursive(gs, stats, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, eval, move_buf);
+    return colour*details::search_negamax_recursive(gs, stats, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, move_buf);
 }
 
-inline int search_negamax_aspiration_window(game_state& gs, statistics& stats, std::uint8_t depth, std::span<std::uint32_t> move_buf, evaluation::evaluation eval)
+inline int search_negamax_aspiration_window(game_state& gs, statistics& stats, std::uint8_t depth, std::span<std::uint32_t> move_buf)
 {
     const int colour = (gs.bb.is_black_to_play() ? -1 : 1);
 
-    return colour*details::search_negamax_aspiration_window_recursive(gs, stats, depth, colour, eval, move_buf);
+    return colour*details::search_negamax_aspiration_window_recursive(gs, stats, depth, colour, move_buf);
 }
 
 }

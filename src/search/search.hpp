@@ -7,7 +7,6 @@
 #include "position/game_state.hpp"
 #include "position/generate_moves.hpp"
 #include "position/make_move.hpp"
-#include "evaluation/evaluation.hpp"
 #include "search/search_negamax.hpp"
 #include "utility/logging.hpp"
 
@@ -28,9 +27,9 @@ struct recommendation
     friend constexpr bool operator>(const recommendation& a, const recommendation& b) noexcept { return a.eval > b.eval; };
 };
 
-recommendation recommend_move(game_state& gs, std::uint8_t max_depth, evaluation::evaluation eval);
-recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, evaluation::evaluation eval);
-recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, std::chrono::duration<double> max_time, evaluation::evaluation eval);
+recommendation recommend_move(game_state& gs, std::uint8_t max_depth);
+recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth);
+recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, std::chrono::duration<double> max_time);
 
 }
 
@@ -47,7 +46,7 @@ namespace search
 
 namespace details { void log_search_info(std::uint8_t depth, const game_state& gs, const statistics& stats, int eval); }
 
-inline recommendation recommend_move(game_state& gs, std::uint8_t max_depth, evaluation::evaluation eval)
+inline recommendation recommend_move(game_state& gs, std::uint8_t max_depth)
 {
     // We time this whole thing for logging.
     const auto start = std::chrono::steady_clock::now();
@@ -78,7 +77,7 @@ inline recommendation recommend_move(game_state& gs, std::uint8_t max_depth, eva
     {
         std::uint32_t unmake;
         if (const std::uint32_t move { move_list[i] }; make_move({ .check_legality = true }, gs, move, unmake)) [[likely]]
-            if (const int score { max_depth == 1 ? search_negamax(gs, stats, max_depth-1, move_span.subspan(moves), eval) : search_negamax_aspiration_window(gs, stats, max_depth-1, move_span.subspan(moves), eval) }; (is_black_to_play ? score <= ret.eval : score >= ret.eval) )
+            if (const int score { max_depth == 1 ? search_negamax(gs, stats, max_depth-1, move_span.subspan(moves)) : search_negamax_aspiration_window(gs, stats, max_depth-1, move_span.subspan(moves)) }; (is_black_to_play ? score <= ret.eval : score >= ret.eval) )
                 ret = { .move = move, .eval = score };
         unmake_move(gs, unmake);
     }
@@ -116,7 +115,7 @@ inline void log_search_info(std::uint8_t depth, const game_state& gs, const stat
 
 }
 
-inline recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, evaluation::evaluation eval)
+inline recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth)
 {
     gs.stop_search = false;
 
@@ -126,7 +125,7 @@ inline recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, 
     // Do the iterative deepening - we make sure to only update our recommendation if we weren't interrupted.
     while (depth <= max_depth)
     {
-        const recommendation id = recommend_move(gs, depth++, eval);
+        const recommendation id = recommend_move(gs, depth++);
         if (gs.stop_search)
             break;
         ret = id;
@@ -139,9 +138,9 @@ inline recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, 
     return ret;
 }
 
-inline recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, std::chrono::duration<double> max_time, evaluation::evaluation eval)
+inline recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, std::chrono::duration<double> max_time)
 {
-    auto f = std::async(static_cast<recommendation(*)(game_state&, std::uint8_t, evaluation::evaluation)>(&recommend_move_id), std::ref(gs), max_depth, eval);
+    auto f = std::async(static_cast<recommendation(*)(game_state&, std::uint8_t)>(&recommend_move_id), std::ref(gs), max_depth);
 
     // Technically this is undefined multithreaded behaviour... Will improve this section of the code greatly in the future.
     std::this_thread::sleep_for(max_time);

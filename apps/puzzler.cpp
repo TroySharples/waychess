@@ -113,7 +113,7 @@ int main(int argc, char** argv)
         ss >> p;
 
         puzzles_total++;
-        if (p.solve(depth, evaluation::raw_material))
+        if (p.solve(depth))
             puzzles_solved++;
     }
     const auto time_end = std::chrono::steady_clock::now();
