@@ -43,7 +43,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
     const auto draft = static_cast<std::uint8_t>(gs.bb.ply_counter-gs.root_ply);
 
     // Update stats.
-    stats.nodes++;
+    stats.pvnodes++;
 
     // Handle repetition-based draws first - we currently don't implement and contempt factor when playing against weaker opponents.
     // It is faster doing this here before the hash-lookup as in practice almost all hash-lookups will probably result in a cache-miss.
@@ -92,7 +92,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
     if (depth == 0)
     {
         // If this is a leaf of our search tree we just use our quiescent-search function to mitigate the horizon-effect.
-        ret = search_quiescence(gs, stats, a, b, colour, move_buf);
+        ret = search_quiescence(gs, stats, 0, a, b, colour, move_buf);
     }
     else
     {

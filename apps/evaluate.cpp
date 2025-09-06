@@ -1,8 +1,8 @@
 #include "search/search.hpp"
+#include "search/statistics.hpp"
 #include "search/transposition_table.hpp"
 #include "utility/logging.hpp"
 
-#include <chrono>
 #include <cstring>
 #include <unistd.h>
 
@@ -86,21 +86,26 @@ int main(int argc, char** argv)
     // printing out the telemetry below.
     search::transposition_table.set_table_bytes(hash_table_size_bytes);
 
-    const auto time_start = std::chrono::steady_clock::now();
-    const search::recommendation rec { search::recommend_move_id(gs, depth) };
-    const auto time_end = std::chrono::steady_clock::now();
+    search::statistics stats {};
+    const search::recommendation rec { search::recommend_move_id(gs, stats, depth) };
 
     // Start printing the JSON file in one go. We might clean this up later by having a proper JSON printing class, but this
     // program seems too simple at the moment to warrant it.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
-              << R"(    "depth": )" << static_cast<int>(depth) << ",\n"
+              << R"(    "depth": )" << static_cast<int>(stats.depth) << ",\n"
               << R"(    "hash-table MB": )" << '"' << search::transposition_table.get_table_bytes()/1000000 << '"' << ",\n"
-              << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
-              << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
-              << R"(    "recommendation": )" << '"' << move::to_algebraic_long(rec.move) << '"' << ",\n"
-              << R"(    "pv": )" << '"' << move::to_algebraic_long(gs.get_pv()) << '"' << ",\n"
-              << R"(    "evaluation-cp": )" << rec.eval << '\n'
+              << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(stats.time).count() << ",\n"
+              << R"(    "pv": )" << '"' << move::to_algebraic_long(stats.pv) << '"' << ",\n"
+              << R"(    "evaluation-cp": )" << rec.eval << ",\n"
+              << R"(    "nodes": )" << stats.get_nodes() << ",\n"
+              << R"(    "nps": )" << stats.get_nps() << ",\n"
+              << R"(    "pvnodes": )" << stats.pvnodes << ",\n"
+              << R"(    "qnodes": )" << stats.qnodes << ",\n"
+              << R"(    "qdepth": )" << stats.qdepth << ",\n"
+              << R"(    "tt-probes": )" << stats.tt_probes << ",\n"
+              << R"(    "tt-hits": )" << stats.tt_hits << ",\n"
+              << R"(    "tt-hit-rate": )" << std::setprecision(2) << stats.get_tt_hit_rate() << '\n'
               << R"(})" << '\n';
 
     return EXIT_SUCCESS;

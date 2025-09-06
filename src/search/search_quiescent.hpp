@@ -34,9 +34,10 @@ inline void sort_mvv_lva(const bitboard& bb, std::span<std::uint32_t> move_buf) 
 
 }
 
-inline int search_quiescence( game_state& gs, statistics& stats, int a, int b, int colour, std::span<std::uint32_t> move_buf) noexcept
+inline int search_quiescence( game_state& gs, statistics& stats, std::size_t draft, int a, int b, int colour, std::span<std::uint32_t> move_buf) noexcept
 {
-    stats.nodes++;
+    stats.qnodes++;
+    stats.qdepth = std::max(stats.qdepth, draft);
 
     // Stand-pat evaluation (side to move perspective).
     const int stand_pat = colour*evaluation::evaluate(gs.bb);
@@ -75,7 +76,7 @@ inline int search_quiescence( game_state& gs, statistics& stats, int a, int b, i
             continue;
         }
 
-        int score = -search_quiescence(gs, stats, -b, -a, -colour, move_buf.subspan(moves));
+        int score = -search_quiescence(gs, stats, draft+1, -b, -a, -colour, move_buf.subspan(moves));
         unmake_move(gs, unmake);
 
         a = std::max(a, score);

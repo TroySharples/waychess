@@ -20,6 +20,7 @@ add_library(lib-waychess STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/position/move.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/position/game_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/search/transposition_table.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/search/statistics.cpp
 )
 target_include_directories(lib-waychess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(lib-waychess PUBLIC cxx_std_20)
