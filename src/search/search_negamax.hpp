@@ -20,18 +20,46 @@ constexpr std::uint8_t META_EXACT       { 0 };
 constexpr std::uint8_t META_LOWER_BOUND { 1 };
 constexpr std::uint8_t META_UPPER_BOUND { 2 };
 
-inline void sort_moves(std::span<std::uint32_t> move_buf, std::uint32_t move) noexcept
+inline int score_move(std::uint32_t move, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
 {
-    // If this is in our move list, bring it to the front.
+    // We score PV moves the highest.
+    if (move == pv_move)
+        return 2000000;
+
+    // Next comes hash-moves.
+    if (move == hash_move)
+        return 1000000;
+
+    // Next MVV/LVA score.
+    if (move::move_type::is_capture(move))
+        return 500000 + mvv_lva_score(gs.bb, move);
+
+    // Else just return 0 for now.
+    return 0;
+}
+
+inline void sort_moves(std::span<std::uint32_t> move_buf, std::uint32_t move)
+{
     for (std::size_t i = 0; i < move_buf.size(); i++)
     {
         if (move_buf[i] == move)
         {
-            // Search this move first
             std::swap(move_buf[0], move_buf[i]);
             break;
         }
     }
+}
+
+inline void sort_moves(std::span<std::uint32_t> move_buf, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
+{
+    std::array<std::pair<std::uint32_t, int>, MAX_MOVES_PER_POSITION> scored_moves;
+    for (std::size_t i = 0; i < move_buf.size(); i++)
+        scored_moves[i] = { move_buf[i], score_move(move_buf[i], draft, gs, pv_move, hash_move) };
+
+    std::sort(scored_moves.begin(), scored_moves.begin() + move_buf.size(), [](const auto& a, const auto& b) noexcept { return a.second > b.second; });
+
+    for (std::size_t i = 0; i < move_buf.size(); i++)
+        move_buf[i] = scored_moves[i].first;
 }
 
 inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int a, int b, int colour, std::span<std::uint32_t> move_buf) noexcept
@@ -100,11 +128,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
         const std::uint8_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
         const std::span<std::uint32_t> move_list { move_buf.subspan(0, moves) };
 
-        // Sort the moves favourably to increase the chance of early beta-cutoffs. We're happy to use hints from previous searches here.
-        if (hash_move)
-            sort_moves(move_list, hash_move);
-        if (pv_move)
-            sort_moves(move_list, pv_move);
+        // Sort the moves favourably to increase the chance of early beta-cutoffs.
+        sort_moves(move_list, draft, gs, pv_move, hash_move);
 
         for (const auto move : move_list)
         {
