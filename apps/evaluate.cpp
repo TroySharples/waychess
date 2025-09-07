@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <unistd.h>
+#include <iomanip>
 
 static std::ostream& print_usage(const char* argv0, std::ostream& os)
 {
