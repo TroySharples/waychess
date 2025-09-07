@@ -8,6 +8,23 @@
 
 ### Fixed
 
+## [1.4.0] - 2025-09-07
+
+### Added
+
+- Piece-square tables to the terminal evaluation heuristic.
+- Middle-game / end-game evaluation interpolation so that we can score various stages of the game differently depending on material on board.
+- MVV-LVA-sort to the main search.
+- Killer-move tables.
+
+### Changed
+
+- Greatly improved logging code to show additional interesting information about the search.
+
+### Fixed
+
+- Bug in depth-1 negamax with alpha/beta code where we weren't properly applying various optimisation techniques.
+
 ## [1.3.0] - 2025-09-05
 
 ### Added
