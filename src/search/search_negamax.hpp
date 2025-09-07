@@ -31,7 +31,7 @@ inline int score_move(std::uint32_t move, std::size_t draft, const game_state& g
         return 1000000;
 
     // Next MVV/LVA score.
-    if (move::move_type::is_capture(move))
+    if (move::move_type::is_capture(move::deserialise_move_type(move)))
         return 500000 + mvv_lva_score(gs.bb, move);
 
     // Else just return 0 for now.
