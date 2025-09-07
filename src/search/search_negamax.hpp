@@ -209,7 +209,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
 inline int search_negamax_aspiration_window_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int colour, std::span<std::uint32_t> move_buf) noexcept
 {
     // TODO: Narrow this after improving our evaluation function.
-    constexpr int initial_delta { 50 };
+    constexpr int initial_delta { 35 };
 
     int d = initial_delta;
     int a = gs.last_score*colour-d;
