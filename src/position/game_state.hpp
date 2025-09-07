@@ -47,8 +47,8 @@ struct game_state
     // this does is that it ensures only legal PVs are printed.
     std::span<const std::uint32_t> get_pv(std::uint8_t ply = 0) const noexcept;
 
-    // Last ID run score.
-    int last_score;
+    // The last ID run score.
+    int eval;
 
     // TODO: There are a lot more things we should add to do with the evaluation (e.g. pawn-structure tables).
 

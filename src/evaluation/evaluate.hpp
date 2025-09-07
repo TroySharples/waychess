@@ -3,9 +3,12 @@
 #include "evaluation/evaluate_material.hpp"
 #include "evaluation/evaluate_piece_square.hpp"
 #include "evaluation/game_phase.hpp"
+#include <limits>
 
 namespace evaluation
 {
+
+constexpr int EVAL_CHECKMATE { std::numeric_limits<int>::max()/2 };
 
 constexpr int evaluate_mg(const bitboard& bb) noexcept
 {

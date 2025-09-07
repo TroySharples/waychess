@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include "evaluation/evaluate.hpp"
+#include "position/game_state.hpp"
 #include "search/statistics.hpp"
 #include "search/transposition_table.hpp"
 #include "search/search_quiescent.hpp"
@@ -176,9 +178,10 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
             }
         }
 
-        // Handle the rare case of there being no legal moves in this position, but us not being in check (i.e. stalemate).
-        if (!best_move && !is_in_check(gs.bb, colour == -1)) [[unlikely]]
-            ret = 0;
+        // Handle the rare case of there being no legal moves in this position. This should be evaluated as either checkmate (if we're in check) or as
+        // a draw (if it is stalemate).
+        if (!best_move) [[unlikely]]
+            ret = is_in_check(gs.bb, colour == -1) ? -evaluation::EVAL_CHECKMATE : 0;
     }
 
     // Handle updating our transposition table. We currently employ the very simple strategy of always overwriting unless the other
@@ -206,14 +209,27 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
     return ret;
 }
 
-inline int search_negamax_aspiration_window_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int colour, std::span<std::uint32_t> move_buf) noexcept
-{
-    // TODO: Narrow this after improving our evaluation function.
-    constexpr int initial_delta { 35 };
+}
 
+inline int search_negamax(game_state& gs, statistics& stats, std::uint8_t depth, int colour, std::span<std::uint32_t> move_buf) noexcept
+{
+    return details::search_negamax_recursive(gs, stats, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, move_buf);
+}
+
+inline int search_negamax_aspiration_window(game_state& gs, statistics& stats, std::uint8_t depth, int colour, std::span<std::uint32_t> move_buf) noexcept
+{
+    int a { -std::numeric_limits<int>::max() };
+    int b {  std::numeric_limits<int>::max() };
+
+    constexpr int initial_delta { 35 };
     int d = initial_delta;
-    int a = gs.last_score*colour-d;
-    int b = gs.last_score*colour+d;
+
+    // Set a narrower window around the previous score for this node if we can find it in the transposition table.
+    if (const auto& entry { transposition_table[gs.hash] }; entry.key == gs.hash)
+    {
+        a = entry.value.eval-d;
+        b = entry.value.eval+d;
+    }
 
     while (true)
     {
@@ -222,7 +238,7 @@ inline int search_negamax_aspiration_window_recursive(game_state& gs, statistics
             return score;
 
         // We return if we hit checkmate.
-        if (std::abs(score) == std::numeric_limits<int>::max())
+        if (std::abs(score) >= evaluation::EVAL_CHECKMATE)
             return score;
 
         // Otherwise check that it fits within the window - adjust otherwise!
@@ -235,22 +251,6 @@ inline int search_negamax_aspiration_window_recursive(game_state& gs, statistics
 
         d *= 2;
     }
-}
-
-}
-
-inline int search_negamax(game_state& gs, statistics& stats, std::uint8_t depth, std::span<std::uint32_t> move_buf)
-{
-    const int colour = (gs.bb.is_black_to_play() ? -1 : 1);
-
-    return colour*details::search_negamax_recursive(gs, stats, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, move_buf);
-}
-
-inline int search_negamax_aspiration_window(game_state& gs, statistics& stats, std::uint8_t depth, std::span<std::uint32_t> move_buf)
-{
-    const int colour = (gs.bb.is_black_to_play() ? -1 : 1);
-
-    return colour*details::search_negamax_aspiration_window_recursive(gs, stats, depth, colour, move_buf);
 }
 
 }

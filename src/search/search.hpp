@@ -4,15 +4,12 @@
 // DECLARATION
 // ####################################
 
+#include "evaluation/evaluate.hpp"
 #include "position/game_state.hpp"
 #include "position/generate_moves.hpp"
-#include "position/make_move.hpp"
 #include "search/search_negamax.hpp"
 #include "search/statistics.hpp"
-#include "utility/logging.hpp"
 
-#include <limits>
-#include <sstream>
 #include <chrono>
 
 namespace search
@@ -48,9 +45,6 @@ namespace search
 
 inline recommendation recommend_move(game_state& gs, statistics& stats, std::uint8_t max_depth)
 {
-    // We time this whole thing for logging.
-    const auto start = std::chrono::steady_clock::now();
-
     gs.stop_search = false;
 
     std::array<std::uint32_t, static_cast<std::size_t>(::details::pv_table::MAX_DEPTH*MAX_MOVES_PER_POSITION)> move_buf;
@@ -65,30 +59,14 @@ inline recommendation recommend_move(game_state& gs, statistics& stats, std::uin
     statistics stats_local = {};
     stats_local.depth = max_depth;
 
-    const bool is_black_to_play { gs.bb.is_black_to_play() };
-    const std::uint8_t moves    { generate_pseudo_legal_moves(gs.bb, move_span) };
-    const std::span<std::uint32_t> move_list { move_span.subspan(0, moves) };
+    // Negamax returns a relative score for the side to play, so we have to multiply it by the colour.
+    const int colour { gs.bb.is_black_to_play() ? -1 : 1 };
 
-    // Sort our move by PV to at least we get to use the upper-ply information before it gets corrupted - there's no harm in
-    // doing this for our initial depth-1 search.
-    details::sort_moves(move_list, gs.pv.table[0][0]);
-
-    recommendation ret { .move = 0, .eval = is_black_to_play ? std::numeric_limits<int>::max() : std::numeric_limits<int>::min() };
-    for (std::uint8_t i = 0; i < moves; i++)
-    {
-        std::uint32_t unmake;
-        if (const std::uint32_t move { move_list[i] }; make_move({ .check_legality = true }, gs, move, unmake)) [[likely]]
-            if (const int score { max_depth == 1 ? search_negamax(gs, stats_local, max_depth-1, move_span.subspan(moves)) : search_negamax_aspiration_window(gs, stats_local, max_depth-1, move_span.subspan(moves)) }; (is_black_to_play ? score <= ret.eval : score >= ret.eval) )
-                ret = { .move = move, .eval = score };
-        unmake_move(gs, unmake);
-    }
-
-    gs.last_score = ret.eval;
-    gs.pv.update_variation(0, ret.move);
-
+    const auto start = std::chrono::steady_clock::now();
+    gs.eval = colour*search_negamax_aspiration_window(gs, stats_local, max_depth, colour, move_span);
     const auto end = std::chrono::steady_clock::now();
-    stats_local.time = end - start;
 
+    stats_local.time = end - start;
     stats_local.pv = gs.get_pv(0);
 
     // Log and update our search info if we weren't stopped.
@@ -98,7 +76,7 @@ inline recommendation recommend_move(game_state& gs, statistics& stats, std::uin
         stats.id_update(stats_local);
     }
 
-    return ret;
+    return { .move=gs.pv.table[0][0], .eval=gs.eval };
 }
 inline recommendation recommend_move_id(game_state& gs, statistics& stats, std::uint8_t max_depth)
 {
@@ -116,7 +94,7 @@ inline recommendation recommend_move_id(game_state& gs, statistics& stats, std::
         ret = id;
 
         // If we've found checkmate we return immediately.
-        if (std::abs(id.eval) == std::numeric_limits<int>::max())
+        if (std::abs(id.eval) >= evaluation::EVAL_CHECKMATE)
             break;
     }
 
