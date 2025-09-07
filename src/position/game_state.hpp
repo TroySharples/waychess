@@ -2,6 +2,7 @@
 
 #include "bitboard.hpp"
 #include "details/pv_table.hpp"
+#include "details/km_table.hpp"
 
 // The main game state that is used in the search and evaluation. This includes the position itself (i.e. bitboard) as well
 // as other incrementally updated fields (e.g. hash).
@@ -38,6 +39,9 @@ struct game_state
 
     // PV table for collection.
     details::pv_table pv;
+
+    // Killer move table for collection.
+    details::km_table km;
 
     // Prints the PV, assuming this game state is ply-deep into the search (0 if we aren't searching). The additional work
     // this does is that it ensures only legal PVs are printed.

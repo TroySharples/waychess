@@ -34,6 +34,10 @@ inline int score_move(std::uint32_t move, std::size_t draft, const game_state& g
     if (move::move_type::is_capture(move::deserialise_move_type(move)))
         return 500000 + mvv_lva_score(gs.bb, move);
 
+    // Next is killer moves from this ply.
+    if (gs.km.is_killer_move(draft, move))
+        return 400000;
+
     // Else just return 0 for now.
     return 0;
 }
@@ -164,7 +168,12 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
 
             // Break early if we encounter a beta-cutoff (fantastic news!).
             if (a >= b)
+            {
+                // Only store the killer move if it is quiet,
+                if (const auto type = move::deserialise_move_type(move); !move::move_type::is_capture(type) && !move::move_type::is_promotion(type))
+                    gs.km.store_killer_move(draft, move);
                 break;
+            }
         }
 
         // Handle the rare case of there being no legal moves in this position, but us not being in check (i.e. stalemate).
