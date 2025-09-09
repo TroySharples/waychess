@@ -1,10 +1,10 @@
 #pragma once
 
+#include "search/statistics.hpp"
+
 #include "evaluation/evaluate.hpp"
-#include "pieces/pieces.hpp"
 #include "position/bitboard.hpp"
 #include "position/move.hpp"
-#include "search.hpp"
 
 #include "position/generate_moves.hpp"
 #include "position/make_move.hpp"
@@ -29,7 +29,14 @@ inline int mvv_lva_score(const bitboard& bb, std::uint32_t move)
 
 inline void sort_mvv_lva(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::sort(move_buf.begin(), move_buf.end(), [&bb](std::uint32_t a, std::uint32_t b) { return mvv_lva_score(bb, a) > mvv_lva_score(bb, b); });
+    std::array<std::pair<std::uint32_t, int>, MAX_MOVES_PER_POSITION> scored_moves;
+    for (std::size_t i = 0; i < move_buf.size(); i++)
+        scored_moves[i] = { move_buf[i], mvv_lva_score(bb, move_buf[i]) };
+
+    std::sort(scored_moves.begin(), scored_moves.begin() + move_buf.size(), [](const auto& a, const auto& b) noexcept { return a.second > b.second; });
+
+    for (std::size_t i = 0; i < move_buf.size(); i++)
+        move_buf[i] = scored_moves[i].first;
 }
 
 }
