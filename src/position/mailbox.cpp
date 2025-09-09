@@ -174,7 +174,7 @@ std::string mailbox::get_fen_string() const noexcept
     ss << ' ';
 
     // Side to move.
-    ss << (ply_counter & 1ULL ? 'b' : 'w') << ' ';
+    ss << (is_black_to_play() ? 'b' : 'w') << ' ';
 
     // Castling ability.
     if (castling)

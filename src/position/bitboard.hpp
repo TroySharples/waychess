@@ -29,7 +29,7 @@ struct bitboard
 
     constexpr std::span<const std::uint64_t> get_white_boards() const noexcept { return { &boards[piece_idx::w_pawn], 6 }; }
     constexpr std::span<const std::uint64_t> get_black_boards() const noexcept { return { &boards[piece_idx::b_pawn], 6 }; }
-    
+
     // Contains at most a single one-bit, which is the en-passent target square created
     // by a possible double-pawn push on the last ply.
     std::uint64_t en_passent_bb;
