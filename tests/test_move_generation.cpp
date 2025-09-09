@@ -9,28 +9,28 @@
 namespace
 {
 
-void test_move_generation_recursive(bitboard& bb, std::uint64_t& hash, std::uint8_t depth, std::span<std::uint32_t> move_buf)
+void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash, std::uint8_t depth, std::span<std::uint32_t> move_buf)
 {
     if (depth == 0)
         return;
 
-    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    bitboard bb_copy { bb };
+    std::uint64_t hash_copy { hash };
 
-    const bitboard bb_orig { bb };
-    const std::uint64_t hash_orig { hash };
+    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
     for (std::uint8_t i = 0; i < moves; i++)
     {
-        constexpr make_move_args args { .check_legality = false };
+        const std::uint32_t move = move_buf[i];
 
-        std::uint32_t unmake {};
-        make_move(args, bb, move_buf[i], unmake, hash);
+        std::uint32_t unmake;
+        make_move({ .check_legality = true }, bb_copy, move, unmake, hash_copy);
 
-        test_move_generation_recursive(bb, hash, depth-1, move_buf.subspan(moves));
+        test_move_generation_recursive(bb_copy, hash_copy, depth-1, move_buf.subspan(moves));
 
-        unmake_move(bb, unmake, hash);
+        unmake_move(bb_copy, unmake, hash_copy);
 
-        EXPECT_EQ(bb, bb_orig);
-        EXPECT_EQ(hash, hash_orig);
+        EXPECT_EQ(bb, bb_copy);
+        EXPECT_EQ(hash, hash_copy);
     }
 }
 

@@ -13,10 +13,12 @@ struct make_move_args
 
 bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t move) noexcept;
 bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t move, std::uint32_t& unmake) noexcept;
+bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t move, std::uint32_t& unmake, std::uint64_t& hash) noexcept;
 bool make_move(const make_move_args& args, game_state& gs, std::uint32_t move) noexcept;
 bool make_move(const make_move_args& args, game_state& gs, std::uint32_t move, std::uint32_t& unmake) noexcept;
 
 void unmake_move(bitboard& bb, std::uint32_t& unmake) noexcept;
+void unmake_move(bitboard& bb, std::uint32_t& unmake, std::uint64_t& hash) noexcept;
 void unmake_move(game_state& gs, std::uint32_t& unmake) noexcept;
 
 // ####################################
@@ -443,7 +445,12 @@ inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t mo
 {
     // Dummy hash (will get optimised away if necessary).
     std::uint64_t hash_dummy;
-    const bool ret { details::make_move_impl(args, bb, move, unmake, hash_dummy) };
+    return make_move(args, bb, move, unmake, hash_dummy);
+}
+
+inline bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t move, std::uint32_t& unmake, std::uint64_t& hash) noexcept
+{
+    const bool ret { details::make_move_impl(args, bb, move, unmake, hash) };
 
     // Increment the ply-counter.
     bb.ply_counter++;
@@ -470,7 +477,12 @@ inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t 
 
 inline void unmake_move(bitboard& bb, std::uint32_t& unmake) noexcept
 {
-    std::uint64_t hash;
+    std::uint64_t hash_dummy;
+    unmake_move(bb, unmake, hash_dummy);
+}
+
+inline void unmake_move(bitboard& bb, std::uint32_t& unmake, std::uint64_t& hash) noexcept
+{
     details::unmake_move_impl(bb, unmake, hash);
 
     // Decrement the ply-counter.
