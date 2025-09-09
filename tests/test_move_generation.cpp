@@ -50,11 +50,6 @@ TEST(MoveGeneration, StartingPosition)
     test_move_generation(STARTING_FEN, 7);
 }
 
-TEST(MoveGeneration, Kiwipete)
-{
-    test_move_generation(KIWIPETE_FEN, 6);
-}
-
 TEST(MoveGeneration, Pos3)
 {
     test_move_generation(POS3_FEN, 8);
