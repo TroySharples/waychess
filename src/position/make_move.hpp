@@ -50,6 +50,9 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
     const std::uint8_t type    { move::deserialise_move_type(move) };
     const std::uint8_t info    { move::deserialise_move_info(move) };
 
+    // All of the above information is overwritten if this is a null-move (the value 0).
+    const bool is_null { move == 0 };
+
     const std::uint64_t from_bb    { 1ULL << from_mb };
     const std::uint64_t to_bb      { 1ULL << to_mb };
     const std::uint64_t from_to_bb { from_bb | to_bb };
@@ -102,24 +105,27 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
 
     // Next we handle mechanically moving the side-to-plays piece. We have to be careful about the special case of
     // pawn promotions when updating the piece-specific bitboard.
-    to_move_pieces ^= from_to_bb;
-    hash ^= zobrist::get_code_piece(piece, from_mb);
-    if (move::move_type::is_promotion(type)) [[unlikely]]
+    if (!is_null) [[likely]]
     {
-        const piece_idx promote_idx { static_cast<piece_idx>(info | (is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn)) };
+        to_move_pieces ^= from_to_bb;
+        hash ^= zobrist::get_code_piece(piece, from_mb);
+        if (move::move_type::is_promotion(type)) [[unlikely]]
+        {
+            const piece_idx promote_idx { static_cast<piece_idx>(info | (is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn)) };
 
-        bb.boards[piece] ^= from_bb;
-        bb.boards[info | (is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn)] ^= to_bb;
+            bb.boards[piece] ^= from_bb;
+            bb.boards[info | (is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn)] ^= to_bb;
 
-        hash ^= zobrist::get_code_piece(promote_idx, to_mb);
+            hash ^= zobrist::get_code_piece(promote_idx, to_mb);
+        }
+        else
+        {
+            bb.boards[piece] ^= from_to_bb;
+            hash             ^= zobrist::get_code_piece(piece, to_mb);
+        }
     }
-    else
-    {
-        bb.boards[piece] ^= from_to_bb;
-        hash             ^= zobrist::get_code_piece(piece, to_mb);
-    }
 
-    // Handle piece captures.
+    // Handle piece captures (this should be compatible with null-moves).
     if (move::move_type::is_capture(type))
     {
         std::uint64_t& opponent_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
@@ -280,6 +286,9 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
     const std::uint8_t castling { move::deserialise_unmake_castling(unmake) };
     const std::uint8_t ply_50m  { move::deserialise_unmake_ply_50m(unmake) };
 
+    // All of the above information is overwritten if this is a null-move (the LSBs are 0 - the MSBs will contain unmake information like normal).
+    const bool is_null { (unmake & 0xffff) == 0 };
+
     const std::uint64_t from_bb    { 1ULL << from_mb };
     const std::uint64_t to_bb      { 1ULL << to_mb };
     const std::uint64_t from_to_bb { from_bb | to_bb };
@@ -316,28 +325,31 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
     }
 
     // Handle mechanically moving the pieces (from the to-square to the from-square).
-    to_move_pieces ^= from_to_bb;
-    hash ^= zobrist::get_code_piece(piece, from_mb);
-    if (move::move_type::is_promotion(type)) [[unlikely]]
+    if (!is_null) [[likely]]
     {
-        bb.boards[piece] ^= from_bb;
-
-        // We have to loop through the bitboards to decide which piece to remove - we unfortunately can't store this in the
-        // move-info in the case of capture-promotions.
-        for (std::uint8_t promotion_idx = (is_black_to_play ? piece_idx::w_knight : piece_idx::b_knight); promotion_idx <= (is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen); promotion_idx++)
+        to_move_pieces ^= from_to_bb;
+        hash ^= zobrist::get_code_piece(piece, from_mb);
+        if (move::move_type::is_promotion(type)) [[unlikely]]
         {
-            if (std::uint64_t& promotion_bitboard = bb.boards[promotion_idx]; promotion_bitboard & to_bb)
+            bb.boards[piece] ^= from_bb;
+
+            // We have to loop through the bitboards to decide which piece to remove - we unfortunately can't store this in the
+            // move-info in the case of capture-promotions.
+            for (std::uint8_t promotion_idx = (is_black_to_play ? piece_idx::w_knight : piece_idx::b_knight); promotion_idx <= (is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen); promotion_idx++)
             {
-                hash ^= zobrist::get_code_piece(static_cast<piece_idx>(promotion_idx), to_mb);
-                promotion_bitboard ^= to_bb;
-                break;
+                if (std::uint64_t& promotion_bitboard = bb.boards[promotion_idx]; promotion_bitboard & to_bb)
+                {
+                    hash ^= zobrist::get_code_piece(static_cast<piece_idx>(promotion_idx), to_mb);
+                    promotion_bitboard ^= to_bb;
+                    break;
+                }
             }
         }
-    }
-    else
-    {
-        hash ^= zobrist::get_code_piece(piece, to_mb);
-        bb.boards[piece] ^= from_to_bb;
+        else
+        {
+            hash ^= zobrist::get_code_piece(piece, to_mb);
+            bb.boards[piece] ^= from_to_bb;
+        }
     }
 
     // Handle piece captures.

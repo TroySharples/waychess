@@ -20,6 +20,10 @@ struct bitboard;
 namespace move
 {
 
+// The null move is an (illegal) chess move to just do nothing and pass the turn to the other
+// side. The make-move function simply increments the side-to-play and the ply counter.
+constexpr std::uint32_t NULL_MOVE { 0 };
+
 // We use a bitmasks of various (not necessarily orthogonal) move information to form the move type.
 namespace move_type
 {
@@ -30,11 +34,11 @@ constexpr std::uint8_t PROMOTION     { 0b011 };
 constexpr std::uint8_t PAWN_PUSH     { 0b010 };
 constexpr std::uint8_t EN_PASSENT    { 0b110 };
 
-constexpr bool is_castle(std::uint8_t move_type)        noexcept { return move_type == 0b001; }
-constexpr bool is_capture(std::uint8_t move_type)       noexcept { return move_type & 0b100; }
-constexpr bool is_promotion(std::uint8_t move_type)     noexcept { return (move_type & 0b011) == 0b011; }
-constexpr bool is_en_passent(std::uint8_t move_type)    noexcept { return move_type == 0b110; }
-constexpr bool is_pawn_push(std::uint8_t move_type)     noexcept { return move_type == 0b010; }
+constexpr bool is_castle(std::uint8_t move_type)     noexcept { return move_type == 0b001; }
+constexpr bool is_capture(std::uint8_t move_type)    noexcept { return move_type & 0b100; }
+constexpr bool is_promotion(std::uint8_t move_type)  noexcept { return (move_type & 0b011) == 0b011; }
+constexpr bool is_en_passent(std::uint8_t move_type) noexcept { return move_type == 0b110; }
+constexpr bool is_pawn_push(std::uint8_t move_type)  noexcept { return move_type == 0b010; }
 
 }
 

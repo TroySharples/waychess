@@ -9,7 +9,7 @@
 namespace
 {
 
-void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash, std::uint8_t depth, std::span<std::uint32_t> move_buf)
+void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash, std::uint8_t depth)
 {
     if (depth == 0)
         return;
@@ -17,7 +17,14 @@ void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash
     bitboard bb_copy { bb };
     std::uint64_t hash_copy { hash };
 
-    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    // Our buffer of moves to loop over will also include a null-moves.
+    constexpr std::size_t max_moves_in_position_including_null_move { MAX_MOVES_PER_POSITION+1 };
+    std::vector<std::uint32_t> move_buf(static_cast<std::size_t>(depth)*max_moves_in_position_including_null_move);
+
+    // Generate our move-list and add a null-move on the end to test.
+    std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    move_buf[moves++] = move::NULL_MOVE;
+
     for (std::uint8_t i = 0; i < moves; i++)
     {
         const std::uint32_t move = move_buf[i];
@@ -25,7 +32,7 @@ void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash
         std::uint32_t unmake;
         make_move({ .check_legality = true }, bb_copy, move, unmake, hash_copy);
 
-        test_move_generation_recursive(bb_copy, hash_copy, depth-1, move_buf.subspan(moves));
+        test_move_generation_recursive(bb_copy, hash_copy, depth-1);
 
         unmake_move(bb_copy, unmake, hash_copy);
 
@@ -36,11 +43,9 @@ void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash
 
 void test_move_generation(const char* fen, std::uint8_t depth)
 {
-    std::vector<std::uint32_t> move_buf(static_cast<std::size_t>(depth)*MAX_MOVES_PER_POSITION);
-
     bitboard bb { fen };
     std::uint64_t hash = zobrist::hash_init(bb);
-    test_move_generation_recursive(bb, hash, depth, move_buf);
+    test_move_generation_recursive(bb, hash, depth);
 }
 
 }
