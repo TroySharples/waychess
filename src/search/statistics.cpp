@@ -13,7 +13,7 @@ void statistics::log_search_info() const
 
     std::ostringstream ss;
     ss << "depth "        << static_cast<int>(depth)
-       << " score-cp "    << eval
+       << " score cp "    << eval
        << " time "        << duration_ms
        << " nodes "       << get_nodes()
        << " nps "         << get_nps()
