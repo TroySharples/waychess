@@ -118,8 +118,10 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
     }
 
     // Loop up our PV and hash moves from previous searches.
-    const std::uint32_t pv_move   { gs.pv.table[draft][0] };
-    const std::uint32_t hash_move { hash_hit ? entry.value.best_move : 0 };
+    const std::uint32_t pv_move        { gs.pv.table[draft][0] };
+    const std::uint32_t hash_move      { hash_hit ? entry.value.best_move : 0 };
+    const bool in_check                { is_in_check(gs.bb, colour == -1) };
+    const bool is_king_and_pawn_colour { gs.bb.is_king_and_pawn(colour == -1) };
 
     // The actual evaluation bit.
     std::uint32_t best_move {};
@@ -130,58 +132,81 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
     }
     else
     {
-        // Otherwise, we need to continue the search by generating all nodes from here.
-        const std::uint8_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
-        const std::span<std::uint32_t> move_list { move_buf.subspan(0, moves) };
-
-        // Sort the moves favourably to increase the chance of early beta-cutoffs.
-        sort_moves(move_list, draft, gs, pv_move, hash_move);
-
-        for (const auto move : move_list)
+        // See if we can perform null-move pruning - this relies on not being in check or a king-and-pawn endgame.
+        const std::size_t r { depth > 6 ? 4ULL : 3ULL };
+        bool null_move_pruned { false };
+        if (!in_check && !is_king_and_pawn_colour && depth >= r+1)
         {
-            // Allow us to break out of the search early if needed.
-            if (gs.stop_search) [[unlikely]]
-                return ret;
-
+            // No need to check legality here as we already know this move won't leave us in check.
             std::uint32_t unmake;
-            if (!make_move({ .check_legality = true }, gs, move, unmake)) [[unlikely]]
-            {
-                // Simply unmake the move and move on to the next one if it's illegal (note that the move is still applied in make_move
-                // even if it ends up being illegal).
-                unmake_move(gs, unmake);
-                continue;
-            }
-
-            // Recurse this algorithm, and make sure to unmake after the fact.
-            const int score { -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, move_buf.subspan(moves)) };
+            make_move({ .check_legality = false }, gs, move::NULL_MOVE, unmake);
+            const int score { -search_negamax_recursive(gs, stats, depth-r-1, -b, -b+1, -colour, move_buf) };
             unmake_move(gs, unmake);
-            if (score > ret)
+
+            // Return early if this reduced search causes a beta-cutoff.
+            if (score > b)
             {
-                best_move = move;
+                null_move_pruned = true;
                 ret = score;
-            }
-
-            // Update our PV table when we've found a new best move at this depth.
-            if (ret > a)
-            {
-                a = ret;
-                gs.pv.update_variation(draft, move);
-            }
-
-            // Break early if we encounter a beta-cutoff (fantastic news!).
-            if (a >= b)
-            {
-                // Only store the killer move if it is quiet,
-                if (const auto type = move::deserialise_move_type(move); !move::move_type::is_capture(type) && !move::move_type::is_promotion(type))
-                    gs.km.store_killer_move(draft, move);
-                break;
             }
         }
 
-        // Handle the rare case of there being no legal moves in this position. This should be evaluated as either checkmate (if we're in check) or as
-        // a draw (if it is stalemate).
-        if (!best_move) [[unlikely]]
-            ret = is_in_check(gs.bb, colour == -1) ? -evaluation::EVAL_CHECKMATE : 0;
+        // Continue with the rest of our search if we were unable to prune any nodes.
+        if (!null_move_pruned)
+        {
+            // Otherwise, we need to continue the search by generating all nodes from here.
+            const std::uint8_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
+            const std::span<std::uint32_t> move_list { move_buf.subspan(0, moves) };
+
+            // Sort the moves favourably to increase the chance of early beta-cutoffs.
+            sort_moves(move_list, draft, gs, pv_move, hash_move);
+
+            for (const auto move : move_list)
+            {
+                // Allow us to break out of the search early if needed.
+                if (gs.stop_search) [[unlikely]]
+                    return ret;
+
+                std::uint32_t unmake;
+                if (!make_move({ .check_legality = true }, gs, move, unmake)) [[unlikely]]
+                {
+                    // Simply unmake the move and move on to the next one if it's illegal (note that the move is still applied in make_move
+                    // even if it ends up being illegal).
+                    unmake_move(gs, unmake);
+                    continue;
+                }
+
+                // Recurse this algorithm, and make sure to unmake after the fact.
+                const int score { -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, move_buf.subspan(moves)) };
+                unmake_move(gs, unmake);
+                if (score > ret)
+                {
+                    best_move = move;
+                    ret = score;
+                }
+
+                // Update our PV table when we've found a new best move at this depth.
+                if (ret > a)
+                {
+                    a = ret;
+                    gs.pv.update_variation(draft, move);
+                }
+
+                // Break early if we encounter a beta-cutoff (fantastic news!).
+                if (a >= b)
+                {
+                    // Only store the killer move if it is quiet,
+                    if (const auto type = move::deserialise_move_type(move); !move::move_type::is_capture(type) && !move::move_type::is_promotion(type))
+                        gs.km.store_killer_move(draft, move);
+                    break;
+                }
+            }
+
+            // Handle the rare case of there being no legal moves in this position. This should be evaluated as either checkmate (if we're in check) or as
+            // a draw (if it is stalemate).
+            if (!best_move) [[unlikely]]
+                ret = is_in_check(gs.bb, colour == -1) ? -evaluation::EVAL_CHECKMATE : 0;
+        }
     }
 
     // Handle updating our transposition table. We currently employ the very simple strategy of always overwriting unless the other

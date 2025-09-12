@@ -53,6 +53,10 @@ struct bitboard
     constexpr piece_idx get_piece_type(std::uint64_t bb) const noexcept;
     constexpr piece_idx get_piece_type_colour(std::uint64_t bb, bool is_black) const noexcept;
 
+    // Checks whether this is a king-and-pawn end-game.
+    constexpr bool is_king_and_pawn() const noexcept;
+    constexpr bool is_king_and_pawn(bool is_black) const noexcept;
+
     constexpr bool is_black_to_play() const noexcept { return ply_counter & 1; }
     constexpr bool is_white_to_play() const noexcept { return !is_black_to_play(); }
 
@@ -85,5 +89,17 @@ constexpr piece_idx bitboard::get_piece_type_colour(std::uint64_t bb, bool is_bl
         if (boards[idx] & bb)
             return static_cast<piece_idx>(idx);
     return piece_idx::empty;
+}
 
+constexpr bool bitboard::is_king_and_pawn() const noexcept
+{
+    return is_king_and_pawn(false) && is_king_and_pawn(true);
+}
+
+constexpr bool bitboard::is_king_and_pawn(bool is_black) const noexcept
+{
+    for (std::uint8_t idx = (is_black ? piece_idx::b_knight : piece_idx::w_knight); idx <= (is_black ? piece_idx::b_queen : piece_idx::w_queen); idx++)
+        if (boards[idx])
+            return false;
+    return true;
 }
