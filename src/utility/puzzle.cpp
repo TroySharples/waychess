@@ -11,7 +11,7 @@ bool solver::solve(const puzzle& p, std::size_t depth)
 
     for (auto move : p.moves)
     {
-        if (is_to_move && move != search::recommend_move_id(gs, depth).move)
+        if (is_to_move && move != search::recommend_move(gs, depth).move)
             ret = false;
 
         make_move({ .check_legality = false }, gs, move);

@@ -11,6 +11,8 @@
 #include "search/statistics.hpp"
 
 #include <chrono>
+#include <mutex>
+#include <stdexcept>
 
 namespace search
 {
@@ -24,13 +26,8 @@ struct recommendation
     friend constexpr bool operator>(const recommendation& a, const recommendation& b) noexcept { return a.eval > b.eval; };
 };
 
-recommendation recommend_move(game_state& gs, statistics& stats, std::uint8_t max_depth);
-recommendation recommend_move_id(game_state& gs, statistics& stats, std::uint8_t max_depth);
-recommendation recommend_move_id(game_state& gs, statistics& stats, std::uint8_t max_depth, std::chrono::duration<double> max_time);
-
-recommendation recommend_move(game_state& gs, std::uint8_t max_depth);
-recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth);
-recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, std::chrono::duration<double> max_time);
+recommendation recommend_move(game_state& gs, statistics& stats, std::size_t max_depth = 64, std::chrono::duration<double> max_time = std::chrono::hours(2));
+recommendation recommend_move(game_state& gs, std::size_t max_depth = 64, std::chrono::duration<double> max_time = std::chrono::hours(2)) { statistics stats; return recommend_move(gs, stats, max_depth, max_time); }
 
 }
 
@@ -43,10 +40,12 @@ recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, std::ch
 namespace search
 {
 
-inline recommendation recommend_move(game_state& gs, statistics& stats, std::uint8_t max_depth)
+namespace details
 {
-    gs.stop_search = false;
 
+// Is used by the iterative-deepening recommend-move call.
+inline recommendation recommend_move_impl(game_state& gs, statistics& stats, std::size_t depth)
+{
     std::array<std::uint32_t, static_cast<std::size_t>(::details::pv_table::MAX_DEPTH*MAX_MOVES_PER_POSITION)> move_buf;
     std::span<std::uint32_t> move_span(move_buf);
 
@@ -57,13 +56,13 @@ inline recommendation recommend_move(game_state& gs, statistics& stats, std::uin
 
     // Initialise our local statistics for this ID run.
     statistics stats_local = {};
-    stats_local.depth = max_depth;
+    stats_local.depth = depth;
 
     // Negamax returns a relative score for the side to play, so we have to multiply it by the colour.
     const int colour { gs.bb.is_black_to_play() ? -1 : 1 };
 
     const auto start = std::chrono::steady_clock::now();
-    gs.eval = colour*search_negamax_aspiration_window(gs, stats_local, max_depth, colour, move_span);
+    gs.eval = colour*search_negamax_aspiration_window(gs, stats_local, depth, colour, move_span);
     const auto end = std::chrono::steady_clock::now();
 
     stats_local.time = end - start;
@@ -78,17 +77,16 @@ inline recommendation recommend_move(game_state& gs, statistics& stats, std::uin
 
     return { .move=gs.pv.table[0][0], .eval=gs.eval };
 }
-inline recommendation recommend_move_id(game_state& gs, statistics& stats, std::uint8_t max_depth)
+
+inline recommendation recommend_move_id_impl(game_state& gs, statistics& stats, std::size_t depth)
 {
     gs.stop_search = false;
 
-    std::uint8_t depth { 1 };
-    recommendation ret;
-
     // Do the iterative deepening - we make sure to only update our recommendation if we weren't interrupted.
-    while (depth <= max_depth)
+    recommendation ret;
+    for (std::size_t i = 1; i <= depth; i++)
     {
-        const recommendation id = recommend_move(gs, stats, depth++);
+        const recommendation id = details::recommend_move_impl(gs, stats, i);
         if (gs.stop_search)
             break;
         ret = id;
@@ -98,36 +96,57 @@ inline recommendation recommend_move_id(game_state& gs, statistics& stats, std::
             break;
     }
 
+    gs.stop_search = true;
     return ret;
 }
 
-inline recommendation recommend_move_id(game_state& gs, statistics& stats, std::uint8_t max_depth, std::chrono::duration<double> max_time)
+class search_impl
 {
-    auto f = std::async(static_cast<recommendation(*)(game_state&, statistics&, std::uint8_t)>(&recommend_move_id), std::ref(gs), std::ref(stats), max_depth);
+public:
+    recommendation recommend_move(game_state& gs, statistics& stats, std::size_t max_depth, std::chrono::duration<double> max_time)
+    {
+        // Make sure our thread is not joined.
+        if (_t.joinable())
+            throw std::runtime_error("Cannot start search when our search thread has not been joined");
 
-    // Technically this is undefined multithreaded behaviour... Will improve this section of the code greatly in the future.
-    std::this_thread::sleep_for(max_time);
-    gs.stop_search = true;
+        // Reset our recommendation and kick-off our search thread.
+        _rec.reset();
+        _t = std::thread(&search_impl::run, this, std::ref(gs), std::ref(stats), max_depth);
 
-    return f.get();
+        // Set a condition variable that waits for the search to stop, or an amount of time to elapse.
+        std::unique_lock<std::mutex> lk(_m);
+        _c.wait_for(lk, max_time, [this] () { return _rec.has_value(); });
+
+        // Stop the search if we haven't already and join the running thread.
+        gs.stop_search = true;
+        _t.join();
+
+        return *_rec;
+    }
+
+private:
+    std::thread _t;
+    std::condition_variable _c;
+    std::optional<recommendation> _rec;
+    std::mutex _m;
+
+    void run(game_state& gs, statistics& stats, std::size_t max_depth)
+    {
+        recommendation rec = details::recommend_move_id_impl(gs, stats, max_depth);
+        {
+            std::lock_guard<std::mutex> lk(_m);
+            _rec = rec;
+        }
+        _c.notify_one();
+    }
+};
+
 }
 
-inline recommendation recommend_move(game_state& gs, std::uint8_t max_depth)
+inline recommendation recommend_move(game_state& gs, statistics& stats, std::size_t max_depth, std::chrono::duration<double> max_time)
 {
-    statistics stats;
-    return recommend_move(gs, stats, max_depth);
-}
-
-inline recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth)
-{
-    statistics stats;
-    return recommend_move_id(gs, stats, max_depth);
-}
-
-inline recommendation recommend_move_id(game_state& gs, std::uint8_t max_depth, std::chrono::duration<double> max_time)
-{
-    statistics stats;
-    return recommend_move_id(gs, stats, max_depth, max_time);
+    details::search_impl s;
+    return s.recommend_move(gs, stats, max_depth, max_time);
 }
 
 

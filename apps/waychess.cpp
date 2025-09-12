@@ -112,7 +112,7 @@ void handle(const uci::command_go& req)
         const std::size_t increment_ms { gs.bb.is_black_to_play() ? (req.binc.has_value() ? *req.binc : 0)  : (req.winc.has_value() ? *req.winc : 0) };
 
         const std::chrono::milliseconds time((remaining_ms/20) + (increment_ms/2));
-        recommended_move = search::recommend_move_id(gs, 32, time).move;
+        recommended_move = search::recommend_move(gs, 32, time).move;
     }
 
     // Print our recommendation.

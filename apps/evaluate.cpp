@@ -88,7 +88,7 @@ int main(int argc, char** argv)
     gs.tt.set_table_bytes(hash_table_size_bytes);
 
     search::statistics stats {};
-    const search::recommendation rec { search::recommend_move_id(gs, stats, depth) };
+    const search::recommendation rec { search::recommend_move(gs, stats, depth) };
 
     // Start printing the JSON file in one go. We might clean this up later by having a proper JSON printing class, but this
     // program seems too simple at the moment to warrant it.
