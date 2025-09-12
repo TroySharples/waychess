@@ -1,4 +1,3 @@
-#include "search/transposition_table.hpp"
 #include "utility/puzzle.hpp"
 #include "utility/logging.hpp"
 
@@ -97,9 +96,9 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    // Init hash table, so we can read-back the actual allocated memory (instead of the requested amount) when
-    // printing out the telemetry below.
-    search::transposition_table.set_table_bytes(hash_table_size_bytes);
+    // Create our puzzle solver and allocate the right amount of memory for the transposition table.
+    solver s;
+    s.gs.tt.set_table_bytes(hash_table_size_bytes);
 
     std::size_t puzzles_total {};
     std::size_t puzzles_solved {};
@@ -109,11 +108,11 @@ int main(int argc, char** argv)
     {
         std::stringstream ss(line);
 
-        puzzle p;
+        solver::puzzle p;
         ss >> p;
 
         puzzles_total++;
-        if (p.solve(depth))
+        if (s.solve(p, depth))
             puzzles_solved++;
     }
     const auto time_end = std::chrono::steady_clock::now();
@@ -124,7 +123,7 @@ int main(int argc, char** argv)
     std::cout << R"({)" << '\n'
               << R"(    "file": )"   << csv_path.filename() << ",\n"
               << R"(    "depth": )" << static_cast<int>(depth) << ",\n"
-              << R"(    "hash-table MB": )" << '"' << search::transposition_table.get_table_bytes()/1000000 << '"' << ",\n"
+              << R"(    "hash-table MB": )" << '"' << s.gs.tt.get_table_bytes()/1000000 << '"' << ",\n"
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
               << R"(    "puzzles-total": )" << puzzles_total << ",\n"

@@ -1,6 +1,5 @@
 #include "search/search.hpp"
 #include "search/statistics.hpp"
-#include "search/transposition_table.hpp"
 #include "utility/logging.hpp"
 
 #include <cstring>
@@ -81,11 +80,12 @@ int main(int argc, char** argv)
     // Setup the logger.
     set_log_method(log_method::cerr);
 
-    game_state gs { bitboard(fen) };
+    game_state gs;
+    gs.load(bitboard(fen));
 
     // Init hash table, so we can read-back the actual allocated memory (instead of the requested amount) when
     // printing out the telemetry below.
-    search::transposition_table.set_table_bytes(hash_table_size_bytes);
+    gs.tt.set_table_bytes(hash_table_size_bytes);
 
     search::statistics stats {};
     const search::recommendation rec { search::recommend_move_id(gs, stats, depth) };
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
               << R"(    "depth": )" << static_cast<int>(stats.depth) << ",\n"
-              << R"(    "hash-table MB": )" << '"' << search::transposition_table.get_table_bytes()/1000000 << '"' << ",\n"
+              << R"(    "hash-table MB": )" << '"' << gs.tt.get_table_bytes()/1000000 << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(stats.time).count() << ",\n"
               << R"(    "pv": )" << '"' << move::to_algebraic_long(stats.pv) << '"' << ",\n"
               << R"(    "evaluation-cp": )" << rec.eval << ",\n"

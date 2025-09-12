@@ -23,6 +23,9 @@ struct pv_table
     // Fill out the upper-ply PVs assuming that we search the mainline PV first.
     void init_from_root() noexcept;
 
+    // Wipe all state from the table - this should only be used when starting a new game.
+    void reset() noexcept;
+
     std::array<std::array<std::uint32_t, MAX_DEPTH>, MAX_DEPTH> table;
 };
 
@@ -42,6 +45,11 @@ inline void pv_table::init_from_root() noexcept
     {
         std::copy_n(table[0].begin() + i, MAX_DEPTH-i, table[i].begin());
     }
+}
+
+inline void pv_table::reset() noexcept
+{
+    table.fill({});
 }
 
 }

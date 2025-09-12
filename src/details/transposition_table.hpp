@@ -2,7 +2,7 @@
 
 #include "details/hash_table.hpp"
 
-namespace search
+namespace details
 {
 
 // The value type in our hash table for search - we may expand this in the future.
@@ -18,6 +18,6 @@ struct __attribute__ ((__packed__)) search_value_type
 };
 
 // We have one global transposition table.
-extern ::details::hash_table<search_value_type> transposition_table;
+using transposition_table = ::details::hash_table<search_value_type>;
 
 }

@@ -1,4 +1,3 @@
-#include "search/transposition_table.hpp"
 #include "utility/puzzle.hpp"
 
 #include <gtest/gtest.h>
@@ -7,6 +6,9 @@
 
 namespace
 {
+
+// Global puzzle solver.
+solver s;
 
 void test_puzzles(const std::filesystem::path& csv_path, double pass_accuracy)
 {
@@ -23,11 +25,11 @@ void test_puzzles(const std::filesystem::path& csv_path, double pass_accuracy)
     {
         std::stringstream ss(line);
 
-        puzzle p;
+        solver::puzzle p;
         ss >> p;
 
         puzzles_total++;
-        if (p.solve(5))
+        if (s.solve(p, 5))
             puzzles_solved++;
     }
 
@@ -53,7 +55,7 @@ TEST(Puzzle, Endgame500)
 int main(int argc, char **argv)
 {
     // Allocate 128 MB for our transposition table.
-    search::transposition_table.set_table_bytes(128*1000000ULL);
+    s.gs.tt.set_table_bytes(128*1000000ULL);
 
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

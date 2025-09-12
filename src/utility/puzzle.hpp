@@ -1,13 +1,19 @@
 #pragma once
 
-#include "search/search.hpp"
+#include "position/game_state.hpp"
 
-struct puzzle
+struct solver
+{
+    struct puzzle;
+    bool solve(const puzzle& p, std::size_t depth);
+
+    game_state gs;
+};
+
+struct solver::puzzle
 {
     bitboard bb;
     std::vector<std::uint32_t> moves;
-
-    bool solve(std::uint8_t max_depth) const;
 
     friend std::istream& operator>>(std::istream& is, puzzle& v);
 };

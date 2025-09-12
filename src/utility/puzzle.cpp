@@ -1,19 +1,17 @@
 #include "puzzle.hpp"
 
-#include "position/make_move.hpp"
+#include "search/search.hpp"
 
-#include <sstream>
-
-bool puzzle::solve(std::uint8_t max_depth) const
+bool solver::solve(const puzzle& p, std::size_t depth)
 {
     bool ret { true };
 
-    game_state gs   { bb };
+    gs.load(p.bb);
     bool is_to_move { false };
 
-    for (auto move : moves)
+    for (auto move : p.moves)
     {
-        if (is_to_move && move != search::recommend_move_id(gs, max_depth).move)
+        if (is_to_move && move != search::recommend_move_id(gs, depth).move)
             ret = false;
 
         make_move({ .check_legality = false }, gs, move);
@@ -24,7 +22,7 @@ bool puzzle::solve(std::uint8_t max_depth) const
     return ret;
 }
 
-std::istream& operator>>(std::istream& is, puzzle& v)
+std::istream& operator>>(std::istream& is, solver::puzzle& v)
 {
     std::string token;
 

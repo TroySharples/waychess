@@ -1,7 +1,6 @@
 #include "search/search.hpp"
 #include "utility/uci.hpp"
 #include "utility/logging.hpp"
-#include "search/transposition_table.hpp"
 #include "version.hpp"
 
 #include <cstdlib>
@@ -46,8 +45,8 @@ void handle(const uci::command_uci& /*req*/)
 void handle(const uci::command_isready& /*req*/)
 {
     // If we haven't already initialised our transposition table, we do it here with the default 128 MB.
-    if (search::transposition_table.get_table_bytes() == 0)
-        search::transposition_table.set_table_bytes(1000000ULL*TRANSPOSITION_TABLE_MB_DEFAULT);
+    if (gs.tt.get_table_bytes() == 0)
+        gs.tt.set_table_bytes(1000000ULL*TRANSPOSITION_TABLE_MB_DEFAULT);
 
     // Say we are ready.
     uci::command_readyok{}.print(std::cout);
@@ -55,8 +54,8 @@ void handle(const uci::command_isready& /*req*/)
 
 void handle(const uci::command_ucinewgame& /*req*/)
 {
-    // Clear the game state.
-    gs = game_state{};
+    // Reset the game state.
+    gs.reset();
 }
 
 void handle(const uci::command_setoption& req)
@@ -69,7 +68,7 @@ void handle(const uci::command_setoption& req)
         const std::size_t hash_bytes { 1000000ULL * std::stoull(*req.value) };
 
         // This should only affect the search hash-table.
-        search::transposition_table.set_table_bytes(hash_bytes);
+        gs.tt.set_table_bytes(hash_bytes);
     }
     else
     {
@@ -87,7 +86,7 @@ void handle(const uci::command_debug& req)
 void handle(const uci::command_position& req)
 {
     // We use copy-assignment of the position only so we don't clear othe meta-data that affects search (e.g. hash-age).
-    gs = req.bb;
+    gs.load(req.bb);
 
     // Apply the subsequent moves and increment the root ply if necessary.
     for (const auto& move_str : req.moves)

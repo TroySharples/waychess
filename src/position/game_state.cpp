@@ -5,19 +5,26 @@
 #include "zobrist_hash.hpp"
 #include "mailbox.hpp"
 
-game_state::game_state(const bitboard& bb)
-    : bb(bb), hash(zobrist::hash_init(mailbox(bb)))
-{
-    position_history[0] = hash;
-}
-
-game_state& game_state::operator=(const bitboard& bb)
+void game_state::load(const bitboard& bb)
 {
     this->bb = bb;
     hash = zobrist::hash_init(mailbox(bb));
-    position_history[0] = hash;
 
-    return *this;
+    position_history[0] = hash;
+}
+
+void game_state::reset()
+{
+    bb = {};
+    hash = {};
+
+    position_history.fill(0);
+    pv.reset();
+    km.reset();
+
+    root_ply = {};
+    age = {};
+    eval = {};
 }
 
 std::span<const std::uint32_t> game_state::get_pv(std::uint8_t ply) const noexcept

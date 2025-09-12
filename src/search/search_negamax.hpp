@@ -4,7 +4,6 @@
 #include "evaluation/evaluate.hpp"
 #include "position/game_state.hpp"
 #include "search/statistics.hpp"
-#include "search/transposition_table.hpp"
 #include "search/search_quiescent.hpp"
 
 #include "position/generate_moves.hpp"
@@ -86,7 +85,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
     // Loop up the value in the hash table.
     stats.tt_probes++;
-    auto& entry { transposition_table[gs.hash] };
+    auto& entry { gs.tt[gs.hash] };
     const bool hash_hit { entry.key == gs.hash };
     if (hash_hit)
         stats.tt_hits++;
@@ -273,7 +272,7 @@ inline int search_negamax_aspiration_window(game_state& gs, statistics& stats, s
     int d = initial_delta;
 
     // Set a narrower window around the previous score for this node if we can find it in the transposition table.
-    if (const auto& entry { transposition_table[gs.hash] }; entry.key == gs.hash)
+    if (const auto& entry { gs.tt[gs.hash] }; entry.key == gs.hash)
     {
         a = entry.value.eval-d;
         b = entry.value.eval+d;

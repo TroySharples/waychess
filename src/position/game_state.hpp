@@ -3,15 +3,19 @@
 #include "bitboard.hpp"
 #include "details/pv_table.hpp"
 #include "details/km_table.hpp"
+#include "details/transposition_table.hpp"
 
 // The main game state that is used in the search and evaluation. This includes the position itself (i.e. bitboard) as well
 // as other incrementally updated fields (e.g. hash).
 struct game_state
 {
     game_state() = default;
-    game_state(const bitboard& bb);
 
-    game_state& operator=(const bitboard& bb);
+    // Load up the game from a bitboard.
+    void load(const bitboard& bb);
+
+    // Clear all state - note that this doesn't affect the size of the transposition table.
+    void reset();
 
     // The bitboard itself. We use a bitboard for obvious reasons.
     bitboard bb;
@@ -32,6 +36,9 @@ struct game_state
 
     // The ply of our root node in our search.
     std::uint16_t root_ply;
+
+    // The main transposition table.
+    details::transposition_table tt;
 
     // The age of the current game-state. This is for things like invalidating hash lookups for when we need to consider
     // new positions.
