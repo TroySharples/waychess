@@ -68,7 +68,7 @@ inline void sort_moves(std::span<std::uint32_t> move_buf, std::size_t draft, con
         move_buf[i] = scored_moves[i].first;
 }
 
-inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint8_t depth, int a, int b, int colour, std::span<std::uint32_t> move_buf) noexcept
+inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size_t depth, int a, int b, int colour, std::span<std::uint32_t> move_buf) noexcept
 {
     int ret { -std::numeric_limits<int>::max() };
 
@@ -161,8 +161,10 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
             // Sort the moves favourably to increase the chance of early beta-cutoffs.
             sort_moves(move_list, draft, gs, pv_move, hash_move);
 
-            for (const auto move : move_list)
+            for (std::size_t i =0; i < moves; i++)
             {
+                const std::uint32_t move { move_list[i] };
+
                 // Allow us to break out of the search early if needed.
                 if (gs.stop_search) [[unlikely]]
                     return ret;
@@ -176,9 +178,30 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::uint
                     continue;
                 }
 
-                // Recurse this algorithm, and make sure to unmake after the fact.
-                const int score { -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, move_buf.subspan(moves)) };
+                // Do the actual search by recursing the algorithm. We vary the quality of the search based on whether this move is expected
+                // to be any good. TODO: tweek the LMR kick-in after we add better move ordering (e.g. history-heuristic).
+                int score;
+                if (i >= 3 && depth > 3)
+                {
+                    // We run the recursive search at a lower depth if this move isn't near the top of our list after sorting. TODO: have a
+                    // smarter adaptive LMR-reduction.
+                    constexpr std::size_t lmr_reduction { 1 };
+                    score = -search_negamax_recursive(gs, stats, depth-lmr_reduction-1, -b, -a, -colour, move_buf.subspan(moves));
+
+                    // We rerun the search at full depth if the result of this reduced search fails high over beta (this move was better
+                    // than we originally thought based on it's position in the move list).
+                    if (score >= b)
+                        score = -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, move_buf.subspan(moves));
+                }
+                else
+                {
+                    // Otherwise, just run the recursive search without any reduction in depth.
+                    score = -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, move_buf.subspan(moves));
+                }
+
+                // Resets the game state to how it was before we made the move.
                 unmake_move(gs, unmake);
+
                 if (score > ret)
                 {
                     best_move = move;
