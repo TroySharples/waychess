@@ -2,10 +2,6 @@ add_executable(waychess ${CMAKE_CURRENT_SOURCE_DIR}/waychess.cpp)
 target_link_libraries(waychess PRIVATE lib-waychess)
 install(TARGETS waychess DESTINATION bin)
 
-add_executable(whychess ${CMAKE_CURRENT_SOURCE_DIR}/whychess.cpp)
-target_link_libraries(whychess PRIVATE lib-waychess)
-install(TARGETS whychess DESTINATION bin)
-
 add_executable(waychess-perft ${CMAKE_CURRENT_SOURCE_DIR}/perft.cpp)
 target_link_libraries(waychess-perft PRIVATE lib-waychess)
 install(TARGETS waychess-perft DESTINATION bin)
