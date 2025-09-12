@@ -5,6 +5,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <sstream>
 
@@ -96,14 +97,34 @@ void handle(const uci::command_position& req)
     }
 }
 
+std::thread go_thread;
+void run_go(std::size_t max_depth, std::chrono::duration<double> max_time)
+{
+    const std::uint32_t move { search::recommend_move(gs, max_depth, max_time).move };
+    {
+        uci::command_bestmove resp;
+        resp.move_best = move::to_algebraic_long(move);
+        resp.print(std::cout);
+    }
+}
+
 void handle(const uci::command_go& req)
 {
-    std::uint32_t recommended_move;
+    // Check if we've already joined this thread.
+    if (go_thread.joinable())
+    {
+        // This is an error if we're running a search.
+        if (!gs.stop_search)
+            throw std::runtime_error("Cannot interrupt a search with a go command");
+
+        // Otherwise we just have to join the thread here.
+        go_thread.join();
+    }
 
     if (gs.bb.is_black_to_play() ? !req.btime.has_value() : !req.wtime.has_value())
     {
-        // If we haven't been told anything about out time parameters we just default to calculating to depth 6.
-        recommended_move = search::recommend_move(gs, 6).move;
+        // Calculate infinitely if we haven't been told our time parameters.
+        go_thread = std::thread(&run_go, 64, std::chrono::days(2));
     }
     else
     {
@@ -112,15 +133,17 @@ void handle(const uci::command_go& req)
         const std::size_t increment_ms { gs.bb.is_black_to_play() ? (req.binc.has_value() ? *req.binc : 0)  : (req.winc.has_value() ? *req.winc : 0) };
 
         const std::chrono::milliseconds time((remaining_ms/20) + (increment_ms/2));
-        recommended_move = search::recommend_move(gs, 32, time).move;
+        go_thread = std::thread(&run_go, 64, time);
     }
+}
 
-    // Print our recommendation.
-    {
-        uci::command_bestmove resp;
-        resp.move_best = move::to_algebraic_long(recommended_move);
-        resp.print(std::cout);
-    }
+void handle(const uci::command_stop& /*req*/)
+{
+    gs.stop_search = true;
+
+    // Only join if necessary.
+    if (go_thread.joinable())
+        go_thread.join();
 }
 
 void handle(std::string_view command)
@@ -182,6 +205,12 @@ int main()
         else if (command == "go")
         {
             uci::command_go req;
+            req.read(iss);
+            handle(req);
+        }
+        else if (command == "stop")
+        {
+            uci::command_stop req;
             req.read(iss);
             handle(req);
         }

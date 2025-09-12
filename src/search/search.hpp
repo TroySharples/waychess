@@ -114,8 +114,10 @@ public:
         _t = std::thread(&search_impl::run, this, std::ref(gs), std::ref(stats), max_depth);
 
         // Set a condition variable that waits for the search to stop, or an amount of time to elapse.
-        std::unique_lock<std::mutex> lk(_m);
-        _c.wait_for(lk, max_time, [this] () { return _rec.has_value(); });
+        {
+            std::unique_lock<std::mutex> lk(_m);
+            _c.wait_for(lk, max_time, [this] () { return _rec.has_value(); });
+        }
 
         // Stop the search if we haven't already and join the running thread.
         gs.stop_search = true;
