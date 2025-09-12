@@ -23,9 +23,8 @@ struct game_state
     // Zobrist hash of the current position.
     std::uint64_t hash;
 
-    // We only support game lengths up to 1024 ply (longest ever game between two engines is Stockfish vs Berserk at 467
-    // moves = 934 ply). This is well below the theoretical limit of 11798 ply, but I like my memory...
-    static constexpr std::uint16_t MAX_GAME_LENGTH { 1024 };
+    // The maximum theoretical game limit - this is a good-chunk of memory but we only have one of them so it's okay.
+    static constexpr std::size_t MAX_GAME_LENGTH { 11798 };
 
     // A boolean indicating when we must stop searching as soon as possible. All search algorithms must respect this.
     bool stop_search;
