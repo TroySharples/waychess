@@ -42,7 +42,7 @@ inline std::uint64_t get_rook_attacked_squares_from_mailbox_impl(std::uint8_t mb
     std::uint64_t ret {};
 
     const std::uint64_t rook { get_bitboard_mailbox_piece(mb) };
-    
+
     // Mask off the position of the rook itself in the bitboard - the presence of this screws with the blocking-piece calculation.
     pos &= ~rook;
 

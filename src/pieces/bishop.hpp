@@ -33,7 +33,7 @@ inline std::uint64_t get_bishop_xrayed_squares_from_mailbox_impl(std::uint8_t mb
         ne_ray = get_bitboard_mailbox_piece(mb) | shift_north_east(ne_ray);
         se_ray = get_bitboard_mailbox_piece(mb) | shift_south_east(se_ray);
     }
-    
+
     return (sw_ray | nw_ray | ne_ray | se_ray) & ~b;
 }
 
@@ -51,7 +51,7 @@ inline std::uint64_t get_bishop_attacked_squares_from_mailbox_impl(std::uint8_t 
     std::uint64_t ret {};
 
     const std::uint64_t bishop { get_bitboard_mailbox_piece(mb) };
-    
+
     // Mask off the position of the bishop itself in the bitboard - the presence of this screws with the blocking-piece calculation.
     pos &= ~bishop;
 

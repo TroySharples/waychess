@@ -7,7 +7,7 @@ bitboard::bitboard(const mailbox& mb)
 {
     boards.fill(0);
     for (std::size_t i = 0; i < mb.squares.size(); i++)
-        if (const auto p = mb.squares[i]; p != piece_idx::empty) 
+        if (const auto p = mb.squares[i]; p != piece_idx::empty)
             boards[p] |= get_bitboard_mailbox_piece(i);
 
     boards[piece_idx::w_any] = 0;
@@ -21,7 +21,7 @@ bitboard::bitboard(const mailbox& mb)
 bitboard::bitboard(std::string_view fen)
     : bitboard(mailbox(fen))
 {
-    
+
 }
 
 std::string bitboard::get_fen_string() const noexcept
