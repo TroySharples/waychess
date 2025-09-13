@@ -448,15 +448,15 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
 
 inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move) noexcept
 {
-    // Dummy unmake (will get optimised away if necessary).
+    // Dummy unmake (will get hopefully get optimised away).
     std::uint32_t unmake_dummy;
     return make_move(args, bb, move, unmake_dummy);
 }
 
 inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move, std::uint32_t& unmake) noexcept
 {
-    // Dummy hash (will get optimised away if necessary).
-    std::uint64_t hash_dummy;
+    // Dummy hash (will hopefully get optimised away).
+    std::uint64_t hash_dummy {};
     return make_move(args, bb, move, unmake, hash_dummy);
 }
 
@@ -472,7 +472,7 @@ inline bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t 
 
 inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t move) noexcept
 {
-    // Dummy unmake (will get optimised away if necessary).
+    // Dummy unmake (will get hopefully get optimised away).
     std::uint32_t unmake_dummy;
     return make_move(args, gs, move, unmake_dummy);
 }
@@ -489,7 +489,8 @@ inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t 
 
 inline void unmake_move(bitboard& bb, std::uint32_t& unmake) noexcept
 {
-    std::uint64_t hash_dummy;
+    // Dummy hash (will hopefully get optimised away).
+    std::uint64_t hash_dummy {};
     unmake_move(bb, unmake, hash_dummy);
 }
 
