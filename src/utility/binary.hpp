@@ -60,7 +60,3 @@ std::ostream& display(std::ostream& os, std::uint64_t v);
 
 constexpr std::uint64_t ls1b_isolate(std::uint64_t x) noexcept { return (~x+1) & x; }
 constexpr std::uint64_t ls1b_reset(std::uint64_t x)  noexcept{ return (x-1) & x; }
-
-// Takes a bitboard and emits a vector of size 2**popcount(x) containing all possible
-// 0 and 1 combinations of the elements of the bitboard with set bits.
-std::vector<std::uint64_t> get_1s_combinations(std::uint64_t x);
