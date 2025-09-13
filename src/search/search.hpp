@@ -103,6 +103,20 @@ inline recommendation recommend_move_id_impl(game_state& gs, statistics& stats, 
 class search_impl
 {
 public:
+    search_impl() = default;
+
+    ~search_impl()
+    {
+        if (_t.joinable())
+            _t.join();
+    }
+
+    search_impl(const search_impl&) = delete;
+    search_impl& operator=(const search_impl&) = delete;
+
+    search_impl(search_impl&&) = delete;
+    search_impl& operator=(search_impl&&) = delete;
+
     recommendation recommend_move(game_state& gs, statistics& stats, std::size_t max_depth, std::chrono::duration<double> max_time)
     {
         // Make sure our thread is not joined.
