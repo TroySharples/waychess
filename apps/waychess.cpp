@@ -146,6 +146,11 @@ void handle(const uci::command_stop& /*req*/)
         go_thread.join();
 }
 
+void handle(const uci::command_quit& /*req*/)
+{
+    handle(uci::command_stop{});
+}
+
 void handle(std::string_view command)
 {
     // Non-fatal warning that we do not support this command.
@@ -216,6 +221,10 @@ int main()
         }
         else if (command == "quit")
         {
+            uci::command_quit req;
+            req.read(iss);
+            handle(req);
+
             return EXIT_SUCCESS;
         }
         else
