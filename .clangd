@@ -5,7 +5,8 @@ Diagnostics:
                 cppcoreguidelines-pro-type-member-init, modernize-use-trailing-return-type, readability-braces-around-statements, readability-magic-numbers, 
                 readability-isolate-declaration, cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-type-reinterpret-cast,
                 cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-non-private-member-variables-in-classes, readability-redundant-access-specifiers,
-                readability-identifier-length, readability-function-cognitive-complexity, readability-implicit-bool-conversion ]
+                readability-identifier-length, readability-function-cognitive-complexity, readability-implicit-bool-conversion, performance-avoid-endl,
+                cppcoreguidelines-avoid-do-while ]
     CheckOptions:
       cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor: true
 InlayHints:
