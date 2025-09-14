@@ -1,8 +1,6 @@
 #include "ram.hpp"
 
 #include <array>
-#include <new>
-#include <stdexcept>
 
 // We can mess with exactly how this RAM is allocated later. For now, we set it as one contiguous static array.
 namespace
