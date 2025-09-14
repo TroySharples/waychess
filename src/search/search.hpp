@@ -63,6 +63,7 @@ inline recommendation recommend_move_impl(game_state& gs, statistics& stats, std
     const int score { colour*search_negamax_aspiration_window(gs, stats_local, depth, colour, move_span) };
     const auto end = std::chrono::steady_clock::now();
 
+    stats_local.eval = score;
     stats_local.time = end - start;
     stats_local.pv = gs.get_pv(0);
 
