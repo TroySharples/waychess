@@ -1,6 +1,6 @@
 #include "coordinates.hpp"
 
-std::string to_coordinates_str(std::uint8_t mb)
+std::string to_coordinates_str(std::size_t mb)
 {
     std::string ret(2, ' ');
 
@@ -11,7 +11,7 @@ std::string to_coordinates_str(std::uint8_t mb)
     return ret;
 }
 
-std::uint8_t from_coordinates_str(std::string_view str)
+std::size_t from_coordinates_str(std::string_view str)
 {
     // Some hacky ASCII arithmetic.
     return (str[0] - 'a') + ((str[1] - '1') << 3);

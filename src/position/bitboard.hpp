@@ -43,10 +43,10 @@ struct bitboard
 
     // The number of ply since the game started. An even ply implies white is to move. For initial
     // positions where black starts, this should be initialised to 1.
-    std::uint16_t ply_counter;
+    std::size_t ply_counter;
 
     // The number of ply since the last pawn-push or capture (used for 50 move drawing rule).
-    std::uint8_t ply_50m;
+    std::size_t ply_50m;
 
     // Gets the piece type on a particular square. The colour variant assumes the colour of the
     // piece is known beforehand.
@@ -85,7 +85,7 @@ constexpr piece_idx bitboard::get_piece_type(std::uint64_t bb) const noexcept
 
 constexpr piece_idx bitboard::get_piece_type_colour(std::uint64_t bb, bool is_black) const noexcept
 {
-    for (std::uint8_t idx = (is_black ? piece_idx::b_pawn : piece_idx::w_pawn); idx <= (is_black ? piece_idx::b_queen : piece_idx::w_queen); idx++)
+    for (std::size_t idx = (is_black ? piece_idx::b_pawn : piece_idx::w_pawn); idx <= (is_black ? piece_idx::b_queen : piece_idx::w_queen); idx++)
         if (boards[idx] & bb)
             return static_cast<piece_idx>(idx);
     return piece_idx::empty;
@@ -98,7 +98,7 @@ constexpr bool bitboard::is_king_and_pawn() const noexcept
 
 constexpr bool bitboard::is_king_and_pawn(bool is_black) const noexcept
 {
-    for (std::uint8_t idx = (is_black ? piece_idx::b_knight : piece_idx::w_knight); idx <= (is_black ? piece_idx::b_queen : piece_idx::w_queen); idx++)
+    for (std::size_t idx = (is_black ? piece_idx::b_knight : piece_idx::w_knight); idx <= (is_black ? piece_idx::b_queen : piece_idx::w_queen); idx++)
         if (boards[idx])
             return false;
     return true;

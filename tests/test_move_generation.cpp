@@ -9,7 +9,7 @@
 namespace
 {
 
-void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash, std::uint8_t depth)
+void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash, std::size_t depth)
 {
     if (depth == 0)
         return;
@@ -19,13 +19,13 @@ void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash
 
     // Our buffer of moves to loop over will also include a null-moves.
     constexpr std::size_t max_moves_in_position_including_null_move { MAX_MOVES_PER_POSITION+1 };
-    std::vector<std::uint32_t> move_buf(static_cast<std::size_t>(depth)*max_moves_in_position_including_null_move);
+    std::vector<std::uint32_t> move_buf(depth*max_moves_in_position_including_null_move);
 
     // Generate our move-list and add a null-move on the end to test.
-    std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
     move_buf[moves++] = move::NULL_MOVE;
 
-    for (std::uint8_t i = 0; i < moves; i++)
+    for (std::size_t i = 0; i < moves; i++)
     {
         const std::uint32_t move = move_buf[i];
 
@@ -41,7 +41,7 @@ void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash
     }
 }
 
-void test_move_generation(const char* fen, std::uint8_t depth)
+void test_move_generation(const char* fen, std::size_t depth)
 {
     bitboard bb { fen };
     std::uint64_t hash = zobrist::hash_init(bb);

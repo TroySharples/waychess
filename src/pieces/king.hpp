@@ -7,7 +7,7 @@
 #include "utility/binary.hpp"
 
 std::uint64_t get_king_attacked_squares_from_bitboard(std::uint64_t bb) noexcept;
-std::uint64_t get_king_attacked_squares_from_mailbox(std::uint8_t mb) noexcept;
+std::uint64_t get_king_attacked_squares_from_mailbox(std::size_t mb) noexcept;
 
 inline std::uint64_t get_king_attacked_squares_from_mailboxes(auto... mbs) noexcept { return (get_king_attacked_squares_from_mailbox(mbs) | ...); }
 
@@ -40,7 +40,7 @@ inline std::uint64_t get_king_attacked_squares_from_bitboard(std::uint64_t bb) n
     return ret;
 }
 
-inline std::uint64_t get_king_attacked_squares_from_mailbox(std::uint8_t mb) noexcept
+inline std::uint64_t get_king_attacked_squares_from_mailbox(std::size_t mb) noexcept
 {
     return details::attack_table_king[mb];
 }

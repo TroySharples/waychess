@@ -57,13 +57,13 @@ mailbox::mailbox(const bitboard& bb)
 mailbox::mailbox(std::string_view fen)
 {
     // We ensure safe access using the at method.
-    std::uint8_t pos { 0 };
+    std::size_t pos { 0 };
 
     // Start with the piece placement with everything filled empty.
     squares.fill(piece_idx::empty);
-    for (std::uint8_t i = 0; i < 8; i++)
+    for (std::size_t i = 0; i < 8; i++)
     {
-        for (std::uint8_t j = 0; j < 8; )
+        for (std::size_t j = 0; j < 8; )
         {
             const char c = fen.at(pos++);
 
@@ -148,10 +148,10 @@ std::string mailbox::get_fen_string() const noexcept
     std::stringstream ss;
 
     // The endianness is back-to-front with FEN - we have to start from A8 and work down to H1.
-    for (std::uint8_t i = 0; i < 8; i++)
+    for (std::size_t i = 0; i < 8; i++)
     {
         std::size_t empty_counter { 0 };
-        for (std::uint8_t j = 0; j < 8; j++)
+        for (std::size_t j = 0; j < 8; j++)
         {
             const auto p = squares[8*(8-i-1)+j];
             if (p == piece_idx::empty)
@@ -198,7 +198,7 @@ std::string mailbox::get_fen_string() const noexcept
     ss << ' ';
 
     // Half-move clock.
-    ss << static_cast<int>(ply_50m) << ' ';
+    ss << ply_50m << ' ';
 
     // Full move counter.
     ss << 1+ply_counter/2;
@@ -211,9 +211,9 @@ std::string mailbox::get_fen_string() const noexcept
 std::ostream& mailbox::display_unicode_board(std::ostream& os, bool flipped) const noexcept
 {
     os << ANSI_RESET;
-    for (std::uint8_t rank = 0; rank < 8; rank++)
+    for (std::size_t rank = 0; rank < 8; rank++)
     {
-        for (std::uint8_t file = 0; file < 8; file++)
+        for (std::size_t file = 0; file < 8; file++)
             os << (WHITE_SQUARES & get_bitboard_mailbox_piece(rank*8+file) ? ANSI_BACKGROUND_CYAN : ANSI_BACKGROUND_WHITE) << squares[(flipped ? rank : 7-rank)*8+(flipped ? 7-file : file)];
         os << ANSI_RESET << '\n';
     }

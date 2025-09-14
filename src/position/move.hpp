@@ -69,8 +69,8 @@ constexpr std::uint8_t PAWN_PUSH_DOUBLE { 0b01 };
 // 50m-ply. This is unambiguous, as the maximum value of the 50m-ply is 100, which
 // is less than 0b1111000 = 112 (an en-passent square on either a3 ot a6).
 
-constexpr std::uint32_t serialise_from_mb(std::uint8_t mb)                      noexcept { return mb; } 
-constexpr std::uint32_t serialise_to_mb(std::uint8_t mb)                        noexcept { return mb << 6; }
+constexpr std::uint32_t serialise_from_mb(std::size_t mb)                       noexcept { return mb; } 
+constexpr std::uint32_t serialise_to_mb(std::size_t mb)                         noexcept { return mb << 6; }
 constexpr std::uint32_t serialise_piece_idx(piece_idx p)                        noexcept { return static_cast<std::uint32_t>(p & 0x07) << 12; }
 constexpr std::uint32_t serialise_move_type(std::uint8_t move_type)             noexcept { return (move_type & 0x07) << 15; }
 constexpr std::uint32_t serialise_move_info(std::uint8_t move_info)             noexcept { return (move_info & 0x07) << 18; }
@@ -79,7 +79,7 @@ constexpr std::uint32_t serialise_unmake_en_passent(std::uint8_t en_passent_mb) 
 constexpr std::uint32_t serialise_unmake_ply_50m(std::uint8_t ply_50m)          noexcept { return ply_50m << 25; }
 
 // For serialising moves designed to iterate forwards.
-constexpr std::uint32_t serialise_make(std::uint8_t from_square, std::uint8_t to_square, piece_idx p, std::uint8_t move_type = 0, std::uint8_t move_info = 0)
+constexpr std::uint32_t serialise_make(std::size_t from_square, std::size_t to_square, piece_idx p, std::uint8_t move_type = 0, std::uint8_t move_info = 0)
 {
     return serialise_from_mb(from_square)
          | serialise_to_mb(to_square)
@@ -91,7 +91,7 @@ constexpr std::uint32_t serialise_make(std::uint8_t from_square, std::uint8_t to
 // For serialising moved designed to iterate backwards. The from/to notation describes
 // the movement of the piece in reverse - for example, reverse white pawn push would still
 // be from e2 to e4.
-constexpr std::uint32_t serialise_unmake(std::uint8_t from_square, std::uint8_t to_square, piece_idx p, std::uint8_t move_type = 0, std::uint8_t move_info = 0, std::uint8_t castling = 0, std::uint8_t en_passent_bb = 0, std::uint8_t ply_50m = 0)
+constexpr std::uint32_t serialise_unmake(std::size_t from_square, std::size_t to_square, piece_idx p, std::uint8_t move_type = 0, std::uint8_t move_info = 0, std::uint8_t castling = 0, std::uint8_t en_passent_bb = 0, std::uint8_t ply_50m = 0)
 {
     return serialise_from_mb(from_square)
          | serialise_to_mb(to_square)
@@ -104,8 +104,8 @@ constexpr std::uint32_t serialise_unmake(std::uint8_t from_square, std::uint8_t 
 
 // For the en-passent square, you will have to or it with 0b010000 if it is on the black side.
 
-constexpr std::uint8_t deserialise_from_mb(std::uint32_t move)           noexcept { return move & 0x3f; }
-constexpr std::uint8_t deserialise_to_mb(std::uint32_t move)             noexcept { return move >> 6 & 0x3f; }
+constexpr std::size_t deserialise_from_mb(std::uint32_t move)            noexcept { return move & 0x3f; }
+constexpr std::size_t deserialise_to_mb(std::uint32_t move)              noexcept { return move >> 6 & 0x3f; }
 constexpr piece_idx    deserialise_piece_idx(std::uint32_t move)         noexcept { return static_cast<piece_idx>(move >> 12 & 0x07); }
 constexpr std::uint8_t deserialise_move_type(std::uint32_t move)         noexcept { return move >> 15 & 0x07; }
 constexpr std::uint8_t deserialise_move_info(std::uint32_t move)         noexcept { return move >> 18 & 0x07; }

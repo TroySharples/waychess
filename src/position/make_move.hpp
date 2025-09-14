@@ -44,11 +44,11 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
     std::uint64_t& to_move_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
 
     // The move only contains the piece up to colour - exactly which colour piece must be derived from the side-to-play.
-    const std::uint8_t from_mb { move::deserialise_from_mb(move) };
-    const std::uint8_t to_mb   { move::deserialise_to_mb(move) };
-    const piece_idx piece      { static_cast<piece_idx>(move::deserialise_piece_idx(move) | (is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn)) };
-    const std::uint8_t type    { move::deserialise_move_type(move) };
-    const std::uint8_t info    { move::deserialise_move_info(move) };
+    const std::size_t from_mb { move::deserialise_from_mb(move) };
+    const std::size_t to_mb   { move::deserialise_to_mb(move) };
+    const piece_idx piece     { static_cast<piece_idx>(move::deserialise_piece_idx(move) | (is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn)) };
+    const std::uint8_t type   { move::deserialise_move_type(move) };
+    const std::uint8_t info   { move::deserialise_move_info(move) };
 
     // All of the above information is overwritten if this is a null-move (the value 0).
     const bool is_null { move == 0 };
@@ -63,7 +63,7 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
     // Fill out the unmake en-passent / 50m-ply information and undo the zobrist en-passent.
     if (bb.en_passent_bb) [[unlikely]]
     {
-        const std::uint8_t en_passent_mb { static_cast<std::uint8_t>(std::countr_zero(bb.en_passent_bb)) };
+        const std::size_t en_passent_mb = std::countr_zero(bb.en_passent_bb);
 
         unmake |= move::serialise_unmake_en_passent(en_passent_mb);
         hash   ^= zobrist::get_code_en_passent(en_passent_mb);
@@ -148,7 +148,7 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
         else
         {
             opponent_pieces ^= to_bb;
-            for (std::uint8_t capture_idx = (is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn); capture_idx <= (is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen); capture_idx++)
+            for (std::size_t capture_idx = (is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn); capture_idx <= (is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen); capture_idx++)
             {
                 if (std::uint64_t& capture_bitboard = bb.boards[capture_idx]; capture_bitboard & to_bb)
                 {
@@ -278,8 +278,8 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
     std::uint64_t& to_move_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
 
     // The move only contains the piece up to colour - exactly which colour piece must be derived from the side-to-play.
-    const std::uint8_t from_mb  { move::deserialise_from_mb(unmake) };
-    const std::uint8_t to_mb    { move::deserialise_to_mb(unmake) };
+    const std::size_t from_mb   { move::deserialise_from_mb(unmake) };
+    const std::size_t to_mb     { move::deserialise_to_mb(unmake) };
     const piece_idx piece       { static_cast<piece_idx>(move::deserialise_piece_idx(unmake) | (is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn)) };
     const std::uint8_t type     { move::deserialise_move_type(unmake) };
     const std::uint8_t info     { move::deserialise_move_info(unmake) };
@@ -303,7 +303,7 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
     // Handle en-passent / 50m-ply re-establishment.
     if ((ply_50m & 0x78) == 0x78) [[unlikely]]
     {
-        const std::uint8_t en_passent_mb { static_cast<std::uint8_t>((ply_50m & 0x07) | (is_black_to_play ? 0b101000 : 0b010000)) };
+        const std::size_t en_passent_mb { static_cast<std::uint8_t>((ply_50m & 0x07) | (is_black_to_play ? 0b101000 : 0b010000)) };
 
         hash ^= zobrist::get_code_en_passent(en_passent_mb);
 
@@ -335,7 +335,7 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t&
 
             // We have to loop through the bitboards to decide which piece to remove - we unfortunately can't store this in the
             // move-info in the case of capture-promotions.
-            for (std::uint8_t promotion_idx = (is_black_to_play ? piece_idx::w_knight : piece_idx::b_knight); promotion_idx <= (is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen); promotion_idx++)
+            for (std::size_t promotion_idx = (is_black_to_play ? piece_idx::w_knight : piece_idx::b_knight); promotion_idx <= (is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen); promotion_idx++)
             {
                 if (std::uint64_t& promotion_bitboard = bb.boards[promotion_idx]; promotion_bitboard & to_bb)
                 {

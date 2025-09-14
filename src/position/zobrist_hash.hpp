@@ -6,12 +6,12 @@
 namespace zobrist
 {
 
-constexpr std::uint64_t get_code_piece(piece_idx id, std::uint8_t mb) noexcept
+constexpr std::uint64_t get_code_piece(piece_idx id, std::size_t mb) noexcept
 {
     return id == piece_idx::empty ? 0 : details::PRN_CODE_ARRAY[(id << 6) | mb];
 }
 
-constexpr std::uint64_t get_code_en_passent(std::uint8_t en_passent_mb) noexcept
+constexpr std::uint64_t get_code_en_passent(std::size_t en_passent_mb) noexcept
 {
     return get_code_piece(piece_idx::w_pawn, en_passent_mb & 007);
 }

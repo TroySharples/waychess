@@ -28,7 +28,7 @@ int main(int argc, char** argv)
     bool help                         { false };
     bool tree                         { false };
     std::string fen                   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
-    std::uint8_t depth                { 1 };
+    std::size_t depth                 { 1 };
     std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
     // tree of moves structure dynamically.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
-              << R"(    "depth": )" << static_cast<int>(depth) << ",\n"
+              << R"(    "depth": )" << depth << ",\n"
               << R"(    "hash-table MB": )"   << '"' << get_perft_hash_table_bytes()/1000000 << '"' << ",\n";
 
     const bitboard position_start(fen);
@@ -123,8 +123,8 @@ int main(int argc, char** argv)
 
         bool array_first { true };
         std::array<std::uint32_t, 256> move_buf;
-        const std::uint8_t moves { generate_pseudo_legal_moves(position_start, move_buf) };
-        for (std::uint8_t i = 0; i < moves; i++)
+        const std::size_t moves { generate_pseudo_legal_moves(position_start, move_buf) };
+        for (std::size_t i = 0; i < moves; i++)
         {
             bitboard next_position { position_start };
 

@@ -8,17 +8,17 @@
 
 // The maximum number of legal moves in any one position (I think one with lots of queens everywhere). In reality
 // it's usually about 20, but this constant is important for working out how much RAM to allocate.
-constexpr std::uint8_t MAX_MOVES_PER_POSITION { 218 };
+constexpr std::size_t MAX_MOVES_PER_POSITION { 218 };
 
 // Generates all legal moves, as well as moves that would be legal were it not for "checking" rules (i.e. the
 // king is left in check after the move is played, the king is castling out of check, or the king is castling
 // into check). We take in a span to hold our moves, and return a subspan containing the actual moves. Note
 // that the input span must be large enough to hold all generated moves.
-inline std::uint8_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept;
+inline std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept;
 
 
 // Currently just implemented as a filter on all pseudo-legal-moves, but might make this more efficient later on.
-inline std::uint8_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept;
+inline std::size_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept;
 
 // ####################################
 // IMPLEMENTATION
@@ -36,9 +36,9 @@ struct generate_move_parameters
     bool allow_promotions;
 };
 
-inline std::uint8_t get_pawn_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_pawn_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::uint8_t ret {};
+    std::size_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn };
@@ -49,7 +49,7 @@ inline std::uint8_t get_pawn_moves(const bitboard& bb, const generate_move_param
     for (std::uint64_t to_move_pawns { bb.boards[to_move_idx] }; to_move_pawns; )
     {
         const std::uint64_t pawn_bitboard { ls1b_isolate(to_move_pawns) };
-        const std::uint8_t pawn_mailbox = std::countr_zero(pawn_bitboard);
+        const std::size_t pawn_mailbox = std::countr_zero(pawn_bitboard);
 
         // Handle attacking moves.
         if (params.allow_captures)
@@ -121,9 +121,9 @@ inline std::uint8_t get_pawn_moves(const bitboard& bb, const generate_move_param
     return ret;
 }
 
-inline std::uint8_t get_king_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_king_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::uint8_t ret {};
+    std::size_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_king : piece_idx::w_king };
@@ -133,25 +133,25 @@ inline std::uint8_t get_king_moves(const bitboard& bb, const generate_move_param
 
     // There's always going to be exactly one king per colour on the board - no need to ls1b-isolate.
     const std::uint64_t king_bitboard { bb.boards[to_move_idx] };
-    const std::uint8_t king_mailbox = std::countr_zero(king_bitboard);
+    const std::size_t king_mailbox = std::countr_zero(king_bitboard);
 
     // Generate pseudo-legal castling moves (we test for castling-through-check legality in make_move).
     if (params.allow_non_captures)
     {
         if (is_black_to_play)
         {
-            constexpr std::uint8_t from_square { std::countr_zero(FILE_E & RANK_8) };
+            constexpr std::size_t from_square { std::countr_zero(FILE_E & RANK_8) };
 
             if (bb.castling & bitboard::CASTLING_B_KS && !(all_pieces & RANK_8 & (FILE_F | FILE_G)))
             {
-                constexpr std::uint8_t to_mb { std::countr_zero(FILE_G & RANK_8) };
+                constexpr std::size_t to_mb { std::countr_zero(FILE_G & RANK_8) };
                 constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::b_king, move::move_type::CASTLE, move::move_info::CASTLE_KS) };
 
                 move_buf[ret++] = move;
             }
             if (bb.castling & bitboard::CASTLING_B_QS && !(all_pieces & RANK_8 & (FILE_B | FILE_C | FILE_D)))
             {
-                constexpr std::uint8_t to_mb { std::countr_zero(FILE_C & RANK_8) };
+                constexpr std::size_t to_mb { std::countr_zero(FILE_C & RANK_8) };
                 constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::b_king, move::move_type::CASTLE, move::move_info::CASTLE_QS) };
 
                 move_buf[ret++] = move;
@@ -159,18 +159,18 @@ inline std::uint8_t get_king_moves(const bitboard& bb, const generate_move_param
         }
         else
         {
-            constexpr std::uint8_t from_square { std::countr_zero(FILE_E & RANK_1) };
+            constexpr std::size_t from_square { std::countr_zero(FILE_E & RANK_1) };
 
             if (bb.castling & bitboard::CASTLING_W_KS && !(all_pieces & RANK_1 & (FILE_F | FILE_G)))
             {
-                constexpr std::uint8_t to_mb { std::countr_zero(FILE_G & RANK_1) };
+                constexpr std::size_t to_mb { std::countr_zero(FILE_G & RANK_1) };
                 constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::w_king, move::move_type::CASTLE, move::move_info::CASTLE_KS) };
 
                 move_buf[ret++] = move;
             }
             if (bb.castling & bitboard::CASTLING_W_QS && !(all_pieces & RANK_1 & (FILE_B | FILE_C | FILE_D)))
             {
-                constexpr std::uint8_t to_mb { std::countr_zero(FILE_C & RANK_1) };
+                constexpr std::size_t to_mb { std::countr_zero(FILE_C & RANK_1) };
                 constexpr std::uint32_t move { move::serialise_make(from_square, to_mb, piece_idx::w_king, move::move_type::CASTLE, move::move_info::CASTLE_QS) };
 
                 move_buf[ret++] = move;
@@ -201,9 +201,9 @@ inline std::uint8_t get_king_moves(const bitboard& bb, const generate_move_param
     return ret;
 }
 
-inline std::uint8_t get_knight_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_knight_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::uint8_t ret {};
+    std::size_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_knight : piece_idx::w_knight };
@@ -213,7 +213,7 @@ inline std::uint8_t get_knight_moves(const bitboard& bb, const generate_move_par
     for (std::uint64_t to_move_knights { bb.boards[to_move_idx] }; to_move_knights; )
     {
         const std::uint64_t knight_bitboard { ls1b_isolate(to_move_knights) };
-        const std::uint8_t knight_mailbox = std::countr_zero(knight_bitboard);
+        const std::size_t knight_mailbox = std::countr_zero(knight_bitboard);
 
         for (std::uint64_t attacks { get_knight_attacked_squares_from_mailbox(knight_mailbox) & ~to_move_pieces }; attacks; )
         {
@@ -240,9 +240,9 @@ inline std::uint8_t get_knight_moves(const bitboard& bb, const generate_move_par
     return ret;
 }
 
-inline std::uint8_t get_bishop_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_bishop_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::uint8_t ret {};
+    std::size_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_bishop : piece_idx::w_bishop };
@@ -253,7 +253,7 @@ inline std::uint8_t get_bishop_moves(const bitboard& bb, const generate_move_par
     for (std::uint64_t to_move_bishops { bb.boards[to_move_idx] }; to_move_bishops; )
     {
         const std::uint64_t bishop_bitboard { ls1b_isolate(to_move_bishops) };
-        const std::uint8_t bishop_mailbox = std::countr_zero(bishop_bitboard);
+        const std::size_t bishop_mailbox = std::countr_zero(bishop_bitboard);
 
         for (std::uint64_t attacks { get_bishop_attacked_squares_from_mailbox(all_pieces, bishop_mailbox) & ~to_move_pieces }; attacks; )
         {
@@ -280,9 +280,9 @@ inline std::uint8_t get_bishop_moves(const bitboard& bb, const generate_move_par
     return ret;
 }
 
-inline std::uint8_t get_rook_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_rook_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::uint8_t ret {};
+    std::size_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_rook : piece_idx::w_rook };
@@ -293,7 +293,7 @@ inline std::uint8_t get_rook_moves(const bitboard& bb, const generate_move_param
     for (std::uint64_t to_move_rooks { bb.boards[to_move_idx] }; to_move_rooks; )
     {
         const std::uint64_t rook_bitboard { ls1b_isolate(to_move_rooks) };
-        const std::uint8_t rook_mailbox = std::countr_zero(rook_bitboard);
+        const std::size_t rook_mailbox = std::countr_zero(rook_bitboard);
 
         for (std::uint64_t attacks { get_rook_attacked_squares_from_mailbox(all_pieces, rook_mailbox) & ~to_move_pieces }; attacks; )
         {
@@ -320,9 +320,9 @@ inline std::uint8_t get_rook_moves(const bitboard& bb, const generate_move_param
     return ret;
 }
 
-inline std::uint8_t get_queen_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t get_queen_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::uint8_t ret {};
+    std::size_t ret {};
 
     const bool is_black_to_play { bb.is_black_to_play() };
     const piece_idx to_move_idx { is_black_to_play ? piece_idx::b_queen : piece_idx::w_queen };
@@ -333,7 +333,7 @@ inline std::uint8_t get_queen_moves(const bitboard& bb, const generate_move_para
     for (std::uint64_t to_move_queens { bb.boards[to_move_idx] }; to_move_queens; )
     {
         const std::uint64_t queen_bitboard { ls1b_isolate(to_move_queens) };
-        const std::uint8_t queen_mailbox = std::countr_zero(queen_bitboard);
+        const std::size_t queen_mailbox = std::countr_zero(queen_bitboard);
 
         for (std::uint64_t attacks { get_queen_attacked_squares_from_mailbox(all_pieces, queen_mailbox) & ~to_move_pieces }; attacks; )
         {
@@ -362,9 +362,9 @@ inline std::uint8_t get_queen_moves(const bitboard& bb, const generate_move_para
 
 }
 
-inline std::uint8_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::uint8_t ret {};
+    std::size_t ret {};
 
     // Allow all moves.
     const details::generate_move_parameters params { .allow_non_captures=true, .allow_captures=true, .allow_promotions=true };
@@ -379,9 +379,9 @@ inline std::uint8_t generate_pseudo_legal_moves(const bitboard& bb, std::span<st
     return ret;
 }
 
-inline std::uint8_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
+inline std::size_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::span<std::uint32_t> move_buf) noexcept
 {
-    std::uint8_t ret {};
+    std::size_t ret {};
 
     // Only allow captures - we might want to change this to also include promotions at some point.
     const details::generate_move_parameters params { .allow_non_captures=false, .allow_captures=true, .allow_promotions=false };

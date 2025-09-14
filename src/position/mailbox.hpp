@@ -24,7 +24,7 @@ struct mailbox
     std::array<piece_idx, 64> squares;
 
     // The location (if any) of the en-passent target square.
-    std::optional<std::uint8_t> en_passent_square;
+    std::optional<std::size_t> en_passent_square;
 
     // Castling nibble - same as in the bitboard representation.
     std::uint8_t castling;
@@ -37,7 +37,7 @@ struct mailbox
     constexpr bool is_white_to_play() const noexcept { return !is_black_to_play(); }
 
     // The number of ply since the last pawn-push or capture (used for 50 move drawing rule).
-    std::uint8_t ply_50m;
+    std::size_t ply_50m;
 
     // Print the corresponding fen string.
     std::string get_fen_string() const noexcept;

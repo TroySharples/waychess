@@ -6,4 +6,4 @@
 void set_perft_hash_table_bytes(std::size_t bytes);
 std::size_t get_perft_hash_table_bytes();
 
-std::size_t perft(const bitboard& start, std::uint8_t depth);
+std::size_t perft(const bitboard& start, std::size_t depth);

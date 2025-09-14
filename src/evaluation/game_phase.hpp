@@ -48,7 +48,7 @@ constexpr int evaluate_gp(const bitboard& bb) noexcept
 {
     int ret {};
 
-    for (std::uint8_t i = 0; i < 14; i++)
+    for (std::size_t i = 0; i < 14; i++)
         ret += piece_gp[i]*std::popcount(bb.boards[i]);
 
     return ret;

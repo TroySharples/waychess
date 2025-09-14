@@ -13,11 +13,11 @@ namespace details
 
 struct pv_table
 {
-    static constexpr std::uint8_t MAX_DEPTH { 64 };
+    static constexpr std::size_t MAX_DEPTH { 64 };
 
     // Sets our current best move, and propagates childs variation into this ply. This should be set after finding a new best
     // move by searching.
-    void update_variation(std::uint8_t ply, std::uint32_t move) noexcept;
+    void update_variation(std::size_t ply, std::uint32_t move) noexcept;
 
     // Fill out the upper-ply PVs assuming that we search the mainline PV first.
     void init_from_root() noexcept;
@@ -32,7 +32,7 @@ struct pv_table
 // IMPLEMENTATION
 // ####################################
 
-inline void pv_table::update_variation(std::uint8_t ply, std::uint32_t move) noexcept
+inline void pv_table::update_variation(std::size_t ply, std::uint32_t move) noexcept
 {
     table[ply][0] = move;
     std::copy_n(table[ply + 1].begin(), MAX_DEPTH-1, table[ply].begin() + 1);

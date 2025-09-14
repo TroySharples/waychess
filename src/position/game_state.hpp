@@ -34,7 +34,7 @@ struct game_state
     std::array<std::uint32_t, MAX_GAME_LENGTH> position_history;
 
     // The ply of our root node in our search.
-    std::uint16_t root_ply;
+    std::size_t root_ply;
 
     // The main transposition table.
     details::transposition_table tt;
@@ -51,7 +51,7 @@ struct game_state
 
     // Prints the PV, assuming this game state is ply-deep into the search (0 if we aren't searching). The additional work
     // this does is that it ensures only legal PVs are printed.
-    std::span<const std::uint32_t> get_pv(std::uint8_t ply = 0) const noexcept;
+    std::span<const std::uint32_t> get_pv(std::size_t ply = 0) const noexcept;
 
     // The last ID run score.
     int eval;
@@ -79,10 +79,10 @@ inline bool game_state::is_repetition_draw() const noexcept
 
     // Otherwise, we need to start looking back through our position history and count the occurrences of our current hash value
     // since the last non-reversible move. Note we use a signed integer type here to avoid possible underflows.
-    const int last_reversible_ply { bb.ply_counter - bb.ply_50m };
+    const auto last_reversible_ply = static_cast<int>(bb.ply_counter - bb.ply_50m);
 
     std::size_t repetitions {};
-    for (int ply { bb.ply_counter-2 }; ply >= last_reversible_ply; ply -= 2)
+    for (auto ply = static_cast<int>(bb.ply_counter-2); ply >= last_reversible_ply; ply -= 2)
         if (position_history[ply] == static_cast<std::uint32_t>(hash)) [[unlikely]]
             repetitions++;
 

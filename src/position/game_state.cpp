@@ -27,7 +27,7 @@ void game_state::reset()
     eval = {};
 }
 
-std::span<const std::uint32_t> game_state::get_pv(std::uint8_t ply) const noexcept
+std::span<const std::uint32_t> game_state::get_pv(std::size_t ply) const noexcept
 {
     // Initialise the return value with the stored PV, possibly containing illegal moves.
     std::span<const std::uint32_t> ret = pv.table[ply];

@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     // Default arguments.
     bool help                         { false };
     std::string fen                   { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
-    std::uint8_t depth                { 1 };
+    std::size_t depth                 { 1 };
     std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
     // program seems too simple at the moment to warrant it.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
-              << R"(    "depth": )" << static_cast<int>(stats.depth) << ",\n"
+              << R"(    "depth": )" << stats.depth << ",\n"
               << R"(    "hash-table MB": )" << '"' << gs.tt.get_table_bytes()/1000000 << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(stats.time).count() << ",\n"
               << R"(    "pv": )" << '"' << move::to_algebraic_long(stats.pv) << '"' << ",\n"

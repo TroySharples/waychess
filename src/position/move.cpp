@@ -11,8 +11,8 @@ std::string to_algebraic_long(std::uint32_t move) noexcept
 {
     std::string ret;
 
-    const std::uint8_t from_mb { move::deserialise_from_mb(move) };
-    const std::uint8_t to_mb   { move::deserialise_to_mb(move) };
+    const std::size_t from_mb  { move::deserialise_from_mb(move) };
+    const std::size_t to_mb    { move::deserialise_to_mb(move) };
     const std::uint8_t type    { move::deserialise_move_type(move) };
     const std::uint8_t info    { move::deserialise_move_info(move) };
 
@@ -42,9 +42,9 @@ std::uint32_t from_algebraic_long(std::string_view algebraic, const bitboard& bb
 {
     // This is very hacky, but it's easy and works, and doesn't need to be fast.
     std::array<std::uint32_t, MAX_MOVES_PER_POSITION> move_buf;
-    const std::uint8_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
 
-    for (std::uint8_t i = 0; i < moves; i++)
+    for (std::size_t i = 0; i < moves; i++)
         if (const std::uint32_t move { move_buf[i] }; to_algebraic_long(move) == algebraic)
             return move;
 

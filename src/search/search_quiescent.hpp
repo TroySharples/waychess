@@ -17,11 +17,11 @@ namespace details
 
 inline int mvv_lva_score(const bitboard& bb, std::uint32_t move)
 {
-    const auto attacker = static_cast<std::uint8_t>(0x07 & move::deserialise_piece_idx(move));
-    const auto victim   = static_cast<std::uint8_t>(0x07 & move::get_victim_piece_idx(move, bb));
+    const auto attacker = 0x07 & move::deserialise_piece_idx(move);
+    const auto victim   = 0x07 & move::get_victim_piece_idx(move, bb);
 
-    const int victim_val   { ::evaluation::piece_mg_evaluation[static_cast<std::uint8_t>(victim)] };
-    const int attacker_val { ::evaluation::piece_mg_evaluation[static_cast<std::uint8_t>(attacker)] };
+    const int victim_val   { ::evaluation::piece_mg_evaluation[victim] };
+    const int attacker_val { ::evaluation::piece_mg_evaluation[attacker] };
 
     // Multiplying the victim score ensures it's the dominant term.
     return (10*victim_val) - attacker_val;
@@ -56,7 +56,7 @@ inline int search_quiescence( game_state& gs, statistics& stats, std::size_t dra
     a = std::max(a, stand_pat);
 
     // Generate "noisy" moves (for now just captures).
-    const std::uint8_t moves = generate_pseudo_legal_loud_moves(gs.bb, move_buf);
+    const std::size_t moves { generate_pseudo_legal_loud_moves(gs.bb, move_buf) };
     const std::span<std::uint32_t> move_list{ move_buf.subspan(0, moves) };
 
     // Sort quiescent moves based on MVV/LVA.
@@ -70,7 +70,7 @@ inline int search_quiescence( game_state& gs, statistics& stats, std::size_t dra
         // Delta-prunning.
         {
             constexpr int delta { 200 };
-            const auto victim = static_cast<std::uint8_t>(0x07 & move::get_victim_piece_idx(move, gs.bb));
+            const auto victim = 0x07 & move::get_victim_piece_idx(move, gs.bb);
             const int victim_val { ::evaluation::piece_mg_evaluation[victim] };
             if (victim_val + delta + stand_pat < a) [[unlikely]]
                 continue;

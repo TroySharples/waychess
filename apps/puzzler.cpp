@@ -22,7 +22,7 @@ int main(int argc, char** argv)
     // Default arguments.
     bool help { false };
     std::filesystem::path csv_path;
-    std::uint8_t depth { 4 };
+    std::size_t depth { 4 };
     std::size_t hash_table_size_bytes { 1000000000ULL };
 
     // Parse options.
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
     // Start printing the JSON. We only do this at the end in case we have trouble parsing the CSV file when running the test.
     std::cout << R"({)" << '\n'
               << R"(    "file": )"   << csv_path.filename() << ",\n"
-              << R"(    "depth": )" << static_cast<int>(depth) << ",\n"
+              << R"(    "depth": )" << depth << ",\n"
               << R"(    "hash-table MB": )" << '"' << s.gs.tt.get_table_bytes()/1000000 << '"' << ",\n"
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"

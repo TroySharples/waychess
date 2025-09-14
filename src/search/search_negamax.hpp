@@ -73,7 +73,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
     // Some constants that will be broadly useful throughout the search.
     const auto a_orig = a ;
-    const auto draft = static_cast<std::uint8_t>(gs.bb.ply_counter-gs.root_ply);
+    const size_t draft { gs.bb.ply_counter-gs.root_ply };
 
     // Update stats.
     stats.pvnodes++;
@@ -154,7 +154,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         if (!null_move_pruned)
         {
             // Otherwise, we need to continue the search by generating all nodes from here.
-            const std::uint8_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
+            const std::size_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
             const std::span<std::uint32_t> move_list { move_buf.subspan(0, moves) };
 
             // Sort the moves favourably to increase the chance of early beta-cutoffs.
@@ -258,12 +258,12 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
 }
 
-inline int search_negamax(game_state& gs, statistics& stats, std::uint8_t depth, int colour, std::span<std::uint32_t> move_buf) noexcept
+inline int search_negamax(game_state& gs, statistics& stats, std::size_t depth, int colour, std::span<std::uint32_t> move_buf) noexcept
 {
     return details::search_negamax_recursive(gs, stats, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, move_buf);
 }
 
-inline int search_negamax_aspiration_window(game_state& gs, statistics& stats, std::uint8_t depth, int colour, std::span<std::uint32_t> move_buf) noexcept
+inline int search_negamax_aspiration_window(game_state& gs, statistics& stats, std::size_t depth, int colour, std::span<std::uint32_t> move_buf) noexcept
 {
     int a { -std::numeric_limits<int>::max() };
     int b {  std::numeric_limits<int>::max() };
