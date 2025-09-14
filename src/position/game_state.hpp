@@ -51,7 +51,7 @@ struct game_state
 
     // Prints the PV, assuming this game state is ply-deep into the search (0 if we aren't searching). The additional work
     // this does is that it ensures only legal PVs are printed.
-    std::span<const std::uint32_t> get_pv(std::size_t ply = 0) const noexcept;
+    std::span<const std::uint32_t> get_pv(std::size_t ply = 0) noexcept;
 
     // TODO: There are a lot more things we should add to do with the evaluation (e.g. pawn-structure tables).
 
