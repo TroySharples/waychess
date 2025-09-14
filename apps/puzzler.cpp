@@ -1,5 +1,6 @@
 #include "utility/puzzle.hpp"
 #include "utility/logging.hpp"
+#include "config.hpp"
 
 #include <chrono>
 #include <cstring>
@@ -122,6 +123,7 @@ int main(int argc, char** argv)
     // Start printing the JSON. We only do this at the end in case we have trouble parsing the CSV file when running the test.
     std::cout << R"({)" << '\n'
               << R"(    "file": )"   << csv_path.filename() << ",\n"
+              << R"(    "config": )"; config::print_json(std::cout); std::cout << ",\n"
               << R"(    "depth": )" << depth << ",\n"
               << R"(    "hash-table MB": )" << '"' << s.gs.tt.get_table_bytes()/1000000 << '"' << ",\n"
               << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"

@@ -1,3 +1,4 @@
+#include "config.hpp"
 #include "utility/game.hpp"
 #include "utility/uci.hpp"
 #include "utility/logging.hpp"
@@ -28,6 +29,18 @@ void handle(game& /*g*/, const uci::command_uci& /*req*/)
     {
         uci::command_id resp;
         resp.id = "author " + std::string(AUTHOR);
+        resp.print(std::cout);
+    }
+
+    // Print our config information.
+    {
+        uci::command_info resp;
+        {
+            std::ostringstream ss;
+            ss << "config ";
+            config::print_tv(ss);
+            resp.info = ss.str();
+        }
         resp.print(std::cout);
     }
 

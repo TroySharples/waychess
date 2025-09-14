@@ -9,6 +9,8 @@
 #include "position/generate_moves.hpp"
 #include "position/make_move.hpp"
 
+#include "config.hpp"
+
 #include <limits>
 
 namespace search
@@ -134,7 +136,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         // See if we can perform null-move pruning - this relies on not being in check or a king-and-pawn endgame.
         const std::size_t r { depth > 6 ? 4ULL : 3ULL };
         bool null_move_pruned { false };
-        if (!in_check && !is_king_and_pawn_colour && depth >= r+1)
+        if (config::nmp && !in_check && !is_king_and_pawn_colour && depth >= r+1)
         {
             // No need to check legality here as we already know this move won't leave us in check.
             std::uint32_t unmake;
@@ -180,7 +182,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 // Do the actual search by recursing the algorithm. We vary the quality of the search based on whether this move is expected
                 // to be any good. TODO: tweek the LMR kick-in after we add better move ordering (e.g. history-heuristic).
                 int score;
-                if (i >= 3 && depth > 3)
+                if (config::lmr && i >= 3 && depth > 3)
                 {
                     // We run the recursive search at a lower depth if this move isn't near the top of our list after sorting. TODO: have a
                     // smarter adaptive LMR-reduction.

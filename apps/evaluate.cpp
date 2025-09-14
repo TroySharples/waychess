@@ -1,3 +1,4 @@
+#include "config.hpp"
 #include "search/search.hpp"
 #include "search/statistics.hpp"
 #include "utility/logging.hpp"
@@ -94,6 +95,7 @@ int main(int argc, char** argv)
     // program seems too simple at the moment to warrant it.
     std::cout << R"({)" << '\n'
               << R"(    "fen": )"   << '"' << fen << '"' << ",\n"
+              << R"(    "config": )"; config::print_json(std::cout); std::cout << ",\n"
               << R"(    "depth": )" << stats.depth << ",\n"
               << R"(    "hash-table MB": )" << '"' << gs.tt.get_table_bytes()/1000000 << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(stats.time).count() << ",\n"
