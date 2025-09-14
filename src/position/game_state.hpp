@@ -53,9 +53,6 @@ struct game_state
     // this does is that it ensures only legal PVs are printed.
     std::span<const std::uint32_t> get_pv(std::size_t ply = 0) const noexcept;
 
-    // The last ID run score.
-    int eval;
-
     // TODO: There are a lot more things we should add to do with the evaluation (e.g. pawn-structure tables).
 
     // Determines whether the current position a draw by either the 50-move rule, or the three-fold-repetition rule - should

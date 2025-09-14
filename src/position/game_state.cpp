@@ -23,8 +23,6 @@ void game_state::reset()
     km.reset();
 
     root_ply = {};
-    age = {};
-    eval = {};
 }
 
 std::span<const std::uint32_t> game_state::get_pv(std::size_t ply) const noexcept
