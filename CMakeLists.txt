@@ -4,7 +4,9 @@ project(WayChess VERSION 1.4.0)
 set(CMAKE_AUTHOR "Troy Sharples")
 
 set(LOG_LEVEL 4)
-add_compile_options(-Wall -Wextra -Wpedantic)
+add_compile_definitions(LOG_LEVEL=${LOG_LEVEL})
+
+add_compile_options(-Wall -Wextra -Wpedantic -march=native)
 
 add_subdirectory(src)
 add_subdirectory(apps)

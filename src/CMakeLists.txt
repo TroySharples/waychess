@@ -1,5 +1,7 @@
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/version.hpp)
 
+find_package(Threads REQUIRED)
+
 add_library(lib-waychess STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/utility/binary.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utility/coordinates.cpp
@@ -23,5 +25,4 @@ add_library(lib-waychess STATIC
 )
 target_include_directories(lib-waychess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(lib-waychess PUBLIC cxx_std_20)
-target_compile_options(lib-waychess PUBLIC -march=native)
-target_compile_definitions(lib-waychess PUBLIC LOG_LEVEL=${LOG_LEVEL})
+target_link_libraries(lib-waychess PUBLIC Threads::Threads)
