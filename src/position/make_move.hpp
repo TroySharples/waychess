@@ -17,9 +17,9 @@ bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t move, s
 bool make_move(const make_move_args& args, game_state& gs, std::uint32_t move) noexcept;
 bool make_move(const make_move_args& args, game_state& gs, std::uint32_t move, std::uint32_t& unmake) noexcept;
 
-void unmake_move(bitboard& bb, std::uint32_t& unmake) noexcept;
-void unmake_move(bitboard& bb, std::uint32_t& unmake, std::uint64_t& hash) noexcept;
-void unmake_move(game_state& gs, std::uint32_t& unmake) noexcept;
+void unmake_move(bitboard& bb, std::uint32_t unmake) noexcept;
+void unmake_move(bitboard& bb, std::uint32_t unmake, std::uint64_t& hash) noexcept;
+void unmake_move(game_state& gs, std::uint32_t unmake) noexcept;
 
 // ####################################
 // IMPLEMENTATION
@@ -272,7 +272,7 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
     return ret;
 }
 
-inline void unmake_move_impl(bitboard& bb, std::uint32_t& unmake, std::uint64_t& hash) noexcept
+inline void unmake_move_impl(bitboard& bb, std::uint32_t unmake, std::uint64_t& hash) noexcept
 {
     const bool is_black_to_play   { bb.is_black_to_play() };
     std::uint64_t& to_move_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
@@ -487,14 +487,14 @@ inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t 
     return ret;
 }
 
-inline void unmake_move(bitboard& bb, std::uint32_t& unmake) noexcept
+inline void unmake_move(bitboard& bb, std::uint32_t unmake) noexcept
 {
     // Dummy hash (will hopefully get optimised away).
     std::uint64_t hash_dummy {};
     unmake_move(bb, unmake, hash_dummy);
 }
 
-inline void unmake_move(bitboard& bb, std::uint32_t& unmake, std::uint64_t& hash) noexcept
+inline void unmake_move(bitboard& bb, std::uint32_t unmake, std::uint64_t& hash) noexcept
 {
     details::unmake_move_impl(bb, unmake, hash);
 
@@ -502,7 +502,7 @@ inline void unmake_move(bitboard& bb, std::uint32_t& unmake, std::uint64_t& hash
     bb.ply_counter--;
 }
 
-inline void unmake_move(game_state& gs, std::uint32_t& unmake) noexcept
+inline void unmake_move(game_state& gs, std::uint32_t unmake) noexcept
 {
     details::unmake_move_impl(gs.bb, unmake, gs.hash);
 
