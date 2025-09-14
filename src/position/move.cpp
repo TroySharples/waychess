@@ -28,6 +28,10 @@ std::string to_algebraic_long(std::span<const std::uint32_t> moves) noexcept
 {
     std::string ret;
 
+    // Catch the edge-case where our buffer is zero-length.
+    if (moves.empty())
+        return ret;
+
     for (const auto move : moves)
     {
         ret.append(to_algebraic_long(move));
