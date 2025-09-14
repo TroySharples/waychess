@@ -284,11 +284,12 @@ inline int search_negamax_aspiration_window(game_state& gs, statistics& stats, s
         if (gs.stop_search)
             return score;
 
-        // We return if we hit checkmate.
+        // Just do a regular non-aspiration-window search if we think we've found checkmate - not doing this can be very risky, and
+        // can even end up in us recommending illegal moves!
         if (std::abs(score) >= evaluation::EVAL_CHECKMATE)
-            return score;
+            return search_negamax(gs, stats, depth, colour, move_buf);
 
-        // Otherwise check that it fits within the window - adjust otherwise!
+        // Otherwise check that it fits within the window, and adjust if necessary.
         if (score <= a)
             a -= d;
         else if (score >= b)
