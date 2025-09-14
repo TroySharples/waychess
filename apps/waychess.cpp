@@ -1,8 +1,10 @@
-#include "search/search.hpp"
+#include "utility/game.hpp"
 #include "utility/uci.hpp"
 #include "utility/logging.hpp"
+#include "position/make_move.hpp"
 #include "version.hpp"
 
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
@@ -12,18 +14,15 @@
 namespace
 {
 
-// Our global game state.
-game_state gs;
-
 // Default argument values.
 constexpr std::size_t TRANSPOSITION_TABLE_MB_DEFAULT { 128 };
 
-void handle(const uci::command_uci& /*req*/)
+void handle(game& /*g*/, const uci::command_uci& /*req*/)
 {
     // Print the WayChess ID.
     {
         uci::command_id resp;
-        resp.id = "name WayChess " + std::string(VERSION);
+        resp.id = "name " + std::string(NAME) + ' ' + std::string(VERSION);
         resp.print(std::cout);
     }
     {
@@ -43,23 +42,23 @@ void handle(const uci::command_uci& /*req*/)
     uci::command_uciok{}.print(std::cout);
 }
 
-void handle(const uci::command_isready& /*req*/)
+void handle(game& g, const uci::command_isready& /*req*/)
 {
     // If we haven't already initialised our transposition table, we do it here with the default 128 MB.
-    if (gs.tt.get_table_bytes() == 0)
-        gs.tt.set_table_bytes(1000000ULL*TRANSPOSITION_TABLE_MB_DEFAULT);
+    if (g.gs.tt.get_table_bytes() == 0)
+        g.gs.tt.set_table_bytes(1000000ULL*TRANSPOSITION_TABLE_MB_DEFAULT);
 
     // Say we are ready.
     uci::command_readyok{}.print(std::cout);
 }
 
-void handle(const uci::command_ucinewgame& /*req*/)
+void handle(game& g, const uci::command_ucinewgame& /*req*/)
 {
     // Reset the game state.
-    gs.reset();
+    g.gs.reset();
 }
 
-void handle(const uci::command_setoption& req)
+void handle(game& g, const uci::command_setoption& req)
 {
     if (req.name == "Hash")
     {
@@ -69,7 +68,7 @@ void handle(const uci::command_setoption& req)
         const std::size_t hash_bytes { 1000000ULL * std::stoull(*req.value) };
 
         // This should only affect the search hash-table.
-        gs.tt.set_table_bytes(hash_bytes);
+        g.gs.tt.set_table_bytes(hash_bytes);
     }
     else
     {
@@ -77,81 +76,56 @@ void handle(const uci::command_setoption& req)
     }
 }
 
-void handle(const uci::command_debug& req)
+void handle(game& /*g*/, const uci::command_debug& req)
 {
     // Non-fatal error if we are requesting debug info - we'll add this into the program at some later time.
     if (req.debug)
         std::cerr << "We do not currently support the debug command" << std::endl;
 }
 
-void handle(const uci::command_position& req)
+void handle(game& g, const uci::command_position& req)
 {
     // We use copy-assignment of the position only so we don't clear othe meta-data that affects search (e.g. hash-age).
-    gs.load(req.bb);
+    g.gs.load(req.bb);
 
     // Apply the subsequent moves and increment the root ply if necessary.
     for (const auto& move_str : req.moves)
     {
-        std::uint32_t move { move::from_algebraic_long(move_str, gs.bb) };
-        make_move({ .check_legality = false }, gs, move);
+        std::uint32_t move { move::from_algebraic_long(move_str, g.gs.bb) };
+        make_move({ .check_legality = false }, g.gs, move);
     }
 }
 
-std::thread go_thread;
-void run_go(std::size_t max_depth, std::chrono::duration<double> max_time)
+void handle(game& g, const uci::command_go& req)
 {
-    const std::uint32_t move { search::recommend_move(gs, max_depth, max_time).move };
-    {
-        uci::command_bestmove resp;
-        resp.move_best = move::to_algebraic_long(move);
-        resp.print(std::cout);
-    }
-}
-
-void handle(const uci::command_go& req)
-{
-    // Check if we've already joined this thread.
-    if (go_thread.joinable())
-    {
-        // This is an error if we're running a search.
-        if (!gs.stop_search)
-            throw std::runtime_error("Cannot interrupt a search with a go command");
-
-        // Otherwise we just have to join the thread here.
-        go_thread.join();
-    }
-
-    if (gs.bb.is_black_to_play() ? !req.btime.has_value() : !req.wtime.has_value())
+    const bool is_black_to_play { g.gs.bb.is_black_to_play() };
+    if (is_black_to_play ? !req.btime.has_value() : !req.wtime.has_value())
     {
         // Calculate infinitely if we haven't been told our time parameters.
-        go_thread = std::thread(&run_go, 64, std::chrono::days(2));
+        g.search(64, std::chrono::days(2));
     }
     else
     {
         // Otherwise, we just spend 1/20 of our remaining time and half our increment calculating this.
-        const std::size_t remaining_ms { gs.bb.is_black_to_play() ? *req.btime : *req.wtime };
-        const std::size_t increment_ms { gs.bb.is_black_to_play() ? (req.binc.has_value() ? *req.binc : 0)  : (req.winc.has_value() ? *req.winc : 0) };
+        const std::size_t remaining_ms { is_black_to_play ? *req.btime : *req.wtime };
+        const std::size_t increment_ms { req.get_increment_ms(is_black_to_play) };
 
         const std::chrono::milliseconds time((remaining_ms/20) + (increment_ms/2));
-        go_thread = std::thread(&run_go, 64, time);
+        g.search(64, time);
     }
 }
 
-void handle(const uci::command_stop& /*req*/)
+void handle(game& g, const uci::command_stop& /*req*/)
 {
-    gs.stop_search = true;
-
-    // Only join if necessary.
-    if (go_thread.joinable())
-        go_thread.join();
+    g.stop();
 }
 
-void handle(const uci::command_quit& /*req*/)
+void handle(game& g, const uci::command_quit& /*req*/)
 {
-    handle(uci::command_stop{});
+    handle(g, uci::command_stop{});
 }
 
-void handle(std::string_view command)
+void handle(game& /*g*/, std::string_view command)
 {
     // Non-fatal warning that we do not support this command.
     std::cerr << "Unknown command - " << command << std::endl;
@@ -159,10 +133,21 @@ void handle(std::string_view command)
 
 }
 
-int main()
+int main() try
 {
+    // Our global game.
+    game g;
+
     // Setup the logger.
     set_log_method(log_method::uci);
+
+    // Initialise our best-move callback.
+    g.callback_best_move = [] (std::uint32_t move)
+    {
+        uci::command_bestmove resp;
+        resp.move_best = move::to_algebraic_long(move);
+        resp.print(std::cout);
+    };
 
     std::string line;
     while (std::getline(std::cin, line))
@@ -175,63 +160,68 @@ int main()
         {
             uci::command_uci req;
             req.read(iss);
-            handle(req);
+            handle(g, req);
         }
         else if (command == "isready")
         {
             uci::command_isready req;
             req.read(iss);
-            handle(req);
+            handle(g, req);
         }
         else if (command == "ucinewgame")
         {
             uci::command_ucinewgame req;
             req.read(iss);
-            handle(req);
+            handle(g, req);
         }
         else if (command == "setoption")
         {
             uci::command_setoption req;
             req.read(iss);
-            handle(req);
+            handle(g, req);
         }
         else if (command == "debug")
         {
             uci::command_debug req;
             req.read(iss);
-            handle(req);
+            handle(g, req);
         }
         else if (command == "position")
         {
             uci::command_position req;
             req.read(iss);
-            handle(req);
+            handle(g, req);
         }
         else if (command == "go")
         {
             uci::command_go req;
             req.read(iss);
-            handle(req);
+            handle(g, req);
         }
         else if (command == "stop")
         {
             uci::command_stop req;
             req.read(iss);
-            handle(req);
+            handle(g, req);
         }
         else if (command == "quit")
         {
             uci::command_quit req;
             req.read(iss);
-            handle(req);
+            handle(g, req);
 
             return EXIT_SUCCESS;
         }
         else
         {
-            handle(command);
+            handle(g, command);
         }
     }
 
     return EXIT_SUCCESS;
+}
+catch(const std::runtime_error& e)
+{
+    std::cerr << "Encountered fatal error - " << e.what() << std::endl;
+    return EXIT_FAILURE;
 }

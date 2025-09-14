@@ -111,6 +111,9 @@ struct command_go : command
     std::optional<std::size_t> wtime, btime, winc, binc, movestogo, movetime;
     bool infinite;
 
+    // Returns 0 if the increment isn't set.
+    std::size_t get_increment_ms(bool is_black) const noexcept;
+
     std::optional<std::size_t> depth, nodes, mate;
 
     void read(std::istream& is) override;

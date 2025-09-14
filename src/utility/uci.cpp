@@ -122,6 +122,12 @@ void command_setoption::read(std::istream& is)
     }
 }
 
+std::size_t command_go::get_increment_ms(bool is_black) const noexcept
+{
+    const auto& inc { is_black ? binc : winc };
+    return (inc.has_value() ? *inc : 0);
+}
+
 void command_go::read(std::istream& is)
 {
     std::string token;

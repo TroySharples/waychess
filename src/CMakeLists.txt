@@ -9,6 +9,7 @@ add_library(lib-waychess STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/utility/puzzle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utility/uci.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utility/logging.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utility/game.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/details/ram.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/knight.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pieces/king.cpp

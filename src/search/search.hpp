@@ -11,8 +11,6 @@
 #include "search/statistics.hpp"
 
 #include <chrono>
-#include <mutex>
-#include <stdexcept>
 
 namespace search
 {
@@ -27,7 +25,7 @@ struct recommendation
 };
 
 recommendation recommend_move(game_state& gs, statistics& stats, std::size_t max_depth = 64, std::chrono::duration<double> max_time = std::chrono::hours(2));
-recommendation recommend_move(game_state& gs, std::size_t max_depth = 64, std::chrono::duration<double> max_time = std::chrono::hours(2)) { statistics stats; return recommend_move(gs, stats, max_depth, max_time); }
+recommendation recommend_move(game_state& gs, std::size_t max_depth = 64, std::chrono::duration<double> max_time = std::chrono::hours(2));
 
 }
 
@@ -83,7 +81,7 @@ inline recommendation recommend_move_id_impl(game_state& gs, statistics& stats, 
     gs.stop_search = false;
 
     // Do the iterative deepening - we make sure to only update our recommendation if we weren't interrupted.
-    recommendation ret;
+    recommendation ret {};
     for (std::size_t i = 1; i <= depth; i++)
     {
         const recommendation id = details::recommend_move_impl(gs, stats, i);
@@ -100,70 +98,25 @@ inline recommendation recommend_move_id_impl(game_state& gs, statistics& stats, 
     return ret;
 }
 
-class search_impl
-{
-public:
-    search_impl() = default;
-
-    ~search_impl()
-    {
-        if (_t.joinable())
-            _t.join();
-    }
-
-    search_impl(const search_impl&) = delete;
-    search_impl& operator=(const search_impl&) = delete;
-
-    search_impl(search_impl&&) = delete;
-    search_impl& operator=(search_impl&&) = delete;
-
-    recommendation recommend_move(game_state& gs, statistics& stats, std::size_t max_depth, std::chrono::duration<double> max_time)
-    {
-        // Make sure our thread is not joined.
-        if (_t.joinable())
-            throw std::runtime_error("Cannot start search when our search thread has not been joined");
-
-        // Reset our recommendation and kick-off our search thread.
-        _rec.reset();
-        _t = std::thread(&search_impl::run, this, std::ref(gs), std::ref(stats), max_depth);
-
-        // Set a condition variable that waits for the search to stop, or an amount of time to elapse.
-        {
-            std::unique_lock<std::mutex> lk(_m);
-            _c.wait_for(lk, max_time, [this] () { return _rec.has_value(); });
-        }
-
-        // Stop the search if we haven't already and join the running thread.
-        gs.stop_search = true;
-        _t.join();
-
-        return *_rec;
-    }
-
-private:
-    std::thread _t;
-    std::condition_variable _c;
-    std::optional<recommendation> _rec;
-    std::mutex _m;
-
-    void run(game_state& gs, statistics& stats, std::size_t max_depth)
-    {
-        recommendation rec = details::recommend_move_id_impl(gs, stats, max_depth);
-        {
-            std::lock_guard<std::mutex> lk(_m);
-            _rec = rec;
-        }
-        _c.notify_one();
-    }
-};
-
 }
 
 inline recommendation recommend_move(game_state& gs, statistics& stats, std::size_t max_depth, std::chrono::duration<double> max_time)
 {
-    details::search_impl s;
-    return s.recommend_move(gs, stats, max_depth, max_time);
+    auto f = std::async(&details::recommend_move_id_impl, std::ref(gs), std::ref(stats), max_depth);
+
+    // See if we finished early (e.g. found mate).
+    if (f.wait_for(max_time) == std::future_status::ready)
+        return f.get();
+
+    // Otherwise we just stop and return.
+    gs.stop_search = true;
+    return f.get();
 }
 
+inline recommendation recommend_move(game_state& gs, std::size_t max_depth, std::chrono::duration<double> max_time)
+{
+    statistics stats_dummy;
+    return recommend_move(gs, stats_dummy, max_depth, max_time);
+}
 
 }
