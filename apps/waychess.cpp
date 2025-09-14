@@ -144,6 +144,12 @@ int main() try
     // Initialise our best-move callback.
     g.callback_best_move = [] (std::uint32_t move)
     {
+        // Make sure that our best move is non-null (this would happen if the
+        // starting position is in checkmate for example).
+        if (move == move::NULL_MOVE)
+            throw std::runtime_error("Recommended move is null");
+
+        // Actually print the best move.
         uci::command_bestmove resp;
         resp.move_best = move::to_algebraic_long(move);
         resp.print(std::cout);
