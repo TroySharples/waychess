@@ -6,7 +6,7 @@ Diagnostics:
                 readability-isolate-declaration, cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-type-reinterpret-cast,
                 cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-non-private-member-variables-in-classes, readability-redundant-access-specifiers,
                 readability-identifier-length, readability-function-cognitive-complexity, readability-implicit-bool-conversion, performance-avoid-endl,
-                cppcoreguidelines-avoid-do-while ]
+                cppcoreguidelines-avoid-do-while, readability-math-missing-parentheses ]
     CheckOptions:
       cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor: true
 InlayHints:
