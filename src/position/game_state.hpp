@@ -4,6 +4,7 @@
 #include "details/pv_table.hpp"
 #include "details/km_table.hpp"
 #include "details/transposition_table.hpp"
+#include "details/history_heuristic.hpp"
 
 // The main game state that is used in the search and evaluation. This includes the position itself (i.e. bitboard) as well
 // as other incrementally updated fields (e.g. hash).
@@ -48,6 +49,9 @@ struct game_state
 
     // Killer move table for collection.
     details::km_table km;
+
+    // Our history heuristic containing a butterfly table of weighted histories.
+    details::history_heuristic hh;
 
     // Prints the PV, assuming this game state is ply-deep into the search (0 if we aren't searching). The additional work
     // this does is that it ensures only legal PVs are printed.

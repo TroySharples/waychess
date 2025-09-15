@@ -21,6 +21,7 @@ void game_state::reset()
     position_history.fill(0);
     pv.reset();
     km.reset();
+    hh.reset();
 
     root_ply = {};
 }

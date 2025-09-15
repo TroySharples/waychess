@@ -3,6 +3,7 @@
 
 #include "evaluation/evaluate.hpp"
 #include "position/game_state.hpp"
+#include "position/move.hpp"
 #include "search/statistics.hpp"
 #include "search/search_quiescent.hpp"
 
@@ -27,22 +28,22 @@ inline int score_move(std::uint32_t move, std::size_t draft, const game_state& g
 {
     // We score PV moves the highest.
     if (move == pv_move)
-        return 2000000;
+        return 2000000000;
 
     // Next comes hash-moves.
     if (move == hash_move)
-        return 1000000;
+        return 1000000000;
 
     // Next MVV/LVA score.
     if (move::move_type::is_capture(move::deserialise_move_type(move)))
-        return 500000 + mvv_lva_score(gs.bb, move);
+        return 900000000 + mvv_lva_score(gs.bb, move);
 
     // Next is killer moves from this ply.
     if (gs.km.is_killer_move(draft, move))
-        return 400000;
+        return 800000000;
 
-    // Else just return 0 for now.
-    return 0;
+    // Else just look the value using the history heuristic.
+    return gs.hh.get_bonus(move);
 }
 
 inline void sort_moves(std::span<std::uint32_t> move_buf, std::uint32_t move)
@@ -179,6 +180,9 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                     continue;
                 }
 
+                // Update the butterfly heuristic.
+                gs.hh.update_hh(move);
+
                 // Do the actual search by recursing the algorithm. We vary the quality of the search based on whether this move is expected
                 // to be any good. TODO: tweek the LMR kick-in after we add better move ordering (e.g. history-heuristic).
                 int score;
@@ -219,9 +223,13 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 // Break early if we encounter a beta-cutoff (fantastic news!).
                 if (a >= b)
                 {
-                    // Only store the killer move if it is quiet,
+                    // Update the history heuristic and store it as a killer move if it is quiet.
                     if (const auto type = move::deserialise_move_type(move); !move::move_type::is_capture(type) && !move::move_type::is_promotion(type))
+                    {
                         gs.km.store_killer_move(draft, move);
+                        gs.hh.update_bf(move);
+                    }
+
                     break;
                 }
             }
