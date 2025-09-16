@@ -53,6 +53,8 @@ struct bitboard
     constexpr piece_idx get_piece_type(std::uint64_t bb) const noexcept;
     constexpr piece_idx get_piece_type_colour(std::uint64_t bb, bool is_black) const noexcept;
 
+    constexpr std::pair<piece_idx, std::uint64_t> get_least_valuable_piece(std::uint64_t bb, bool is_black) const noexcept;
+
     // Checks whether this is a king-and-pawn end-game.
     constexpr bool is_king_and_pawn() const noexcept;
     constexpr bool is_king_and_pawn(bool is_black) const noexcept;
@@ -89,6 +91,31 @@ constexpr piece_idx bitboard::get_piece_type_colour(std::uint64_t bb, bool is_bl
         if (boards[idx] & bb)
             return static_cast<piece_idx>(idx);
     return piece_idx::empty;
+}
+
+
+constexpr std::pair<piece_idx, std::uint64_t> bitboard::get_least_valuable_piece(std::uint64_t bb, bool is_black) const noexcept
+{
+    if (is_black)
+    {
+        if (const std::uint64_t x { boards[piece_idx::b_pawn]   & bb }; x) return { piece_idx::b_pawn,   x };
+        if (const std::uint64_t x { boards[piece_idx::b_knight] & bb }; x) return { piece_idx::b_knight, x };
+        if (const std::uint64_t x { boards[piece_idx::b_bishop] & bb }; x) return { piece_idx::b_bishop, x };
+        if (const std::uint64_t x { boards[piece_idx::b_rook]   & bb }; x) return { piece_idx::b_rook,   x };
+        if (const std::uint64_t x { boards[piece_idx::b_queen]  & bb }; x) return { piece_idx::b_queen,  x };
+        if (const std::uint64_t x { boards[piece_idx::b_king]   & bb }; x) return { piece_idx::b_king,   x };
+    }
+    else
+    {
+        if (const std::uint64_t x { boards[piece_idx::w_pawn]   & bb }; x) return { piece_idx::w_pawn,   x };
+        if (const std::uint64_t x { boards[piece_idx::w_knight] & bb }; x) return { piece_idx::w_knight, x };
+        if (const std::uint64_t x { boards[piece_idx::w_bishop] & bb }; x) return { piece_idx::w_bishop, x };
+        if (const std::uint64_t x { boards[piece_idx::w_rook]   & bb }; x) return { piece_idx::w_rook,   x };
+        if (const std::uint64_t x { boards[piece_idx::w_queen]  & bb }; x) return { piece_idx::w_queen,  x };
+        if (const std::uint64_t x { boards[piece_idx::w_king]   & bb }; x) return { piece_idx::w_king,   x };
+    }
+
+    return { piece_idx::empty, 0 };
 }
 
 constexpr bool bitboard::is_king_and_pawn() const noexcept
