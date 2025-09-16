@@ -39,7 +39,7 @@ inline int score_move(std::uint32_t move, std::size_t draft, const game_state& g
         return 900000000 + mvv_lva_score(gs.bb, move);
 
     // Next is killer moves from this ply.
-    if (gs.km.is_killer_move(draft, move))
+    if (config::km && gs.km.is_killer_move(draft, move))
         return 800000000;
 
     // Else just look the value using the history heuristic.
@@ -225,7 +225,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                     // Update the history heuristic and store it as a killer move if it is quiet.
                     if (const auto type = move::deserialise_move_type(move); !move::move_type::is_capture(type) && !move::move_type::is_promotion(type))
                     {
-                        gs.km.store_killer_move(draft, move);
+                        if (config::km) gs.km.store_killer_move(draft, move);
                         if (config::hh) gs.hh.update_hh(move);
                     }
 
