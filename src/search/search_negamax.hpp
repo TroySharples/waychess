@@ -43,7 +43,9 @@ inline int score_move(std::uint32_t move, std::size_t draft, const game_state& g
         return 800000000;
 
     // Else just look the value using the history heuristic.
-    return gs.hh.get_bonus(move);
+    if (config::hh) return gs.hh.get_bonus(move);
+
+    return 0;
 }
 
 inline void sort_moves(std::span<std::uint32_t> move_buf, std::uint32_t move)
@@ -181,7 +183,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 }
 
                 // Update the butterfly heuristic.
-                gs.hh.update_hh(move);
+                if (config::hh) gs.hh.update_hh(move);
 
                 // Do the actual search by recursing the algorithm. We vary the quality of the search based on whether this move is expected
                 // to be any good. TODO: tweek the LMR kick-in after we add better move ordering (e.g. history-heuristic).
@@ -227,7 +229,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                     if (const auto type = move::deserialise_move_type(move); !move::move_type::is_capture(type) && !move::move_type::is_promotion(type))
                     {
                         gs.km.store_killer_move(draft, move);
-                        gs.hh.update_bf(move);
+                        if (config::hh) gs.hh.update_bf(move);
                     }
 
                     break;

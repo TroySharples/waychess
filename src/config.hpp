@@ -8,19 +8,22 @@ namespace config
 
 constexpr bool nmp { true };
 constexpr bool lmr { true };
+constexpr bool hh  { true };
 
 inline std::ostream& print_json(std::ostream& os)
 {
     return os << R"({)" << '\n'
-              << R"(    "nmp": )"   << std::boolalpha << nmp << std::noboolalpha << ",\n"
-              << R"(    "lmr": )"   << std::boolalpha << lmr << std::noboolalpha << '\n'
-              << R"(})" << '\n';
+    << R"(    "nmp": )" << std::boolalpha << nmp << std::noboolalpha << ",\n"
+    << R"(    "lmr": )" << std::boolalpha << lmr << std::noboolalpha << ",\n"
+    << R"(    "hh": )"  << std::boolalpha << hh  << std::noboolalpha << '\n'
+    << R"(})" << '\n';
 }
 
 inline std::ostream& print_tv(std::ostream& os)
 {
-    return os << "nmp="<< std::boolalpha << nmp << std::noboolalpha << ','
-              << "lmr="<< std::boolalpha << lmr << std::noboolalpha;
+    return os << "nmp=" << std::boolalpha << nmp << std::noboolalpha << ','
+    << "lmr=" << std::boolalpha << lmr << std::noboolalpha << ','
+    << "hh="  << std::boolalpha << hh << std::noboolalpha;
 }
 
 }
