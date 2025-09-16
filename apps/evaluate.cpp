@@ -82,6 +82,7 @@ int main(int argc, char** argv)
     set_log_method(log_method::cerr);
 
     game_state gs;
+    gs.reset();
     gs.load(bitboard(fen));
 
     // Init hash table, so we can read-back the actual allocated memory (instead of the requested amount) when
