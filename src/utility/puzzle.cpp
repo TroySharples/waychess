@@ -6,6 +6,7 @@ bool solver::solve(const puzzle& p, std::size_t depth)
 {
     bool ret { true };
 
+    gs.reset();
     gs.load(p.bb);
     bool is_to_move { false };
 
