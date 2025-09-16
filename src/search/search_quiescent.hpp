@@ -3,11 +3,14 @@
 #include "search/statistics.hpp"
 
 #include "evaluation/evaluate.hpp"
+#include "evaluation/see.hpp"
 #include "position/bitboard.hpp"
 #include "position/move.hpp"
 
 #include "position/generate_moves.hpp"
 #include "position/make_move.hpp"
+
+#include "config.hpp"
 
 namespace search
 {
@@ -67,7 +70,11 @@ inline int search_quiescence( game_state& gs, statistics& stats, std::size_t dra
         if (gs.stop_search) [[unlikely]]
             return stand_pat;
 
-        // Delta-prunning.
+        // Skip bad captures.
+        if (config::see && evaluation::see_capture(gs.bb, move, colour == -1) < 0)
+            continue;
+
+        // Delta-prunning. TODO: turn off in late end-game.
         {
             constexpr int delta { 200 };
             const auto victim = 0x07 & move::get_victim_piece_idx(move, gs.bb);
