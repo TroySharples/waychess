@@ -38,7 +38,7 @@ inline void history_heuristic::reset() noexcept
 
 inline int history_heuristic::get_bonus(std::uint32_t move) const noexcept
 {
-    return MAX_HISTORY_BONUS*static_cast<int>(_score_hh[idx(move)]) / (1+static_cast<int>(_score_bf[idx(move)]));
+    return static_cast<int>(static_cast<std::size_t>(MAX_HISTORY_BONUS)*(_score_hh[idx(move)]) / (1+_score_bf[idx(move)]));
 }
 
 }

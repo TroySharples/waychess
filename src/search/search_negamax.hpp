@@ -182,9 +182,6 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                     continue;
                 }
 
-                // Update the butterfly heuristic.
-                if (config::hh) gs.hh.update_hh(move);
-
                 // Do the actual search by recursing the algorithm. We vary the quality of the search based on whether this move is expected
                 // to be any good. TODO: tweek the LMR kick-in after we add better move ordering (e.g. history-heuristic).
                 int score;
@@ -229,11 +226,14 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                     if (const auto type = move::deserialise_move_type(move); !move::move_type::is_capture(type) && !move::move_type::is_promotion(type))
                     {
                         gs.km.store_killer_move(draft, move);
-                        if (config::hh) gs.hh.update_bf(move);
+                        if (config::hh) gs.hh.update_hh(move);
                     }
 
                     break;
                 }
+
+                // Update the relative butterfly heuristic.
+                if (const auto type = move::deserialise_move_type(move); config::hh && !move::move_type::is_capture(type) && !move::move_type::is_promotion(type)) gs.hh.update_bf(move);
             }
 
             // Handle the rare case of there being no legal moves in this position. This should be evaluated as either checkmate (if we're in check) or as
