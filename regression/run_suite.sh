@@ -39,7 +39,7 @@ RUN_EVALUATE_PATH="${SCRIPT_DIR}"/evaluate.sh
 # Basic depths 7 and 8 evaluate across various hash-sizes.
 for depth in 7 8; do
     for hash_mb in 1 5 50 200 1000 4000; do
-        run "${RUN_EVALUATE_PATH}" "${depth}" "${hash_mb}" "${SUITE_LABEL}"
+        run "${RUN_EVALUATE_PATH}" "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1" "${depth}" "${hash_mb}" "${SUITE_LABEL}"
     done
 done
 
