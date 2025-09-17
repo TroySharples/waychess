@@ -31,6 +31,11 @@ struct statistics
     std::size_t tt_hits {};
     double get_tt_hit_rate() const noexcept { return static_cast<double>(tt_hits) / static_cast<double>(tt_probes); }
 
+    // The number of misses of our aspiration window (both lower and upper).
+    std::size_t aw_misses_low {};
+    std::size_t aw_misses_high {};
+    std::size_t get_aw_misses_total() const noexcept { return aw_misses_low+aw_misses_high; }
+
     // Time for current search - handled by the outer loop.
     std::chrono::steady_clock::duration time;
 

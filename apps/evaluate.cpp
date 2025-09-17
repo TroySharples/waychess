@@ -109,7 +109,10 @@ int main(int argc, char** argv)
               << R"(    "qdepth": )" << stats.qdepth << ",\n"
               << R"(    "tt-probes": )" << stats.tt_probes << ",\n"
               << R"(    "tt-hits": )" << stats.tt_hits << ",\n"
-              << R"(    "tt-hit-rate": )" << std::setprecision(2) << stats.get_tt_hit_rate() << '\n'
+              << R"(    "tt-hit-rate": )" << std::setprecision(2) << stats.get_tt_hit_rate() << ",\n"
+              << R"(    "aw-misses-low": )" << stats.aw_misses_low << ",\n"
+              << R"(    "aw-misses-high": )" << stats.aw_misses_high << ",\n"
+              << R"(    "aw-misses-total": )" << stats.get_aw_misses_total() << '\n'
               << R"(})" << '\n';
 
     return EXIT_SUCCESS;

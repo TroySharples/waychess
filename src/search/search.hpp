@@ -60,7 +60,7 @@ inline recommendation recommend_move_impl(game_state& gs, statistics& stats, std
     const int colour { gs.bb.is_black_to_play() ? -1 : 1 };
 
     const auto start = std::chrono::steady_clock::now();
-    const int score { colour*search_negamax_aspiration_window(gs, stats_local, depth, colour, move_span) };
+    const int score { colour*search_negamax(gs, stats_local, depth, colour, move_span) };
     const auto end = std::chrono::steady_clock::now();
 
     stats_local.eval = score;

@@ -279,18 +279,14 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
 }
 
-inline int search_negamax(game_state& gs, statistics& stats, std::size_t depth, int colour, std::span<std::uint32_t> move_buf) noexcept
-{
-    return details::search_negamax_recursive(gs, stats, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, move_buf);
-}
-
-inline int search_negamax_aspiration_window(game_state& gs, statistics& stats, std::size_t depth, int colour, std::span<std::uint32_t> move_buf) noexcept
+inline int search_negamax(game_state& gs, statistics& stats, std::size_t depth, int colour, std::span<std::uint32_t> move_buf, int d = config::awd) noexcept
 {
     int a { -std::numeric_limits<int>::max() };
     int b {  std::numeric_limits<int>::max() };
 
-    constexpr int initial_delta { 35 };
-    int d = initial_delta;
+    // Don't narrow the window if our initial delta is 0 - we just return the result of the search across the whole space.
+    if (!d)
+        return details::search_negamax_recursive(gs, stats, depth, a, b, colour, move_buf);
 
     // Set a narrower window around the previous score for this node if we can find it in the transposition table.
     if (const auto& entry { gs.tt[gs.hash] }; entry.key == gs.hash)
@@ -305,18 +301,26 @@ inline int search_negamax_aspiration_window(game_state& gs, statistics& stats, s
         if (gs.stop_search)
             return score;
 
-        // Just do a regular non-aspiration-window search if we think we've found checkmate - not doing this can be very risky, and
+        // Widen the window back out to the maximum if we've found checkmate - not doing this can be very risky, and
         // can even end up in us recommending illegal moves!
         if (std::abs(score) >= evaluation::EVAL_CHECKMATE)
-            return search_negamax(gs, stats, depth, colour, move_buf);
+            return details::search_negamax_recursive(gs, stats, depth, -std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), colour, move_buf);
 
         // Otherwise check that it fits within the window, and adjust if necessary.
         if (score <= a)
+        {
+            stats.aw_misses_low++;
             a -= d;
+        }
         else if (score >= b)
+        {
+            stats.aw_misses_high++;
             b += d;
+        }
         else
+        {
             return score;
+        }
 
         d *= 2;
     }
