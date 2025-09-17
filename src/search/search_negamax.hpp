@@ -2,6 +2,8 @@
 
 
 #include "evaluation/evaluate.hpp"
+#include "evaluation/evaluate_material.hpp"
+#include "evaluation/see.hpp"
 #include "position/game_state.hpp"
 #include "position/move.hpp"
 #include "search/statistics.hpp"
@@ -26,16 +28,23 @@ constexpr std::uint8_t META_UPPER_BOUND { 2 };
 
 inline int score_move(std::uint32_t move, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
 {
+    const std::uint8_t type { move::deserialise_move_type(move) };
+
     // We score PV moves the highest.
     if (move == pv_move)
         return 2000000000;
 
     // Next comes hash-moves.
     if (move == hash_move)
-        return 1000000000;
+        return 1500000000;
+
+    // Next we score promotions according to the score of the promoted piece (we may change this in the future so that all non-queen
+    // promotions are scored near the bottom).
+    if (move::move_type::is_promotion(type))
+        return 1000000000 + evaluation::piece_mg_evaluation[move::deserialise_move_info(move)];
 
     // Next MVV/LVA score.
-    if (move::move_type::is_capture(move::deserialise_move_type(move)))
+    if (move::move_type::is_capture(type))
         return 900000000 + mvv_lva_score(gs.bb, move);
 
     // Next is killer moves from this ply.
@@ -77,7 +86,7 @@ inline void handle_fail_high(game_state& gs, std::size_t draft, std::uint32_t mo
     const auto type = move::deserialise_move_type(move);
 
     // Handle quiet moves that fail-high.
-    if (!move::move_type::is_capture(type) && !move::move_type::is_promotion(type))
+    if (move::move_type::is_quiet(type))
     {
         if (config::km) gs.km.store_killer_move(draft, move);
         if (config::hh) gs.hh.update_hh(move);
@@ -242,7 +251,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 }
 
                 // Update the relative butterfly heuristic.
-                if (const auto type = move::deserialise_move_type(move); config::hh && !move::move_type::is_capture(type) && !move::move_type::is_promotion(type)) gs.hh.update_bf(move);
+                if (const auto type = move::deserialise_move_type(move); config::hh && move::move_type::is_quiet(type)) gs.hh.update_bf(move);
             }
 
             // Handle the rare case of there being no legal moves in this position. This should be evaluated as either checkmate (if we're in check) or as

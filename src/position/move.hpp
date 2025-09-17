@@ -40,6 +40,9 @@ constexpr bool is_promotion(std::uint8_t move_type)  noexcept { return (move_typ
 constexpr bool is_en_passent(std::uint8_t move_type) noexcept { return move_type == 0b110; }
 constexpr bool is_pawn_push(std::uint8_t move_type)  noexcept { return move_type == 0b010; }
 
+// We currently define quiet moves as non-captures and non-promotions.
+constexpr bool is_quiet(std::uint8_t move_type) noexcept { return !is_capture(move_type) && !is_promotion(move_type); }
+
 }
 
 // We use a variety of enums to signal additional information about the move. As we only have three bits
