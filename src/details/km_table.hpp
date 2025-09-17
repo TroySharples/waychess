@@ -27,7 +27,7 @@ inline void km_table::store_killer_move(std::size_t ply, std::uint32_t move) noe
     // Shift the old killer moves down.
     if (move != table[ply][0])
     {
-        table[ply][1] = table[ply][0];
+        std::swap(table[ply][0], table[ply][1]);
         table[ply][0] = move;
     }
 }
