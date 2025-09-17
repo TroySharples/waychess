@@ -4,6 +4,7 @@
 #include "position/attacks.hpp"
 #include "position/move.hpp"
 #include "evaluation/evaluate_material.hpp"
+#include "utility/binary.hpp"
 
 namespace evaluation
 {
@@ -14,9 +15,11 @@ inline int see_capture(const bitboard& bb, std::uint32_t move, bool is_black)
     const std::size_t from_mb { move::deserialise_from_mb(move) };
     const std::size_t to_mb   { move::deserialise_to_mb(move)   };
 
+    const std::uint64_t to_bb { 1ULL << to_mb };
+
     // These values will be updated as the algorithm iterates.
     std::uint64_t from_bb  { 1ULL << from_mb };
-    piece_idx victim_idx   { bb.get_piece_type_colour(from_bb, !is_black) };
+    piece_idx victim_idx   { bb.get_piece_type_colour(to_bb, !is_black) };
     piece_idx attacker_idx { bb.get_piece_type_colour(from_bb, is_black) };
 
     // The occupancy bitboard of all pieces.
@@ -31,8 +34,8 @@ inline int see_capture(const bitboard& bb, std::uint32_t move, bool is_black)
 
     // Bitboard of xraying pieces of two types, that aren't directly attacking the square of interest but may later
     // do if the piece in front of it moves.
-    std::uint64_t rook_xrayers_bb   { ~attackers_bb & (bb.boards[piece_idx::w_rook]   | bb.boards[piece_idx::w_queen] | bb.boards[piece_idx::b_rook]   | bb.boards[piece_idx::b_queen]) };
-    std::uint64_t bishop_xrayers_bb { ~attackers_bb & (bb.boards[piece_idx::w_bishop] | bb.boards[piece_idx::w_queen] | bb.boards[piece_idx::b_bishop] | bb.boards[piece_idx::b_queen]) };
+    std::uint64_t rook_xrayers_bb   { rook_xrays_bb   & ~attackers_bb & (bb.boards[piece_idx::w_rook]   | bb.boards[piece_idx::w_queen] | bb.boards[piece_idx::b_rook]   | bb.boards[piece_idx::b_queen]) };
+    std::uint64_t bishop_xrayers_bb { bishop_xrays_bb & ~attackers_bb & (bb.boards[piece_idx::w_bishop] | bb.boards[piece_idx::w_queen] | bb.boards[piece_idx::b_bishop] | bb.boards[piece_idx::b_queen]) };
 
     // A gain array to keep track of how much value is in each capture - we will recurse backwards over this at the end
     // to allow for the attacking side to "not" capture if needed.
@@ -55,7 +58,7 @@ inline int see_capture(const bitboard& bb, std::uint32_t move, bool is_black)
         // unmask at most one other attacking piece. We have to remember to unset this xrayer after. I don't believe it is actually
         // necessary to take special care over pieces that are both rook-xrayers and bishop-xrayers (i.e. queens) because they can't
         // act both ways at once towards a specific square - a queen is either attacking a square as a rook or bishop.
-        if (from_bb & rook_xrays_bb) [[unlikely]]
+        if (from_bb & rook_xrays_bb)
         {
             if (const std::uint64_t unmasked_rook_attacker { rook_xrayers_bb & get_rook_attacked_squares_from_mailbox(occ_bb, to_mb) }) [[unlikely]]
             {
@@ -63,7 +66,7 @@ inline int see_capture(const bitboard& bb, std::uint32_t move, bool is_black)
                 rook_xrayers_bb ^= unmasked_rook_attacker;
             }
         }
-        if (from_bb & bishop_xrays_bb) [[unlikely]]
+        if (from_bb & bishop_xrays_bb)
         {
             if (const std::uint64_t unmasked_bishop_attacker { bishop_xrayers_bb & get_bishop_attacked_squares_from_mailbox(occ_bb, to_mb) }) [[unlikely]]
             {
@@ -76,7 +79,7 @@ inline int see_capture(const bitboard& bb, std::uint32_t move, bool is_black)
         {
             const auto v = bb.get_least_valuable_piece(attackers_bb, is_black);
             attacker_idx = v.first;
-            from_bb = v.second;
+            from_bb = ls1b_isolate(v.second);
         }
     }
     while (from_bb);
