@@ -72,6 +72,18 @@ inline void sort_moves(std::span<std::uint32_t> move_buf, std::size_t draft, con
         move_buf[i] = scored_moves[i].first;
 }
 
+inline void handle_fail_high(game_state& gs, std::size_t draft, std::uint32_t move)
+{
+    const auto type = move::deserialise_move_type(move);
+
+    // Handle quiet moves that fail-high.
+    if (!move::move_type::is_capture(type) && !move::move_type::is_promotion(type))
+    {
+        if (config::km) gs.km.store_killer_move(draft, move);
+        if (config::hh) gs.hh.update_hh(move);
+    }
+}
+
 inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size_t depth, int a, int b, int colour, std::span<std::uint32_t> move_buf) noexcept
 {
     int ret { -std::numeric_limits<int>::max() };
@@ -118,7 +130,10 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         // Cut-node (fail-high). We have a lowerbound for how good this move can be. If this is greater than our beta, there's no point
         // in trying to find a stronger refutation.
         if (entry.value.meta == META_LOWER_BOUND && eval >= b)
+        {
+            if (const std::uint32_t best_move { entry.value.best_move }; best_move) handle_fail_high(gs, draft, best_move);
             return eval;
+        }
     }
 
     // Loop up our PV and hash moves from previous searches.
@@ -222,13 +237,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 // Break early if we encounter a beta-cutoff (fantastic news!).
                 if (a >= b)
                 {
-                    // Update the history heuristic and store it as a killer move if it is quiet.
-                    if (const auto type = move::deserialise_move_type(move); !move::move_type::is_capture(type) && !move::move_type::is_promotion(type))
-                    {
-                        if (config::km) gs.km.store_killer_move(draft, move);
-                        if (config::hh) gs.hh.update_hh(move);
-                    }
-
+                    handle_fail_high(gs, draft, best_move);
                     break;
                 }
 
