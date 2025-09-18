@@ -19,7 +19,7 @@ constexpr int evaluate_mg(const bitboard& bb) noexcept
         std::uint64_t piece_bb { bb.boards[i] };
         while (piece_bb)
         {
-            const std::size_t mb = std::countl_zero(ls1b_isolate(piece_bb));
+            const std::size_t mb = std::countr_zero(ls1b_isolate(piece_bb));
 
             ret += piece_mg_evaluation[i] + piece_square_mg_evaluation[i][mb];
 
@@ -39,7 +39,7 @@ constexpr int evaluate_eg(const bitboard& bb) noexcept
         std::uint64_t piece_bb { bb.boards[i] };
         while (piece_bb)
         {
-            const std::size_t mb = std::countl_zero(ls1b_isolate(piece_bb));
+            const std::size_t mb = std::countr_zero(ls1b_isolate(piece_bb));
 
             ret += piece_eg_evaluation[i] + piece_square_eg_evaluation[i][mb];
 
