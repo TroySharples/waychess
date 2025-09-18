@@ -120,6 +120,19 @@ struct command_go : command
     void write(std::ostream& /*os*/) const override { };
 };
 
+// Our own UCI extension command - evaluate position to a given depth. The difference
+// with go is that we can evaluate to depth 0 for terminal evaluation debugging.
+struct command_evaluate : command
+{
+    static constexpr const char* ID { "evaluate" };
+    constexpr const char* get_id() const noexcept override { return ID; }
+
+    std::size_t depth;
+
+    void read(std::istream& is) override;
+    void write(std::ostream& /*os*/) const override { };
+};
+
 // Sent from the GUI to the engine to stop current search - contains no body.
 struct command_stop : command
 {

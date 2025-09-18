@@ -115,7 +115,7 @@ void handle(game& g, const uci::command_go& req)
     if (is_black_to_play ? !req.btime.has_value() : !req.wtime.has_value())
     {
         // Calculate infinitely if we haven't been told our time parameters.
-        g.search(64, std::chrono::days(2));
+        g.search(game::search_go, 64);
     }
     else
     {
@@ -124,8 +124,13 @@ void handle(game& g, const uci::command_go& req)
         const std::size_t increment_ms { req.get_increment_ms(is_black_to_play) };
 
         const std::chrono::milliseconds time((remaining_ms/20) + (increment_ms/2));
-        g.search(64, time);
+        g.search(game::search_go, 64, time);
     }
+}
+
+void handle(game& g, const uci::command_evaluate& req)
+{
+    g.search(game::search_evaluate, req.depth);
 }
 
 void handle(game& g, const uci::command_stop& /*req*/)
@@ -175,55 +180,61 @@ int main() try
         std::string command;
         iss >> command;
 
-        if (command == "uci")
+        if (command == uci::command_uci::ID)
         {
             uci::command_uci req;
             req.read(iss);
             handle(g, req);
         }
-        else if (command == "isready")
+        else if (command == uci::command_isready::ID)
         {
             uci::command_isready req;
             req.read(iss);
             handle(g, req);
         }
-        else if (command == "ucinewgame")
+        else if (command == uci::command_ucinewgame::ID)
         {
             uci::command_ucinewgame req;
             req.read(iss);
             handle(g, req);
         }
-        else if (command == "setoption")
+        else if (command == uci::command_setoption::ID)
         {
             uci::command_setoption req;
             req.read(iss);
             handle(g, req);
         }
-        else if (command == "debug")
+        else if (command == uci::command_debug::ID)
         {
             uci::command_debug req;
             req.read(iss);
             handle(g, req);
         }
-        else if (command == "position")
+        else if (command == uci::command_position::ID)
         {
             uci::command_position req;
             req.read(iss);
             handle(g, req);
         }
-        else if (command == "go")
+        else if (command == uci::command_go::ID)
         {
             uci::command_go req;
             req.read(iss);
             handle(g, req);
         }
-        else if (command == "stop")
+        else if (command == uci::command_evaluate::ID)
+        {
+            uci::command_evaluate req;
+            req.read(iss);
+            handle(g, req);
+        }
+        else if (command == uci::command_stop::ID)
         {
             uci::command_stop req;
             req.read(iss);
             handle(g, req);
         }
-        else if (command == "quit")
+        else if (command == uci::command_quit::ID)
         {
             uci::command_quit req;
             req.read(iss);

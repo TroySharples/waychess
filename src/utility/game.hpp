@@ -21,7 +21,9 @@ public:
 
     ~game();
 
-    void search(std::size_t max_depth, std::chrono::duration<double> max_time);
+    enum search_type : std::uint8_t { search_go, search_evaluate };
+    void search(search_type type, std::size_t max_depth, std::chrono::duration<double> max_time = std::chrono::days(2));
+
     void stop();
 
     game_state gs;
@@ -40,6 +42,8 @@ private:
         std::chrono::duration<double> max_time;
     };
     std::optional<search_parameters> _search_params;
+    search_type _type;
+
 
     void run_loop();
 };

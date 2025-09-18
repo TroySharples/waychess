@@ -212,6 +212,11 @@ void command_go::read(std::istream& is)
     }
 }
 
+void command_evaluate::read(std::istream& is)
+{
+    is >> depth;
+}
+
 void command_id::write(std::ostream& os) const
 {
     os << id;

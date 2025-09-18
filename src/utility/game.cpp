@@ -23,7 +23,7 @@ game::~game()
     _t.join();
 }
 
-void game::search(std::size_t max_depth, std::chrono::duration<double> max_time)
+void game::search(search_type type, std::size_t max_depth, std::chrono::duration<double> max_time)
 {
     {
         std::lock_guard<std::mutex> lk(_m);
@@ -31,6 +31,7 @@ void game::search(std::size_t max_depth, std::chrono::duration<double> max_time)
             throw std::runtime_error("Search already ongoing");
 
         _search_params = { .max_depth=max_depth, .max_time=max_time };
+        _type = type;
     }
     _c.notify_one();
 }
@@ -55,7 +56,8 @@ void game::run_loop()
 
         // Otherwise kick-off a search.
         const std::uint32_t move { search::recommend_move(gs, _search_params->max_depth, _search_params->max_time).move };
-        callback_best_move(move);
+        if (_type == search_go)
+            callback_best_move(move);
 
         _search_params.reset();
     }

@@ -81,6 +81,10 @@ inline recommendation recommend_move_id_impl(game_state& gs, statistics& stats, 
 {
     gs.stop_search = false;
 
+    // Handle the special case of 0-depth search (raw terminal evaluation).
+    if (depth == 0)
+        return recommend_move_impl(gs, stats, 0);
+
     // Do the iterative deepening - we make sure to only update our recommendation if we weren't interrupted.
     recommendation ret {};
     for (std::size_t i = 1; i <= depth; i++)
