@@ -1,12 +1,32 @@
 # Change Log
 
-## [Unreleased] - yyyy-mm-dd
+## [1.5.0] - 2025-09-18
 
 ### Added
 
+- Static Exchange Evaluation (SEE) pruning in quiescent search.
+- Evaluate UCI-extension for inspecting terminal evaluation.
+- Ability to configure search internals via compile-time config.
+- History heuristic for quiet move-ordering (currently turned off in default configuration).
+- SPRT testing framework using fastchess.
+- Null-move pruning.
+- Late-Move Reduction (LMR).
+
 ### Changed
 
+- Hash-moves that fail high are now added to the killer tables and history heuristic.
+- Drawing moves are no longer included in the PV.
+- Search threading model - search can now be interrupted, as required by UCI.
+- Widened move-history buffer to longest possible legal game - we came dangerously close to overflowing in a few games.
+- Removed WhyChess variant, as this was becoming difficult to maintain with low-strength. May add it back in the future.
+- Better search logging.
+
 ### Fixed
+
+- Killer-move replacement strategy.
+- Bug in piece-square tables where we were playing anti-positionally (primary reason for large increase in playing strength).
+- Order promotions before quiet moves.
+- Bug in aspiration window where we were returning early upon possible checkmating moves instead of widening the window out to the maximum - this was causing the occasional illegal move recommendation.
 
 ## [1.4.0] - 2025-09-07
 
