@@ -9,7 +9,7 @@ namespace config
 constexpr bool nmp { true };
 constexpr bool lmr { true };
 constexpr bool km  { true };
-constexpr bool hh  { true };
+constexpr bool hh  { false };
 constexpr bool see { true };
 
 // The initial delta of the aspiration window - 0 if we shouldn't use aspiration windows in the search.

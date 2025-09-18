@@ -1,0 +1,14 @@
+config waychess: nmp=false,lmr=false
+config candidate: nmp=true,lmr=true,km=true,hh=false,see=true,awd=35
+
+--------------------------------------------------
+Results of waychess vs candidate (8+1, NULL, 128MB, 8moves_v3.pgn):
+Elo: -481.01 +/- 114.14, nElo: -766.94 +/- 56.75
+LOS: 0.00 %, DrawRatio: 6.94 %, PairsRatio: 0.00
+Games: 144, Wins: 5, Losses: 132, Draws: 7, Points: 8.5 (5.90 %)
+Ptnml(0-2): [60, 7, 5, 0, 0], WL/DD Ratio: inf
+LLR: 2747.67 (93317.1%) (-2.94, 2.94) [0.00, 300.00]
+--------------------------------------------------
+SPRT ([0.00, 300.00]) completed - H1 was accepted
+Finished match
+Total Time: 00:20:45 (hours:minutes:seconds)
