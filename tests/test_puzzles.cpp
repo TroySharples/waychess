@@ -42,7 +42,7 @@ void test_puzzles(const std::filesystem::path& csv_path, std::size_t depth, doub
 
 TEST(Puzzle, Mate500)
 {
-    test_puzzles(std::filesystem::path(PUZZLE_DIR) / "mate500.csv", 9, 1.0);
+    test_puzzles(std::filesystem::path(PUZZLE_DIR) / "mate500.csv", 10, 1.0);
 }
 
 TEST(Puzzle, Endgame500)

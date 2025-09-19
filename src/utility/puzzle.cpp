@@ -4,23 +4,33 @@
 
 bool solver::solve(const puzzle& p, std::size_t depth)
 {
-    bool ret { true };
-
     gs.reset();
     gs.load(p.bb);
     bool is_to_move { false };
 
     for (auto move : p.moves)
     {
-        if (is_to_move && move != search::recommend_move(gs, depth).move)
-            ret = false;
+        // If it is our side to move we have to run the search.
+        if (is_to_move)
+        {
+            const search::recommendation rec { search::recommend_move(gs, depth) };
 
-        make_move({ .check_legality = false }, gs, move);
+            // Return true early if we've found checkmate (there might be multiple winning mates in this position, so
+            // otherwise we'd fail the test).
+            if (std::abs(rec.eval) >= evaluation::EVAL_CHECKMATE)
+                return true;
 
+            // If there is no mate, and it is us to move, we just make sure we play the right move.
+            if (move != rec.move)
+                return false;
+        }
+
+        // Actually make the move.
         is_to_move = !is_to_move;
+        make_move({ .check_legality = false }, gs, move);
     }
 
-    return ret;
+    return true;
 }
 
 std::istream& operator>>(std::istream& is, solver::puzzle& v)
