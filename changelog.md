@@ -16,8 +16,8 @@
 
 - Hash-moves that fail high are now added to the killer tables and history heuristic.
 - Drawing moves are no longer included in the PV.
-- Search threading model - search can now be interrupted, as required by UCI.
-- Widened move-history buffer to longest possible legal game - we came dangerously close to overflowing in a few games.
+- Search can now be interrupted, as required by UCI.
+- Widened move-history buffer to longest possible legal game - we came dangerously close to overrunning in a few games.
 - Removed WhyChess variant, as this was becoming difficult to maintain with low-strength. May add it back in the future.
 - Better search logging.
 
