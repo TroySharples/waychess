@@ -1,5 +1,17 @@
 # Change Log
 
+## [1.5.1] - 2025-09-19
+
+### Added
+
+### Changed
+
+- More logging around performance of alpha/beta.
+
+### Fixed
+
+- Erroneously only researching LMR-moves if they fail high over beta (vs alpha).
+
 ## [1.5.0] - 2025-09-18
 
 ### Added
