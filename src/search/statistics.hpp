@@ -19,12 +19,12 @@ struct statistics
     int eval;
     std::span<const std::uint32_t> pv;
 
-    // The number of nodes searches for in the main body of the search,
-    std::size_t pvnodes {};
+    // The number of nodes searches for in the main alpha-beta body of the search,
+    std::size_t abnodes {};
     // The number of nodes visited in quiescent search.
     std::size_t qnodes {};
 
-    std::size_t get_nodes() const noexcept { return pvnodes+qnodes; }
+    std::size_t get_nodes() const noexcept { return abnodes+qnodes; }
 
     // Transposition-table metrics.
     std::size_t tt_probes {};

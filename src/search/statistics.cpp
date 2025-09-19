@@ -17,7 +17,7 @@ void statistics::log_search_info() const
        << " time "            << duration_ms
        << " nodes "           << get_nodes()
        << " nps "             << get_nps()
-       << " pvnodes "         << pvnodes
+       << " abnodes "         << abnodes
        << " qnodes "          << qnodes
        << " qdepth "          << qdepth
        << " tt-probes "       << tt_probes
@@ -38,7 +38,7 @@ void statistics::id_update(const statistics& v)
     eval = v.eval;
     pv = v.pv;
 
-    pvnodes += v.pvnodes;
+    abnodes += v.abnodes;
     qnodes += v.qnodes;
 
     tt_probes += v.tt_probes;

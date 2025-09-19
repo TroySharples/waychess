@@ -102,7 +102,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
     const size_t draft { gs.bb.ply_counter-gs.root_ply };
 
     // Update stats.
-    stats.pvnodes++;
+    stats.abnodes++;
 
     // Handle repetition-based draws first - we currently don't implement and contempt factor when playing against weaker opponents.
     // It is faster doing this here before the hash-lookup as in practice almost all hash-lookups will probably result in a cache-miss.

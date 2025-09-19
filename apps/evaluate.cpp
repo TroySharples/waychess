@@ -104,7 +104,7 @@ int main(int argc, char** argv)
               << R"(    "evaluation-cp": )" << rec.eval << ",\n"
               << R"(    "nodes": )" << stats.get_nodes() << ",\n"
               << R"(    "nps": )" << stats.get_nps() << ",\n"
-              << R"(    "pvnodes": )" << stats.pvnodes << ",\n"
+              << R"(    "abnodes": )" << stats.abnodes << ",\n"
               << R"(    "qnodes": )" << stats.qnodes << ",\n"
               << R"(    "qdepth": )" << stats.qdepth << ",\n"
               << R"(    "tt-probes": )" << stats.tt_probes << ",\n"
