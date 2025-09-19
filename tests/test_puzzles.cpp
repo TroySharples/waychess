@@ -10,7 +10,7 @@ namespace
 // Global puzzle solver.
 solver s;
 
-void test_puzzles(const std::filesystem::path& csv_path, double pass_accuracy)
+void test_puzzles(const std::filesystem::path& csv_path, std::size_t depth, double pass_accuracy)
 {
     std::size_t puzzles_total {};
     std::size_t puzzles_solved {};
@@ -29,7 +29,7 @@ void test_puzzles(const std::filesystem::path& csv_path, double pass_accuracy)
         ss >> p;
 
         puzzles_total++;
-        if (s.solve(p, 5))
+        if (s.solve(p, depth))
             puzzles_solved++;
     }
 
@@ -42,12 +42,17 @@ void test_puzzles(const std::filesystem::path& csv_path, double pass_accuracy)
 
 TEST(Puzzle, Mate500)
 {
-    test_puzzles(std::filesystem::path(PUZZLE_DIR) / "mate500.csv", 0.9);
+    test_puzzles(std::filesystem::path(PUZZLE_DIR) / "mate500.csv", 9, 1.0);
 }
 
 TEST(Puzzle, Endgame500)
 {
-    test_puzzles(std::filesystem::path(PUZZLE_DIR) / "endgame500.csv", 0.5);
+    test_puzzles(std::filesystem::path(PUZZLE_DIR) / "endgame500.csv", 9, 0.85);
+}
+
+TEST(Puzzle, Middlegame500)
+{
+    test_puzzles(std::filesystem::path(PUZZLE_DIR) / "middlegame500.csv", 7, 0.85);
 }
 
 // Tests the rough performance of the search and evaluation by evaluate puzzle-solving
