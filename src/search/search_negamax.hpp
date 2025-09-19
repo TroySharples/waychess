@@ -3,7 +3,6 @@
 
 #include "evaluation/evaluate.hpp"
 #include "evaluation/evaluate_material.hpp"
-#include "evaluation/see.hpp"
 #include "position/game_state.hpp"
 #include "position/move.hpp"
 #include "search/statistics.hpp"
@@ -93,12 +92,12 @@ inline void handle_fail_high(game_state& gs, std::size_t draft, std::uint32_t mo
     }
 }
 
-inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size_t depth, int a, int b, int colour, std::span<std::uint32_t> move_buf) noexcept
+inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size_t depth, int alpha, int beta, int colour, std::span<std::uint32_t> move_buf) noexcept
 {
     int ret { -std::numeric_limits<int>::max() };
 
     // Some constants that will be broadly useful throughout the search.
-    const auto a_orig = a ;
+    const auto alpha_orig = alpha ;
     const size_t draft { gs.bb.ply_counter-gs.root_ply };
 
     // Update stats.
@@ -134,7 +133,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
         // All-node (fail-low). We have an upperbound for how good this move can be. If this is less than our alpha there's no point in
         // continuing this search.
-        if (entry.value.meta == META_UPPER_BOUND && eval <= a)
+        if (entry.value.meta == META_UPPER_BOUND && eval <= alpha)
         {
             stats.allnodes++;
             return eval;
@@ -142,7 +141,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
         // Cut-node (fail-high). We have a lowerbound for how good this move can be. If this is greater than our beta, there's no point
         // in trying to find a stronger refutation.
-        if (entry.value.meta == META_LOWER_BOUND && eval >= b)
+        if (entry.value.meta == META_LOWER_BOUND && eval >= beta)
         {
             stats.cutnodes++;
             stats.fh_hash++;
@@ -162,7 +161,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
     if (depth == 0)
     {
         // If this is a leaf of our search tree we just use our quiescent-search function to mitigate the horizon-effect.
-        ret = search_quiescence(gs, stats, 0, a, b, colour, move_buf);
+        ret = search_quiescence(gs, stats, 0, alpha, beta, colour, move_buf);
     }
     else
     {
@@ -174,11 +173,11 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
             // No need to check legality here as we already know this move won't leave us in check.
             std::uint32_t unmake;
             make_move({ .check_legality = false }, gs, move::NULL_MOVE, unmake);
-            const int score { -search_negamax_recursive(gs, stats, depth-r-1, -b, -b+1, -colour, move_buf) };
+            const int score { -search_negamax_recursive(gs, stats, depth-r-1, -beta, -beta+1, -colour, move_buf) };
             unmake_move(gs, unmake);
 
             // Return early if this reduced search causes a beta-cutoff.
-            if (score > b)
+            if (score > beta)
             {
                 stats.fh_null++;
                 null_move_pruned = true;
@@ -196,7 +195,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
             // Sort the moves favourably to increase the chance of early beta-cutoffs.
             sort_moves(move_list, draft, gs, pv_move, hash_move);
 
-            for (std::size_t i =0; i < moves; i++)
+            for (std::size_t i = 0; i < moves; i++)
             {
                 const std::uint32_t move { move_list[i] };
 
@@ -213,25 +212,23 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                     continue;
                 }
 
-                // Do the actual search by recursing the algorithm. We vary the quality of the search based on whether this move is expected
-                // to be any good. TODO: tweek the LMR kick-in after we add better move ordering (e.g. history-heuristic).
-                int score;
-                if (config::lmr && i >= 3 && depth > 3)
-                {
-                    // We run the recursive search at a lower depth if this move isn't near the top of our list after sorting. TODO: have a
-                    // smarter adaptive LMR-reduction.
-                    constexpr std::size_t lmr_reduction { 1 };
-                    score = -search_negamax_recursive(gs, stats, depth-lmr_reduction-1, -b, -a, -colour, move_buf.subspan(moves));
+                // We run the recursive search at a lower depth if this move isn't near the top of our list after sorting. TODO: have smarter
+                // adaptive LMR-reduction, and tweek the LMR kick-in.
+                const bool do_lmr { config::lmr && i >= 3 && depth > 3 };
+                constexpr std::size_t lmr_reduction { 1 };
+                const std::size_t d = { do_lmr ? depth-lmr_reduction-1 : depth-1 };
 
-                    // We rerun the search at full depth if the result of this reduced search actually ends up increasing our alpha.
-                    if (score > a)
-                        score = -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, move_buf.subspan(moves));
-                }
-                else
-                {
-                    // Otherwise, just run the recursive search without any reduction in depth.
-                    score = -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, move_buf.subspan(moves));
-                }
+                const bool do_scout { config::scout && i >= 1 };
+                const int b { do_scout ? alpha+1 : beta };
+
+                // Recurse negamax.
+                int score = -search_negamax_recursive(gs, stats, d, -b, -alpha, -colour, move_buf.subspan(moves));
+
+                // Handle researching at full-depth / widened window if necessary.
+                if (do_scout && alpha < score && score < beta && depth > 0)
+                    score = -search_negamax_recursive(gs, stats, depth-1, -beta, -score, -colour, move_buf.subspan(moves));
+                else if (do_lmr && score > alpha)
+                    score = -search_negamax_recursive(gs, stats, depth-1, -beta, -alpha, -colour, move_buf.subspan(moves));
 
                 // Resets the game state to how it was before we made the move.
                 unmake_move(gs, unmake);
@@ -243,14 +240,14 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 }
 
                 // Update our PV table when we've found a new best move at this depth.
-                if (ret > a)
+                if (ret > alpha)
                 {
-                    a = ret;
+                    alpha = ret;
                     gs.pv.update_variation(draft, move);
                 }
 
                 // Break early if we encounter a beta-cutoff (fantastic news!).
-                if (a >= b)
+                if (alpha >= beta)
                 {
                     // Update statistics on which move caused the cut.
                     i == 0 ? stats.fh_first++ : stats.fh_later++;
@@ -280,15 +277,15 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         entry.value.eval  = ret;
 
         // Set the best move if we've at least raised our alpha.
-        entry.value.best_move = (ret > a_orig ? best_move : 0);
+        entry.value.best_move = (ret > alpha_orig ? best_move : 0);
 
         // Set our node-type.
-        if (ret <= a_orig)
+        if (ret <= alpha_orig)
         {
             stats.allnodes++;
             entry.value.meta = META_UPPER_BOUND;
         }
-        else if (ret >= b)
+        else if (ret >= beta)
         {
             stats.cutnodes++;
             entry.value.meta = META_LOWER_BOUND;
