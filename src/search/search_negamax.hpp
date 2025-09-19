@@ -223,9 +223,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                     constexpr std::size_t lmr_reduction { 1 };
                     score = -search_negamax_recursive(gs, stats, depth-lmr_reduction-1, -b, -a, -colour, move_buf.subspan(moves));
 
-                    // We rerun the search at full depth if the result of this reduced search fails high over beta (this move was better
-                    // than we originally thought based on it's position in the move list).
-                    if (score >= b)
+                    // We rerun the search at full depth if the result of this reduced search actually ends up increasing our alpha.
+                    if (score > a)
                         score = -search_negamax_recursive(gs, stats, depth-1, -b, -a, -colour, move_buf.subspan(moves));
                 }
                 else
