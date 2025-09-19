@@ -126,7 +126,6 @@ int main(int argc, char** argv)
               << R"(    "config": )"; config::print_json(std::cout); std::cout << ",\n"
               << R"(    "depth": )" << depth << ",\n"
               << R"(    "hash-table MB": )" << '"' << s.gs.tt.get_table_bytes()/1000000 << '"' << ",\n"
-              << R"(    "terminal-evaluation": )" << '"' << "raw-material" << '"' << ",\n"
               << R"(    "time-ms": )" << std::chrono::duration_cast<std::chrono::milliseconds>(time_end-time_start).count() << ",\n"
               << R"(    "puzzles-total": )" << puzzles_total << ",\n"
               << R"(    "puzzles-solved": )" << puzzles_solved << ",\n"
