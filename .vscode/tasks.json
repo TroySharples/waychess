@@ -64,7 +64,8 @@
             "description": "Puzzle file",
             "options": [
                 "mate500",
-                "endgame500"
+                "endgame500",
+                "middlegame500"
             ],
             "default": "copy"
         },

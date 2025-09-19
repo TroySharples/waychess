@@ -51,7 +51,7 @@ RUN_PUZZLER_PATH="${SCRIPT_DIR}"/puzzler.sh
 PUZZLE_DIR="${SCRIPT_DIR}"/../puzzles
 
 # Medium-depth solve across all puzzle files and a variety of hash-sizes.
-for file in mate500 endgame500; do
+for file in mate500 endgame500 middlegame500; do
     for depth in 9 10; do
         for hash_mb in 50 500 4000; do
             run "${RUN_PUZZLER_PATH}" "${PUZZLE_DIR}/${file}.csv" "${depth}" "${hash_mb}" "${SUITE_LABEL}"
