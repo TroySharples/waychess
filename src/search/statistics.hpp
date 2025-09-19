@@ -23,16 +23,29 @@ struct statistics
     std::size_t abnodes {};
     // The number of nodes visited in quiescent search.
     std::size_t qnodes {};
+    // The number of cut-nodes (fail-high) visited.
+    std::size_t cutnodes {};
+    // The number of all-nodes (fail-low) visited.
+    std::size_t allnodes {};
+    // The number of pv-nodes (exact) visited.
+    std::size_t pvnodes {};
 
     std::size_t get_nodes() const noexcept { return abnodes+qnodes; }
 
+    // Statistics on how fail-high moves were found.
+    std::size_t fh_hash  {};
+    std::size_t fh_null  {};
+    std::size_t fh_first {};
+    std::size_t fh_later {};
+    double get_fh_on_first_rate() const noexcept { return static_cast<double>(fh_first) / static_cast<double>(1+fh_first+fh_later); }
+
     // Transposition-table metrics.
     std::size_t tt_probes {};
-    std::size_t tt_hits {};
+    std::size_t tt_hits   {};
     double get_tt_hit_rate() const noexcept { return static_cast<double>(tt_hits) / static_cast<double>(tt_probes); }
 
     // The number of misses of our aspiration window (both lower and upper).
-    std::size_t aw_misses_low {};
+    std::size_t aw_misses_low  {};
     std::size_t aw_misses_high {};
     std::size_t get_aw_misses_total() const noexcept { return aw_misses_low+aw_misses_high; }
 

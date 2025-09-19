@@ -126,6 +126,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         if (entry.value.meta == META_EXACT)
         {
             // We have an exact score - lucky us! We might be able to retrieve a PV from it as well!
+            stats.pvnodes++;
             if (entry.value.best_move)
                 gs.pv.table[draft][0] = entry.value.best_move;
             return eval;
@@ -134,12 +135,17 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         // All-node (fail-low). We have an upperbound for how good this move can be. If this is less than our alpha there's no point in
         // continuing this search.
         if (entry.value.meta == META_UPPER_BOUND && eval <= a)
+        {
+            stats.allnodes++;
             return eval;
+        }
 
         // Cut-node (fail-high). We have a lowerbound for how good this move can be. If this is greater than our beta, there's no point
         // in trying to find a stronger refutation.
         if (entry.value.meta == META_LOWER_BOUND && eval >= b)
         {
+            stats.cutnodes++;
+            stats.fh_hash++;
             if (const std::uint32_t best_move { entry.value.best_move }; best_move) handle_fail_high(gs, draft, best_move);
             return eval;
         }
@@ -174,6 +180,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
             // Return early if this reduced search causes a beta-cutoff.
             if (score > b)
             {
+                stats.fh_null++;
                 null_move_pruned = true;
                 ret = score;
             }
@@ -246,6 +253,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 // Break early if we encounter a beta-cutoff (fantastic news!).
                 if (a >= b)
                 {
+                    // Update statistics on which move caused the cut.
+                    i == 0 ? stats.fh_first++ : stats.fh_later++;
                     handle_fail_high(gs, draft, best_move);
                     break;
                 }
@@ -276,11 +285,20 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
         // Set our node-type.
         if (ret <= a_orig)
+        {
+            stats.allnodes++;
             entry.value.meta = META_UPPER_BOUND;
+        }
         else if (ret >= b)
+        {
+            stats.cutnodes++;
             entry.value.meta = META_LOWER_BOUND;
+        }
         else
+        {
+            stats.pvnodes++;
             entry.value.meta = META_EXACT;
+        }
     }
 
     return ret;
