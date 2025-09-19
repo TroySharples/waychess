@@ -28,7 +28,7 @@ public:
 
     game_state gs;
 
-    void (*callback_best_move)(std::uint32_t);
+    void (*callback_best_move)(std::uint64_t);
 
 private:
     std::thread _t;

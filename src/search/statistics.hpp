@@ -17,7 +17,7 @@ struct statistics
 
     // Final search evaluation and PV.
     int eval;
-    std::span<const std::uint32_t> pv;
+    std::span<const std::uint64_t> pv;
 
     // The number of nodes searches for in the main alpha-beta body of the search,
     std::size_t abnodes {};

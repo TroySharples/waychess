@@ -17,7 +17,7 @@ struct pv_table
 
     // Sets our current best move, and propagates childs variation into this ply. This should be set after finding a new best
     // move by searching.
-    void update_variation(std::size_t ply, std::uint32_t move) noexcept;
+    void update_variation(std::size_t ply, std::uint64_t move) noexcept;
 
     // Fill out the upper-ply PVs assuming that we search the mainline PV first.
     void init_from_root() noexcept;
@@ -25,14 +25,14 @@ struct pv_table
     // Wipe all state from the table - this should only be used when starting a new game.
     void reset() noexcept;
 
-    std::array<std::array<std::uint32_t, MAX_DEPTH>, MAX_DEPTH> table;
+    std::array<std::array<std::uint64_t, MAX_DEPTH>, MAX_DEPTH> table;
 };
 
 // ####################################
 // IMPLEMENTATION
 // ####################################
 
-inline void pv_table::update_variation(std::size_t ply, std::uint32_t move) noexcept
+inline void pv_table::update_variation(std::size_t ply, std::uint64_t move) noexcept
 {
     table[ply][0] = move;
     std::copy_n(table[ply + 1].begin(), MAX_DEPTH-1, table[ply].begin() + 1);

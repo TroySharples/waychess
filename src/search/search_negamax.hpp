@@ -25,10 +25,8 @@ constexpr std::uint8_t META_EXACT       { 0 };
 constexpr std::uint8_t META_LOWER_BOUND { 1 };
 constexpr std::uint8_t META_UPPER_BOUND { 2 };
 
-inline int score_move(std::uint32_t move, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
+inline int score_move(std::uint64_t move, std::size_t draft, const game_state& gs, std::uint64_t pv_move, std::uint64_t hash_move) noexcept
 {
-    const std::uint8_t type { move::deserialise_move_type(move) };
-
     // We score PV moves the highest.
     if (move == pv_move)
         return 2000000000;
@@ -39,11 +37,11 @@ inline int score_move(std::uint32_t move, std::size_t draft, const game_state& g
 
     // Next we score promotions according to the score of the promoted piece (we may change this in the future so that all non-queen
     // promotions are scored near the bottom).
-    if (move::move_type::is_promotion(type))
-        return 1000000000 + evaluation::piece_mg_evaluation[move::deserialise_move_info(move)];
+    if (move & move::type::PROMOTION)
+        return 1000000000 + evaluation::piece_mg_evaluation[move::make_decode_promotion(move)];
 
     // Next MVV/LVA score.
-    if (move::move_type::is_capture(type))
+    if (move & move::type::CAPTURE)
         return 900000000 + mvv_lva_score(gs.bb, move);
 
     // Next is killer moves from this ply.
@@ -56,7 +54,7 @@ inline int score_move(std::uint32_t move, std::size_t draft, const game_state& g
     return 0;
 }
 
-inline void sort_moves(std::span<std::uint32_t> move_buf, std::uint32_t move)
+inline void sort_moves(std::span<std::uint64_t> move_buf, std::uint64_t move)
 {
     for (std::size_t i = 0; i < move_buf.size(); i++)
     {
@@ -68,9 +66,9 @@ inline void sort_moves(std::span<std::uint32_t> move_buf, std::uint32_t move)
     }
 }
 
-inline void sort_moves(std::span<std::uint32_t> move_buf, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
+inline void sort_moves(std::span<std::uint64_t> move_buf, std::size_t draft, const game_state& gs, std::uint64_t pv_move, std::uint64_t hash_move) noexcept
 {
-    std::array<std::pair<std::uint32_t, int>, MAX_MOVES_PER_POSITION> scored_moves;
+    std::array<std::pair<std::uint64_t, int>, MAX_MOVES_PER_POSITION> scored_moves;
     for (std::size_t i = 0; i < move_buf.size(); i++)
         scored_moves[i] = { move_buf[i], score_move(move_buf[i], draft, gs, pv_move, hash_move) };
 
@@ -80,19 +78,17 @@ inline void sort_moves(std::span<std::uint32_t> move_buf, std::size_t draft, con
         move_buf[i] = scored_moves[i].first;
 }
 
-inline void handle_fail_high(game_state& gs, std::size_t draft, std::uint32_t move)
+inline void handle_fail_high(game_state& gs, std::size_t draft, std::uint64_t move)
 {
-    const auto type = move::deserialise_move_type(move);
-
     // Handle quiet moves that fail-high.
-    if (move::move_type::is_quiet(type))
+    if (!(move & (move::type::PROMOTION | move::type::CAPTURE)))
     {
         if (config::km) gs.km.store_killer_move(draft, move);
         if (config::hh) gs.hh.update_hh(move);
     }
 }
 
-inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size_t depth, int alpha, int beta, int colour, std::span<std::uint32_t> move_buf) noexcept
+inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size_t depth, int alpha, int beta, int colour, std::span<std::uint64_t> move_buf) noexcept
 {
     int ret { -std::numeric_limits<int>::max() };
 
@@ -145,19 +141,19 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         {
             stats.cutnodes++;
             stats.fh_hash++;
-            if (const std::uint32_t best_move { entry.value.best_move }; best_move) handle_fail_high(gs, draft, best_move);
+            if (const std::uint64_t best_move { entry.value.best_move }; best_move) handle_fail_high(gs, draft, best_move);
             return eval;
         }
     }
 
     // Loop up our PV and hash moves from previous searches.
-    const std::uint32_t pv_move        { gs.pv.table[draft][0] };
-    const std::uint32_t hash_move      { hash_hit ? entry.value.best_move : 0 };
+    const std::uint64_t pv_move        { gs.pv.table[draft][0] };
+    const std::uint64_t hash_move      { hash_hit ? entry.value.best_move : 0 };
     const bool in_check                { is_in_check(gs.bb, colour == -1) };
     const bool is_king_and_pawn_colour { gs.bb.is_king_and_pawn(colour == -1) };
 
     // The actual evaluation bit.
-    std::uint32_t best_move {};
+    std::uint64_t best_move {};
     if (depth == 0)
     {
         // If this is a leaf of our search tree we just use our quiescent-search function to mitigate the horizon-effect.
@@ -171,7 +167,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         if (config::nmp && !in_check && !is_king_and_pawn_colour && depth >= r+1)
         {
             // No need to check legality here as we already know this move won't leave us in check.
-            std::uint32_t unmake;
+            std::uint64_t unmake;
             make_move({ .check_legality = false }, gs, move::NULL_MOVE, unmake);
             const int score { -search_negamax_recursive(gs, stats, depth-r-1, -beta, -beta+1, -colour, move_buf) };
             unmake_move(gs, unmake);
@@ -190,20 +186,20 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         {
             // Otherwise, we need to continue the search by generating all nodes from here.
             const std::size_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
-            const std::span<std::uint32_t> move_list { move_buf.subspan(0, moves) };
+            const std::span<std::uint64_t> move_list { move_buf.subspan(0, moves) };
 
             // Sort the moves favourably to increase the chance of early beta-cutoffs.
             sort_moves(move_list, draft, gs, pv_move, hash_move);
 
             for (std::size_t i = 0; i < moves; i++)
             {
-                const std::uint32_t move { move_list[i] };
+                const std::uint64_t move { move_list[i] };
 
                 // Allow us to break out of the search early if needed.
                 if (gs.stop_search) [[unlikely]]
                     return ret;
 
-                std::uint32_t unmake;
+                std::uint64_t unmake;
                 if (!make_move({ .check_legality = true }, gs, move, unmake)) [[unlikely]]
                 {
                     // Simply unmake the move and move on to the next one if it's illegal (note that the move is still applied in make_move
@@ -256,7 +252,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 }
 
                 // Update the relative butterfly heuristic.
-                if (const auto type = move::deserialise_move_type(move); config::hh && move::move_type::is_quiet(type)) gs.hh.update_bf(move);
+                if (config::hh && !(move & (move::type::PROMOTION | move::type::CAPTURE))) gs.hh.update_bf(move);
             }
 
             // Handle the rare case of there being no legal moves in this position. This should be evaluated as either checkmate (if we're in check) or as
@@ -302,7 +298,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
 }
 
-inline int search_negamax(game_state& gs, statistics& stats, std::size_t depth, int colour, std::span<std::uint32_t> move_buf, int d = config::awd) noexcept
+inline int search_negamax(game_state& gs, statistics& stats, std::size_t depth, int colour, std::span<std::uint64_t> move_buf, int d = config::awd) noexcept
 {
     int a { -std::numeric_limits<int>::max() };
     int b {  std::numeric_limits<int>::max() };

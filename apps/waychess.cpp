@@ -104,7 +104,7 @@ void handle(game& g, const uci::command_position& req)
     // Apply the subsequent moves and increment the root ply if necessary.
     for (const auto& move_str : req.moves)
     {
-        std::uint32_t move { move::from_algebraic_long(move_str, g.gs.bb) };
+        std::uint64_t move { move::from_algebraic_long(move_str, g.gs.bb) };
         make_move({ .check_legality = false }, g.gs, move);
     }
 }
@@ -160,7 +160,7 @@ int main() try
     set_log_method(log_method::uci);
 
     // Initialise our best-move callback.
-    g.callback_best_move = [] (std::uint32_t move)
+    g.callback_best_move = [] (std::uint64_t move)
     {
         // Make sure that our best move is non-null (this would happen if the
         // starting position is in checkmate for example).

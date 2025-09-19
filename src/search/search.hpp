@@ -17,7 +17,7 @@ namespace search
 
 struct recommendation
 {
-    std::uint32_t move;
+    std::uint64_t move;
     int eval;
 
     friend constexpr bool operator<(const recommendation& a, const recommendation& b) noexcept { return a.eval < b.eval; };
@@ -44,8 +44,8 @@ namespace details
 // Is used by the iterative-deepening recommend-move call.
 inline recommendation recommend_move_impl(game_state& gs, statistics& stats, std::size_t depth)
 {
-    std::array<std::uint32_t, static_cast<std::size_t>(::details::pv_table::MAX_DEPTH*MAX_MOVES_PER_POSITION)> move_buf;
-    std::span<std::uint32_t> move_span(move_buf);
+    std::array<std::uint64_t, static_cast<std::size_t>(::details::pv_table::MAX_DEPTH*MAX_MOVES_PER_POSITION)> move_buf;
+    std::span<std::uint64_t> move_span(move_buf);
 
     // Set our root node, update our transposition table age, and propagate our root PV to our upper ply.
     gs.root_ply = gs.bb.ply_counter;

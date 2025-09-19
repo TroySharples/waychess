@@ -11,7 +11,7 @@ struct __attribute__ ((__packed__)) search_value_type
     std::uint8_t age;
     std::uint8_t depth;
     int eval;
-    std::uint32_t best_move;
+    std::uint64_t best_move;
 
     // A generic meta-field that can be used for various purposes depending on the search.
     std::uint8_t meta;
