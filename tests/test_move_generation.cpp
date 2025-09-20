@@ -19,22 +19,22 @@ void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash
 
     // Our buffer of moves to loop over will also include a null-moves.
     constexpr std::size_t max_moves_in_position_including_null_move { MAX_MOVES_PER_POSITION+1 };
-    std::vector<std::uint64_t> move_buf(depth*max_moves_in_position_including_null_move);
+    std::vector<std::uint32_t> move_buf(depth*max_moves_in_position_including_null_move);
 
     // Generate our move-list and add a null-move on the end to test.
-    std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    std::size_t moves { generate_pseudo_legal_moves(bb, std::span<std::uint32_t>(move_buf)) };
     move_buf[moves++] = move::NULL_MOVE;
 
     for (std::size_t i = 0; i < moves; i++)
     {
-        const std::uint64_t move = move_buf[i];
+        const std::uint32_t make = move_buf[i];
 
-        std::uint64_t unmake;
-        make_move({ .check_legality = true }, bb_copy, move, unmake, hash_copy);
+        std::uint32_t unmake;
+        make_move({ .check_legality = true }, bb_copy, make, unmake, hash_copy);
 
         test_move_generation_recursive(bb_copy, hash_copy, depth-1);
 
-        unmake_move(bb_copy, unmake, hash_copy);
+        unmake_move(bb_copy, make, unmake, hash_copy);
 
         EXPECT_EQ(bb, bb_copy);
         EXPECT_EQ(hash, hash_copy);

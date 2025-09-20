@@ -7,7 +7,7 @@
 namespace move
 {
 
-std::string to_algebraic_long(std::uint64_t move) noexcept
+std::string to_algebraic_long(std::uint32_t move) noexcept
 {
     std::string ret;
 
@@ -24,32 +24,14 @@ std::string to_algebraic_long(std::uint64_t move) noexcept
     return ret;
 }
 
-std::string to_algebraic_long(std::span<const std::uint64_t> moves) noexcept
-{
-    std::string ret;
-
-    // Catch the edge-case where our buffer is zero-length.
-    if (moves.empty())
-        return ret;
-
-    for (const auto move : moves)
-    {
-        ret.append(to_algebraic_long(move));
-        ret.push_back(' ');
-    }
-    ret.pop_back();
-
-    return ret;
-}
-
-std::uint64_t from_algebraic_long(std::string_view algebraic, const bitboard& bb)
+std::uint32_t from_algebraic_long(std::string_view algebraic, const bitboard& bb)
 {
     // This is very hacky, but it's easy and works, and doesn't need to be fast.
-    std::array<std::uint64_t, MAX_MOVES_PER_POSITION> move_buf;
-    const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    std::array<std::uint32_t, MAX_MOVES_PER_POSITION> move_buf;
+    const std::size_t moves { generate_pseudo_legal_moves(bb, std::span<std::uint32_t>(move_buf)) };
 
     for (std::size_t i = 0; i < moves; i++)
-        if (const std::uint64_t move { move_buf[i] }; to_algebraic_long(move) == algebraic)
+        if (const std::uint32_t move { move_buf[i] }; to_algebraic_long(move) == algebraic)
             return move;
 
     throw std::invalid_argument("Error deserialising move - no such move in position");

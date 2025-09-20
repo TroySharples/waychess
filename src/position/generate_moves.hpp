@@ -14,11 +14,11 @@ constexpr std::size_t MAX_MOVES_PER_POSITION { 218 };
 // king is left in check after the move is played, the king is castling out of check, or the king is castling
 // into check). We take in a span to hold our moves, and return a subspan containing the actual moves. Note
 // that the input span must be large enough to hold all generated moves.
-inline std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint64_t> move_buf) noexcept;
+template <typename T>
+std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<T> move_buf) noexcept;
 
-
-// Currently just implemented as a filter on all pseudo-legal-moves, but might make this more efficient later on.
-inline std::size_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::span<std::uint64_t> move_buf) noexcept;
+template <typename T>
+std::size_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::span<T> move_buf) noexcept;
 
 // ####################################
 // IMPLEMENTATION
@@ -36,7 +36,8 @@ struct generate_move_parameters
     bool allow_promotions;
 };
 
-inline std::size_t get_pawn_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint64_t> move_buf) noexcept
+template <typename T>
+inline std::size_t get_pawn_moves(const bitboard& bb, const generate_move_parameters& params, std::span<T> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -59,7 +60,7 @@ inline std::size_t get_pawn_moves(const bitboard& bb, const generate_move_parame
                 const std::uint64_t attack { ls1b_isolate(attacks) };
 
                 {
-                    const std::uint64_t move { move::make_encode(pawn_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
+                    const std::uint32_t move { move::make_encode(pawn_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
 
                     // Test if this pawn move will result in promotion.
                     if (attack & (is_black_to_play ? RANK_1 : RANK_8)) [[unlikely]]
@@ -88,7 +89,7 @@ inline std::size_t get_pawn_moves(const bitboard& bb, const generate_move_parame
             // Handle single pawn pushes.
             if (std::uint64_t push { is_black_to_play ? get_black_pawn_single_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) : get_white_pawn_single_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) }; push)
             {
-                const std::uint64_t move { move::make_encode(pawn_mailbox, std::countr_zero(push), to_move_idx) | move::type::PAWN_PUSH_SINGLE };
+                const std::uint32_t move { move::make_encode(pawn_mailbox, std::countr_zero(push), to_move_idx) | move::type::PAWN_PUSH_SINGLE };
 
                 // Test if this pawn move will result in promotion.
                 if (push & (is_black_to_play ? RANK_1 : RANK_8)) [[unlikely]]
@@ -110,7 +111,7 @@ inline std::size_t get_pawn_moves(const bitboard& bb, const generate_move_parame
             // Handle double pawn pushes.
             if (const std::uint64_t push { is_black_to_play ? get_black_pawn_double_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) : get_white_pawn_double_push_squares_from_mailbox(pawn_mailbox, ~all_pieces) }; push)
             {
-                const std::uint64_t move { move::make_encode(pawn_mailbox, std::countr_zero(push), to_move_idx) | move::type::PAWN_PUSH_DOUBLE };
+                const std::uint32_t move { move::make_encode(pawn_mailbox, std::countr_zero(push), to_move_idx) | move::type::PAWN_PUSH_DOUBLE };
                 move_buf[ret++] = move;
             }
         }
@@ -121,7 +122,8 @@ inline std::size_t get_pawn_moves(const bitboard& bb, const generate_move_parame
     return ret;
 }
 
-inline std::size_t get_king_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint64_t> move_buf) noexcept
+template <typename T>
+inline std::size_t get_king_moves(const bitboard& bb, const generate_move_parameters& params, std::span<T> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -145,14 +147,14 @@ inline std::size_t get_king_moves(const bitboard& bb, const generate_move_parame
             if (bb.castling & bitboard::CASTLING_B_KS && !(all_pieces & RANK_8 & (FILE_F | FILE_G)))
             {
                 constexpr std::size_t to_mb { std::countr_zero(FILE_G & RANK_8) };
-                constexpr std::uint64_t move { move::make_encode(from_square, to_mb, piece_idx::b_king) | move::type::CASTLE_KS };
+                constexpr std::uint32_t move { move::make_encode(from_square, to_mb, piece_idx::b_king) | move::type::CASTLE_KS };
 
                 move_buf[ret++] = move;
             }
             if (bb.castling & bitboard::CASTLING_B_QS && !(all_pieces & RANK_8 & (FILE_B | FILE_C | FILE_D)))
             {
                 constexpr std::size_t to_mb { std::countr_zero(FILE_C & RANK_8) };
-                constexpr std::uint64_t move { move::make_encode(from_square, to_mb, piece_idx::b_king) | move::type::CASTLE_QS };
+                constexpr std::uint32_t move { move::make_encode(from_square, to_mb, piece_idx::b_king) | move::type::CASTLE_QS };
 
                 move_buf[ret++] = move;
             }
@@ -164,14 +166,14 @@ inline std::size_t get_king_moves(const bitboard& bb, const generate_move_parame
             if (bb.castling & bitboard::CASTLING_W_KS && !(all_pieces & RANK_1 & (FILE_F | FILE_G)))
             {
                 constexpr std::size_t to_mb { std::countr_zero(FILE_G & RANK_1) };
-                constexpr std::uint64_t move { move::make_encode(from_square, to_mb, piece_idx::w_king) | move::type::CASTLE_KS };
+                constexpr std::uint32_t move { move::make_encode(from_square, to_mb, piece_idx::w_king) | move::type::CASTLE_KS };
 
                 move_buf[ret++] = move;
             }
             if (bb.castling & bitboard::CASTLING_W_QS && !(all_pieces & RANK_1 & (FILE_B | FILE_C | FILE_D)))
             {
                 constexpr std::size_t to_mb { std::countr_zero(FILE_C & RANK_1) };
-                constexpr std::uint64_t move { move::make_encode(from_square, to_mb, piece_idx::w_king) | move::type::CASTLE_QS };
+                constexpr std::uint32_t move { move::make_encode(from_square, to_mb, piece_idx::w_king) | move::type::CASTLE_QS };
 
                 move_buf[ret++] = move;
             }
@@ -186,12 +188,12 @@ inline std::size_t get_king_moves(const bitboard& bb, const generate_move_parame
         const bool is_capture = attack & opponent_pieces;
         if (params.allow_captures && is_capture)
         {
-            const std::uint64_t move { move::make_encode(king_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
+            const std::uint32_t move { move::make_encode(king_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
             move_buf[ret++] = move;
         }
         else if (params.allow_non_captures && !is_capture)
         {
-            const std::uint64_t move { move::make_encode(king_mailbox, std::countr_zero(attack), to_move_idx) };
+            const std::uint32_t move { move::make_encode(king_mailbox, std::countr_zero(attack), to_move_idx) };
             move_buf[ret++] = move;
         }
 
@@ -201,7 +203,8 @@ inline std::size_t get_king_moves(const bitboard& bb, const generate_move_parame
     return ret;
 }
 
-inline std::size_t get_knight_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint64_t> move_buf) noexcept
+template <typename T>
+inline std::size_t get_knight_moves(const bitboard& bb, const generate_move_parameters& params, std::span<T> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -222,12 +225,12 @@ inline std::size_t get_knight_moves(const bitboard& bb, const generate_move_para
             const bool is_capture = attack & opponent_pieces;
             if (params.allow_captures && is_capture)
             {
-                const std::uint64_t move { move::make_encode(knight_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
+                const std::uint32_t move { move::make_encode(knight_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
                 move_buf[ret++] = move;
             }
             else if (params.allow_non_captures && !is_capture)
             {
-                const std::uint64_t move { move::make_encode(knight_mailbox, std::countr_zero(attack), to_move_idx) };
+                const std::uint32_t move { move::make_encode(knight_mailbox, std::countr_zero(attack), to_move_idx) };
                 move_buf[ret++] = move;
             }
 
@@ -240,7 +243,8 @@ inline std::size_t get_knight_moves(const bitboard& bb, const generate_move_para
     return ret;
 }
 
-inline std::size_t get_bishop_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint64_t> move_buf) noexcept
+template <typename T>
+inline std::size_t get_bishop_moves(const bitboard& bb, const generate_move_parameters& params, std::span<T> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -262,12 +266,12 @@ inline std::size_t get_bishop_moves(const bitboard& bb, const generate_move_para
             const bool is_capture = attack & opponent_pieces;
             if (params.allow_captures && is_capture)
             {
-                const std::uint64_t move { move::make_encode(bishop_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
+                const std::uint32_t move { move::make_encode(bishop_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
                 move_buf[ret++] = move;
             }
             else if (params.allow_non_captures && !is_capture)
             {
-                const std::uint64_t move { move::make_encode(bishop_mailbox, std::countr_zero(attack), to_move_idx) };
+                const std::uint32_t move { move::make_encode(bishop_mailbox, std::countr_zero(attack), to_move_idx) };
                 move_buf[ret++] = move;
             }
 
@@ -280,7 +284,8 @@ inline std::size_t get_bishop_moves(const bitboard& bb, const generate_move_para
     return ret;
 }
 
-inline std::size_t get_rook_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint64_t> move_buf) noexcept
+template <typename T>
+inline std::size_t get_rook_moves(const bitboard& bb, const generate_move_parameters& params, std::span<T> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -302,12 +307,12 @@ inline std::size_t get_rook_moves(const bitboard& bb, const generate_move_parame
             const bool is_capture = attack & opponent_pieces;
             if (params.allow_captures && is_capture)
             {
-                const std::uint64_t move { move::make_encode(rook_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
+                const std::uint32_t move { move::make_encode(rook_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
                 move_buf[ret++] = move;
             }
             else if (params.allow_non_captures && !is_capture)
             {
-                const std::uint64_t move { move::make_encode(rook_mailbox, std::countr_zero(attack), to_move_idx) };
+                const std::uint32_t move { move::make_encode(rook_mailbox, std::countr_zero(attack), to_move_idx) };
                 move_buf[ret++] = move;
             }
 
@@ -320,7 +325,8 @@ inline std::size_t get_rook_moves(const bitboard& bb, const generate_move_parame
     return ret;
 }
 
-inline std::size_t get_queen_moves(const bitboard& bb, const generate_move_parameters& params, std::span<std::uint64_t> move_buf) noexcept
+template <typename T>
+inline std::size_t get_queen_moves(const bitboard& bb, const generate_move_parameters& params, std::span<T> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -342,12 +348,12 @@ inline std::size_t get_queen_moves(const bitboard& bb, const generate_move_param
             const bool is_capture = attack & opponent_pieces;
             if (params.allow_captures && is_capture)
             {
-                const std::uint64_t move { move::make_encode(queen_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
+                const std::uint32_t move { move::make_encode(queen_mailbox, std::countr_zero(attack), to_move_idx) | move::type::CAPTURE };
                 move_buf[ret++] = move;
             }
             else if (params.allow_non_captures && !is_capture)
             {
-                const std::uint64_t move { move::make_encode(queen_mailbox, std::countr_zero(attack), to_move_idx) };
+                const std::uint32_t move { move::make_encode(queen_mailbox, std::countr_zero(attack), to_move_idx) };
                 move_buf[ret++] = move;
             }
 
@@ -362,7 +368,8 @@ inline std::size_t get_queen_moves(const bitboard& bb, const generate_move_param
 
 }
 
-inline std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std::uint64_t> move_buf) noexcept
+template <typename T>
+inline std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<T> move_buf) noexcept
 {
     std::size_t ret {};
 
@@ -379,7 +386,8 @@ inline std::size_t generate_pseudo_legal_moves(const bitboard& bb, std::span<std
     return ret;
 }
 
-inline std::size_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::span<std::uint64_t> move_buf) noexcept
+template <typename T>
+inline std::size_t generate_pseudo_legal_loud_moves(const bitboard& bb, std::span<T> move_buf) noexcept
 {
     std::size_t ret {};
 

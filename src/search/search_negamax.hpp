@@ -25,7 +25,7 @@ constexpr std::uint8_t META_EXACT       { 0 };
 constexpr std::uint8_t META_LOWER_BOUND { 1 };
 constexpr std::uint8_t META_UPPER_BOUND { 2 };
 
-inline int score_move(std::uint64_t move, std::size_t draft, const game_state& gs, std::uint64_t pv_move, std::uint64_t hash_move) noexcept
+inline int score_move(std::uint32_t move, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
 {
     // We score PV moves the highest.
     if (move == pv_move)
@@ -54,18 +54,6 @@ inline int score_move(std::uint64_t move, std::size_t draft, const game_state& g
     return 0;
 }
 
-inline void sort_moves(std::span<std::uint64_t> move_buf, std::uint64_t move)
-{
-    for (std::size_t i = 0; i < move_buf.size(); i++)
-    {
-        if (move_buf[i] == move)
-        {
-            std::swap(move_buf[0], move_buf[i]);
-            break;
-        }
-    }
-}
-
 inline void sort_moves(std::span<std::uint64_t> move_buf, std::size_t draft, const game_state& gs, std::uint64_t pv_move, std::uint64_t hash_move) noexcept
 {
     std::array<std::pair<std::uint64_t, int>, MAX_MOVES_PER_POSITION> scored_moves;
@@ -78,7 +66,7 @@ inline void sort_moves(std::span<std::uint64_t> move_buf, std::size_t draft, con
         move_buf[i] = scored_moves[i].first;
 }
 
-inline void handle_fail_high(game_state& gs, std::size_t draft, std::uint64_t move)
+inline void handle_fail_high(game_state& gs, std::size_t draft, std::uint32_t move)
 {
     // Handle quiet moves that fail-high.
     if (!(move & (move::type::PROMOTION | move::type::CAPTURE)))
@@ -141,19 +129,19 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         {
             stats.cutnodes++;
             stats.fh_hash++;
-            if (const std::uint64_t best_move { entry.value.best_move }; best_move) handle_fail_high(gs, draft, best_move);
+            if (const std::uint32_t best_move { entry.value.best_move }; best_move) handle_fail_high(gs, draft, best_move);
             return eval;
         }
     }
 
     // Loop up our PV and hash moves from previous searches.
-    const std::uint64_t pv_move        { gs.pv.table[draft][0] };
-    const std::uint64_t hash_move      { hash_hit ? entry.value.best_move : 0 };
+    const std::uint32_t pv_move        { gs.pv.table[draft][0] };
+    const std::uint32_t hash_move      { hash_hit ? entry.value.best_move : 0 };
     const bool in_check                { is_in_check(gs.bb, colour == -1) };
     const bool is_king_and_pawn_colour { gs.bb.is_king_and_pawn(colour == -1) };
 
     // The actual evaluation bit.
-    std::uint64_t best_move {};
+    std::uint32_t best_move {};
     if (depth == 0)
     {
         // If this is a leaf of our search tree we just use our quiescent-search function to mitigate the horizon-effect.
@@ -167,10 +155,10 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         if (config::nmp && !in_check && !is_king_and_pawn_colour && depth >= r+1)
         {
             // No need to check legality here as we already know this move won't leave us in check.
-            std::uint64_t unmake;
+            std::uint32_t unmake;
             make_move({ .check_legality = false }, gs, move::NULL_MOVE, unmake);
             const int score { -search_negamax_recursive(gs, stats, depth-r-1, -beta, -beta+1, -colour, move_buf) };
-            unmake_move(gs, unmake);
+            unmake_move(gs, move::NULL_MOVE, unmake);
 
             // Return early if this reduced search causes a beta-cutoff.
             if (score > beta)
@@ -193,18 +181,18 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
             for (std::size_t i = 0; i < moves; i++)
             {
-                const std::uint64_t move { move_list[i] };
+                const std::uint64_t make { move_list[i] };
 
                 // Allow us to break out of the search early if needed.
                 if (gs.stop_search) [[unlikely]]
                     return ret;
 
-                std::uint64_t unmake;
-                if (!make_move({ .check_legality = true }, gs, move, unmake)) [[unlikely]]
+                std::uint32_t unmake;
+                if (!make_move({ .check_legality = true }, gs, make, unmake)) [[unlikely]]
                 {
                     // Simply unmake the move and move on to the next one if it's illegal (note that the move is still applied in make_move
                     // even if it ends up being illegal).
-                    unmake_move(gs, unmake);
+                    unmake_move(gs, make, unmake);
                     continue;
                 }
 
@@ -227,11 +215,11 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                     score = -search_negamax_recursive(gs, stats, depth-1, -beta, -alpha, -colour, move_buf.subspan(moves));
 
                 // Resets the game state to how it was before we made the move.
-                unmake_move(gs, unmake);
+                unmake_move(gs, make, unmake);
 
                 if (score > ret)
                 {
-                    best_move = move;
+                    best_move = make;
                     ret = score;
                 }
 
@@ -239,7 +227,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 if (ret > alpha)
                 {
                     alpha = ret;
-                    gs.pv.update_variation(draft, move);
+                    gs.pv.update_variation(draft, make);
                 }
 
                 // Break early if we encounter a beta-cutoff (fantastic news!).
@@ -252,7 +240,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 }
 
                 // Update the relative butterfly heuristic.
-                if (config::hh && !(move & (move::type::PROMOTION | move::type::CAPTURE))) gs.hh.update_bf(move);
+                if (config::hh && !(make & (move::type::PROMOTION | move::type::CAPTURE))) gs.hh.update_bf(make);
             }
 
             // Handle the rare case of there being no legal moves in this position. This should be evaluated as either checkmate (if we're in check) or as

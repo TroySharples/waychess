@@ -13,15 +13,18 @@ struct make_move_args
     bool check_legality;
 };
 
-bool make_move(const make_move_args& args, bitboard& bb,   std::uint64_t move) noexcept;
-bool make_move(const make_move_args& args, bitboard& bb,   std::uint64_t move, std::uint64_t& unmake) noexcept;
-bool make_move(const make_move_args& args, bitboard& bb,   std::uint64_t move, std::uint64_t& unmake, std::uint64_t& hash) noexcept;
-bool make_move(const make_move_args& args, game_state& gs, std::uint64_t move) noexcept;
-bool make_move(const make_move_args& args, game_state& gs, std::uint64_t move, std::uint64_t& unmake) noexcept;
+bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t make) noexcept;
+bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t make, std::uint32_t& unmake) noexcept;
+bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t make, std::uint32_t& unmake, std::uint64_t& hash) noexcept;
+bool make_move(const make_move_args& args, game_state& gs, std::uint32_t make) noexcept;
+bool make_move(const make_move_args& args, game_state& gs, std::uint32_t make, std::uint32_t& unmake) noexcept;
 
-void unmake_move(bitboard& bb, std::uint64_t unmake) noexcept;
-void unmake_move(bitboard& bb, std::uint64_t unmake, std::uint64_t& hash) noexcept;
-void unmake_move(game_state& gs, std::uint64_t unmake) noexcept;
+void unmake_move(bitboard& bb,   std::uint32_t make, std::uint32_t unmake) noexcept;
+void unmake_move(bitboard& bb,   std::uint32_t make, std::uint32_t unmake, std::uint64_t& hash) noexcept;
+void unmake_move(game_state& gs, std::uint32_t make, std::uint32_t unmake) noexcept;
+void unmake_move(bitboard& bb,   std::uint64_t make_unmake) noexcept;
+void unmake_move(bitboard& bb,   std::uint64_t make_unmake, std::uint64_t& hash) noexcept;
+void unmake_move(game_state& gs, std::uint64_t make_unmake) noexcept;
 
 // ####################################
 // IMPLEMENTATION
@@ -34,24 +37,22 @@ void unmake_move(game_state& gs, std::uint64_t unmake) noexcept;
 namespace details
 {
 
-inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint64_t move, std::uint64_t& unmake, std::uint64_t& hash) noexcept
+inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t make, std::uint32_t& unmake, std::uint64_t& hash) noexcept
 {
     bool ret { true };
 
-    // We start with unmake the same as the forward direction. We might have to mask off the move-info later on
-    // if this ends up being a capture.
-    unmake = move & 0x00000000ffffffff;
+    unmake = 0;
 
     const bool is_black_to_play   { bb.is_black_to_play() };
     std::uint64_t& to_move_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
 
     // The move only contains the piece up to colour - exactly which colour piece must be derived from the side-to-play.
-    const std::size_t from_mb { move::make_decode_from_mb(move) };
-    const std::size_t to_mb   { move::make_decode_to_mb(move) };
-    const piece_idx piece     { move::make_decode_piece_idx(move) };
+    const std::size_t from_mb { move::make_decode_from_mb(make) };
+    const std::size_t to_mb   { move::make_decode_to_mb(make) };
+    const piece_idx piece     { move::make_decode_piece_idx(make) };
 
     // All of the above information is overwritten if this is a null-move (the value 0).
-    const bool is_null { move == 0 };
+    const bool is_null { make == move::NULL_MOVE };
 
     const std::uint64_t from_bb    { 1ULL << from_mb };
     const std::uint64_t to_bb      { 1ULL << to_mb };
@@ -104,9 +105,9 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint64
     {
         to_move_pieces ^= from_to_bb;
         hash ^= zobrist::get_code_piece(piece, from_mb);
-        if (move & move::type::PROMOTION) [[unlikely]]
+        if (make & move::type::PROMOTION) [[unlikely]]
         {
-            const piece_idx promote_idx { move::make_decode_promotion(move) };
+            const piece_idx promote_idx { move::make_decode_promotion(make) };
 
             bb.boards[piece]       ^= from_bb;
             bb.boards[promote_idx] ^= to_bb;
@@ -121,12 +122,12 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint64
     }
 
     // Handle piece captures (this should be compatible with null-moves).
-    if (move & move::type::CAPTURE)
+    if (make & move::type::CAPTURE)
     {
         std::uint64_t& opponent_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
 
         // En-passent captures are special - the piece to be taken off the board isn't the target move square.
-        if (move & move::type::EN_PASSENT) [[unlikely]]
+        if (make & move::type::EN_PASSENT) [[unlikely]]
         {
             const std::uint64_t capture_bb = is_black_to_play ? (to_bb << 8) : (to_bb >> 8);
             const std::uint64_t capture_mb = std::countr_zero(capture_bb);
@@ -148,17 +149,17 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint64
             bb.boards[capture_idx] ^= to_bb;
 
             unmake |= move::unmake_encode_capture(static_cast<piece_idx>(capture_idx));
-            hash ^= zobrist::get_code_piece(static_cast<piece_idx>(capture_idx), to_mb);
+            hash   ^= zobrist::get_code_piece(static_cast<piece_idx>(capture_idx), to_mb);
         }
 
         bb.ply_50m = 0;
     }
-    else if (move & move::type::PAWN_PUSH_SINGLE)
+    else if (make & move::type::PAWN_PUSH_SINGLE)
     {
         // If the move was just a single pawn push we need to reset the ply counter for the 50 move rule.
         bb.ply_50m = 0;
     }
-    else if (move & move::type::PAWN_PUSH_DOUBLE)
+    else if (make & move::type::PAWN_PUSH_DOUBLE)
     {
         // If the move was a double pawn push we also have to update the en-passent target square for the next move.
         bb.ply_50m = 0;
@@ -173,7 +174,7 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint64
     }
 
     // Handle moving the rook for castling (legality is checked below).
-    if (move & move::type::CASTLE_KS) [[unlikely]]
+    if (make & move::type::CASTLE_KS) [[unlikely]]
     {
         if (is_black_to_play)
         {
@@ -200,7 +201,7 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint64
             hash ^= code;
         }
     }
-    else if (move & move::type::CASTLE_QS) [[unlikely]]
+    else if (make & move::type::CASTLE_QS) [[unlikely]]
     {
         if (is_black_to_play)
         {
@@ -231,14 +232,14 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint64
     // Handle left-in-check legality checking.
     if (args.check_legality)
     {
-        if (move & move::type::CASTLE_KS) [[unlikely]]
+        if (make & move::type::CASTLE_KS) [[unlikely]]
         {
             if (is_black_to_play)
                 ret = !get_attackers_white(bb, std::countr_zero(FILE_E & RANK_8), std::countr_zero(FILE_F & RANK_8), std::countr_zero(FILE_G & RANK_8));
             else
                 ret = !get_attackers_black(bb, std::countr_zero(FILE_E & RANK_1), std::countr_zero(FILE_F & RANK_1), std::countr_zero(FILE_G & RANK_1));
         }
-        else if (move & move::type::CASTLE_QS) [[unlikely]]
+        else if (make & move::type::CASTLE_QS) [[unlikely]]
         {
             if (is_black_to_play)
                 ret = !get_attackers_white(bb, std::countr_zero(FILE_E & RANK_8), std::countr_zero(FILE_D & RANK_8), std::countr_zero(FILE_C & RANK_8));
@@ -254,18 +255,18 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint64
     return ret;
 }
 
-inline void unmake_move_impl(bitboard& bb, std::uint64_t unmake, std::uint64_t& hash) noexcept
+inline void unmake_move_impl(bitboard& bb, std::uint32_t make, std::uint32_t unmake, std::uint64_t& hash) noexcept
 {
     const bool is_black_to_play   { bb.is_black_to_play() };
     std::uint64_t& to_move_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
 
     // The move only contains the piece up to colour - exactly which colour piece must be derived from the side-to-play.
-    const std::size_t from_mb   { move::make_decode_from_mb(unmake) };
-    const std::size_t to_mb     { move::make_decode_to_mb(unmake) };
-    const piece_idx piece       { move::make_decode_piece_idx(unmake) };
+    const std::size_t from_mb   { move::make_decode_from_mb(make) };
+    const std::size_t to_mb     { move::make_decode_to_mb(make) };
+    const piece_idx piece       { move::make_decode_piece_idx(make) };
 
     // All of the above information is overwritten if this is a null-move (the LSBs are 0 - the MSBs will contain unmake information like normal).
-    const bool is_null { (unmake & 0xffff) == 0 };
+    const bool is_null { make == move::NULL_MOVE };
 
     const std::uint64_t from_bb    { 1ULL << from_mb };
     const std::uint64_t to_bb      { 1ULL << to_mb };
@@ -297,11 +298,11 @@ inline void unmake_move_impl(bitboard& bb, std::uint64_t unmake, std::uint64_t& 
     {
         to_move_pieces ^= from_to_bb;
         hash ^= zobrist::get_code_piece(piece, from_mb);
-        if (unmake & move::type::PROMOTION) [[unlikely]]
+        if (make & move::type::PROMOTION) [[unlikely]]
         {
             bb.boards[piece] ^= from_bb;
 
-            const auto promotion_idx = move::make_decode_promotion(unmake);
+            const auto promotion_idx = move::make_decode_promotion(make);
             hash                     ^= zobrist::get_code_piece(promotion_idx, to_mb);
             bb.boards[promotion_idx] ^= to_bb;
         }
@@ -313,12 +314,12 @@ inline void unmake_move_impl(bitboard& bb, std::uint64_t unmake, std::uint64_t& 
     }
 
     // Handle piece captures.
-    if (unmake & move::type::CAPTURE)
+    if (make & move::type::CAPTURE)
     {
         std::uint64_t& opponent_pieces { is_black_to_play ? bb.boards[piece_idx::b_any] : bb.boards[piece_idx::w_any] };
 
         // En-passent captures are special - the piece to be taken off the board isn't the target move square.
-        if (unmake & move::type::EN_PASSENT) [[unlikely]]
+        if (make & move::type::EN_PASSENT) [[unlikely]]
         {
             const std::uint64_t capture_bb = is_black_to_play ? (to_bb >> 8) : (to_bb << 8);
             const std::uint64_t capture_mb = std::countr_zero(capture_bb);
@@ -342,7 +343,7 @@ inline void unmake_move_impl(bitboard& bb, std::uint64_t unmake, std::uint64_t& 
     }
 
     // Handle moving the rook for castling.
-    if (unmake & move::type::CASTLE_KS) [[unlikely]]
+    if (make & move::type::CASTLE_KS) [[unlikely]]
     {
         if (is_black_to_play)
         {
@@ -369,7 +370,7 @@ inline void unmake_move_impl(bitboard& bb, std::uint64_t unmake, std::uint64_t& 
             bb.boards[piece_idx::b_any]  ^= from_to_bb;
         }
     }
-    else if (unmake & move::type::CASTLE_QS) [[unlikely]]
+    else if (make & move::type::CASTLE_QS) [[unlikely]]
     {
         if (is_black_to_play)
         {
@@ -400,21 +401,21 @@ inline void unmake_move_impl(bitboard& bb, std::uint64_t unmake, std::uint64_t& 
 
 }
 
-inline bool make_move(const make_move_args& args, bitboard& bb, std::uint64_t move) noexcept
+inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move) noexcept
 {
     // Dummy unmake (will get hopefully get optimised away).
-    std::uint64_t unmake_dummy;
+    std::uint32_t unmake_dummy;
     return make_move(args, bb, move, unmake_dummy);
 }
 
-inline bool make_move(const make_move_args& args, bitboard& bb, std::uint64_t move, std::uint64_t& unmake) noexcept
+inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move, std::uint32_t& unmake) noexcept
 {
     // Dummy hash (will hopefully get optimised away).
     std::uint64_t hash_dummy {};
     return make_move(args, bb, move, unmake, hash_dummy);
 }
 
-inline bool make_move(const make_move_args& args, bitboard& bb,   std::uint64_t move, std::uint64_t& unmake, std::uint64_t& hash) noexcept
+inline bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t move, std::uint32_t& unmake, std::uint64_t& hash) noexcept
 {
     const bool ret { details::make_move_impl(args, bb, move, unmake, hash) };
 
@@ -424,14 +425,14 @@ inline bool make_move(const make_move_args& args, bitboard& bb,   std::uint64_t 
     return ret;
 }
 
-inline bool make_move(const make_move_args& args, game_state& gs, std::uint64_t move) noexcept
+inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t move) noexcept
 {
     // Dummy unmake (will get hopefully get optimised away).
-    std::uint64_t unmake_dummy;
+    std::uint32_t unmake_dummy;
     return make_move(args, gs, move, unmake_dummy);
 }
 
-inline bool make_move(const make_move_args& args, game_state& gs, std::uint64_t move, std::uint64_t& unmake) noexcept
+inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t move, std::uint32_t& unmake) noexcept
 {
     const bool ret { details::make_move_impl(args, gs.bb, move, unmake, gs.hash) };
 
@@ -441,24 +442,51 @@ inline bool make_move(const make_move_args& args, game_state& gs, std::uint64_t 
     return ret;
 }
 
-inline void unmake_move(bitboard& bb, std::uint64_t unmake) noexcept
+inline void unmake_move(bitboard& bb, std::uint32_t make, std::uint32_t unmake) noexcept
 {
     // Dummy hash (will hopefully get optimised away).
     std::uint64_t hash_dummy {};
-    unmake_move(bb, unmake, hash_dummy);
+    unmake_move(bb, make, unmake, hash_dummy);
 }
 
-inline void unmake_move(bitboard& bb, std::uint64_t unmake, std::uint64_t& hash) noexcept
+inline void unmake_move(bitboard& bb, std::uint32_t make, std::uint32_t unmake, std::uint64_t& hash) noexcept
 {
-    details::unmake_move_impl(bb, unmake, hash);
+    details::unmake_move_impl(bb, make, unmake, hash);
 
     // Decrement the ply-counter.
     bb.ply_counter--;
 }
 
-inline void unmake_move(game_state& gs, std::uint64_t unmake) noexcept
+inline void unmake_move(game_state& gs, std::uint32_t make, std::uint32_t unmake) noexcept
 {
-    details::unmake_move_impl(gs.bb, unmake, gs.hash);
+    details::unmake_move_impl(gs.bb, make, unmake, gs.hash);
+
+    // Decrement the ply-counter.
+    gs.bb.ply_counter--;
+}
+
+inline void unmake_move(bitboard& bb, std::uint64_t make_unmake) noexcept
+{
+    const std::uint32_t make   = make_unmake;
+    const std::uint32_t unmake = make_unmake >> 32;
+
+    unmake_move(bb, make, unmake);
+}
+
+inline void unmake_move(bitboard& bb, std::uint64_t make_unmake, std::uint64_t& hash) noexcept
+{
+    const std::uint32_t make   = make_unmake;
+    const std::uint32_t unmake = make_unmake >> 32;
+
+    unmake_move(bb, make, unmake, hash);
+}
+
+inline void unmake_move(game_state& gs, std::uint64_t make_unmake) noexcept
+{
+    const std::uint32_t make   = make_unmake;
+    const std::uint32_t unmake = make_unmake >> 32;
+
+    details::unmake_move_impl(gs.bb, make, unmake, gs.hash);
 
     // Decrement the ply-counter.
     gs.bb.ply_counter--;

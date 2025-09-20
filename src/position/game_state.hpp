@@ -32,7 +32,7 @@ struct game_state
 
     // History of hashes (LSB 32b) of previous positions indexed by the ply, as well as the ply of the last non-reversible
     // move.
-    std::array<std::uint64_t, MAX_GAME_LENGTH> position_history;
+    std::array<std::uint32_t, MAX_GAME_LENGTH> position_history;
 
     // The ply of our root node in our search.
     std::size_t root_ply;
@@ -55,7 +55,7 @@ struct game_state
 
     // Prints the PV, assuming this game state is ply-deep into the search (0 if we aren't searching). The additional work
     // this does is that it ensures only legal PVs are printed.
-    std::span<const std::uint64_t> get_pv(std::size_t ply = 0) noexcept;
+    std::span<const std::uint32_t> get_pv(std::size_t ply = 0) noexcept;
 
     // TODO: There are a lot more things we should add to do with the evaluation (e.g. pawn-structure tables).
 
@@ -84,7 +84,7 @@ inline bool game_state::is_repetition_draw() const noexcept
 
     std::size_t repetitions {};
     for (auto ply = static_cast<int>(bb.ply_counter-2); ply >= last_reversible_ply; ply -= 2)
-        if (position_history[ply] == static_cast<std::uint64_t>(hash)) [[unlikely]]
+        if (position_history[ply] == static_cast<std::uint32_t>(hash)) [[unlikely]]
             repetitions++;
 
     // If we've seen this position at least twice before, then this is at least our third repetition and it is a draw.

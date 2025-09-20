@@ -13,7 +13,7 @@ struct solver
 struct solver::puzzle
 {
     bitboard bb;
-    std::vector<std::uint64_t> moves;
+    std::vector<std::uint32_t> moves;
 
     friend std::istream& operator>>(std::istream& is, puzzle& v);
 };

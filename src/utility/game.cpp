@@ -55,7 +55,7 @@ void game::run_loop()
             return;
 
         // Otherwise kick-off a search.
-        const std::uint64_t move { search::recommend_move(gs, _search_params->max_depth, _search_params->max_time).move };
+        const std::uint32_t move { search::recommend_move(gs, _search_params->max_depth, _search_params->max_time).move };
         if (_type == search_go)
             callback_best_move(move);
 

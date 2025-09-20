@@ -10,7 +10,7 @@ namespace evaluation
 {
 
 // Uses the iterative SEE swap-algorithm.
-inline int see_capture(const bitboard& bb, std::uint64_t move, bool is_black)
+inline int see_capture(const bitboard& bb, std::uint32_t move, bool is_black)
 {
     const std::size_t from_mb { move::make_decode_from_mb(move) };
     const std::size_t to_mb   { move::make_decode_to_mb(move)   };

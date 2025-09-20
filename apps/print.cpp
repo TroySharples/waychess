@@ -26,7 +26,7 @@ int main(int argc, char** argv)
     enum { fen, unicode, side } format { fen };
     bool flipped { fen };
     std::optional<std::string> input;
-    std::optional<std::uint64_t> move;
+    std::optional<std::uint32_t> move;
 
     // Parse options.
     for (int c; (c = getopt(argc, argv, "hf:t:o:m:")) != -1; )

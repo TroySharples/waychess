@@ -18,7 +18,7 @@ namespace search
 namespace details
 {
 
-inline int mvv_lva_score(const bitboard& bb, std::uint64_t move)
+inline int mvv_lva_score(const bitboard& bb, std::uint32_t move)
 {
     const auto attacker = move::make_decode_piece_idx(move);
     const auto victim   = bb.get_piece_type_colour(1ULL << move::make_decode_to_mb(move), !bb.is_black_to_play());
@@ -65,33 +65,33 @@ inline int search_quiescence( game_state& gs, statistics& stats, std::size_t dra
     // Sort quiescent moves based on MVV/LVA.
     details::sort_mvv_lva(gs.bb, move_list);
 
-    for (const auto move : move_list)
+    for (const auto make : move_list)
     {
         if (gs.stop_search) [[unlikely]]
             return stand_pat;
 
         // Skip bad captures.
-        if (config::see && evaluation::see_capture(gs.bb, move, colour == -1) < 0)
+        if (config::see && evaluation::see_capture(gs.bb, make, colour == -1) < 0)
             continue;
 
         // Delta-prunning. TODO: turn off in late end-game.
         {
             constexpr int delta { 200 };
-            const auto victim = gs.bb.get_piece_type_colour(1ULL << move::make_decode_to_mb(move), !gs.bb.is_black_to_play());
+            const auto victim = gs.bb.get_piece_type_colour(1ULL << move::make_decode_to_mb(make), !gs.bb.is_black_to_play());
             const int victim_val { std::abs(::evaluation::piece_mg_evaluation[victim]) };
             if (victim_val + delta + stand_pat < a) [[unlikely]]
                 continue;
         }
 
-        std::uint64_t unmake;
-        if (!make_move({ .check_legality = true }, gs, move, unmake)) [[unlikely]]
+        std::uint32_t unmake;
+        if (!make_move({ .check_legality = true }, gs, make, unmake)) [[unlikely]]
         {
-            unmake_move(gs, unmake);
+            unmake_move(gs, make, unmake);
             continue;
         }
 
         int score = -search_quiescence(gs, stats, draft+1, -b, -a, -colour, move_buf.subspan(moves));
-        unmake_move(gs, unmake);
+        unmake_move(gs, make, unmake);
 
         a = std::max(a, score);
         if (a >= b)

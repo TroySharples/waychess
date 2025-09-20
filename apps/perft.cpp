@@ -122,8 +122,8 @@ int main(int argc, char** argv)
         std::cout << R"(    "tree": [)" << '\n';
 
         bool array_first { true };
-        std::array<std::uint64_t, 256> move_buf;
-        const std::size_t moves { generate_pseudo_legal_moves(position_start, move_buf) };
+        std::array<std::uint32_t, 256> move_buf;
+        const std::size_t moves { generate_pseudo_legal_moves(position_start, std::span<uint32_t>(move_buf)) };
         for (std::size_t i = 0; i < moves; i++)
         {
             bitboard next_position { position_start };

@@ -9,7 +9,7 @@
 namespace
 {
 
-std::size_t perft_recursive_unmake_no_hash(bitboard& bb, std::size_t depth, std::span<std::uint64_t> move_buf)
+std::size_t perft_recursive_unmake_no_hash(bitboard& bb, std::size_t depth, std::span<std::uint32_t> move_buf)
 {
     if (depth == 0) [[unlikely]]
         return 1;
@@ -17,14 +17,15 @@ std::size_t perft_recursive_unmake_no_hash(bitboard& bb, std::size_t depth, std:
     std::size_t ret {};
 
     const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    const std::span<std::uint32_t> move_list = move_buf.subspan(0, moves);
 
-    for (std::size_t i = 0; i < moves; i++)
+    for (const auto make : move_list)
     {
-        std::uint64_t unmake;
-        if (make_move({ .check_legality = true }, bb, move_buf[i], unmake)) [[likely]]
+        std::uint32_t unmake;
+        if (make_move({ .check_legality = true }, bb, make, unmake)) [[likely]]
             ret += perft_recursive_unmake_no_hash(bb, depth-1, move_buf.subspan(moves));
 
-        unmake_move(bb, unmake);
+        unmake_move(bb, make, unmake);
     }
 
     return ret;
@@ -38,7 +39,7 @@ struct perft_value_type
 
 details::hash_table<perft_value_type> perft_hash_table;
 
-std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::size_t depth, std::span<std::uint64_t> move_buf)
+std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::size_t depth, std::span<std::uint32_t> move_buf)
 {
     if (depth == 0) [[unlikely]]
         return 1;
@@ -51,14 +52,15 @@ std::size_t perft_recursive_unmake_hash(bitboard& bb, std::uint64_t& hash, std::
     std::size_t ret {};
 
     const std::size_t moves { generate_pseudo_legal_moves(bb, move_buf) };
+    const std::span<std::uint32_t> move_list = move_buf.subspan(0, moves);
 
-    for (std::size_t i = 0; i < moves; i++)
+    for (const auto make : move_list)
     {
-        std::uint64_t unmake;
-        if (make_move({ .check_legality = true }, bb, move_buf[i], unmake, hash)) [[likely]]
+        std::uint32_t unmake;
+        if (make_move({ .check_legality = true }, bb, make, unmake, hash)) [[likely]]
             ret += perft_recursive_unmake_hash(bb, hash, depth-1, move_buf.subspan(moves));
 
-        unmake_move(bb, unmake, hash);
+        unmake_move(bb, make, unmake, hash);
     }
 
     // Update the hash table with our result - always overriding for now.
@@ -82,7 +84,7 @@ std::size_t get_perft_hash_table_bytes()
 
 std::size_t perft(const bitboard& start, std::size_t depth)
 {
-    std::vector<std::uint64_t> move_buf(depth*MAX_MOVES_PER_POSITION);
+    std::vector<std::uint32_t> move_buf(depth*MAX_MOVES_PER_POSITION);
 
     bitboard bb { start };
 

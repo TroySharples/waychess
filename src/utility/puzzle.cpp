@@ -57,7 +57,7 @@ std::istream& operator>>(std::istream& is, solver::puzzle& v)
         std::stringstream ss(token);
         while (getline(ss, token, ' '))
         {
-            const std::uint64_t move { move::from_algebraic_long(token, bb_copy) };
+            const std::uint32_t move { move::from_algebraic_long(token, bb_copy) };
             make_move({ .check_legality = false }, bb_copy, move);
 
             v.moves.push_back(move);

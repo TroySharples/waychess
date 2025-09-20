@@ -17,7 +17,7 @@ namespace search
 
 struct recommendation
 {
-    std::uint64_t move;
+    std::uint32_t move;
     int eval;
 
     friend constexpr bool operator<(const recommendation& a, const recommendation& b) noexcept { return a.eval < b.eval; };
