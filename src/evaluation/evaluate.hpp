@@ -50,9 +50,23 @@ constexpr int evaluate_eg(const bitboard& bb) noexcept
     return ret;
 }
 
-constexpr int evaluate(const bitboard& bb) noexcept
+struct eval
 {
-    return interpolate_gp(evaluate_mg(bb), evaluate_eg(bb), evaluate_gp(bb));
-}
+    eval() = default;
+    eval(const bitboard& bb) { init(bb); }
+
+    void init(const bitboard& bb)
+    {
+        mg = evaluate_mg(bb);
+        eg = evaluate_eg(bb);
+        gp = evaluate_gp(bb);
+    }
+
+    constexpr int operator()() const noexcept { return interpolate_gp(mg, eg, gp); }
+
+    int mg, eg, gp;
+
+    bool operator==(const eval& other) const noexcept { return mg == other.mg && eg == other.eg && gp == other.gp; }
+};
 
 }

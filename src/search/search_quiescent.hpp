@@ -49,7 +49,7 @@ inline int search_quiescence( game_state& gs, statistics& stats, std::size_t dra
     stats.qdepth = std::max(stats.qdepth, draft);
 
     // Stand-pat evaluation (side to move perspective).
-    const int stand_pat = colour*evaluation::evaluate(gs.bb);
+    const int stand_pat = colour*evaluation::eval(gs.bb)();
 
     // Fail-hard beta cutoff.
     if (stand_pat >= b)

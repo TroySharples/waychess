@@ -4,6 +4,7 @@
 // DECLARATION
 // ####################################
 
+#include "evaluation/evaluate.hpp"
 #include "game_state.hpp"
 #include "pieces/pieces.hpp"
 #include <bit>
@@ -16,14 +17,17 @@ struct make_move_args
 bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t make) noexcept;
 bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t make, std::uint32_t& unmake) noexcept;
 bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t make, std::uint32_t& unmake, std::uint64_t& hash) noexcept;
+bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t make, std::uint32_t& unmake, std::uint64_t& hash, evaluation::eval& eval) noexcept;
 bool make_move(const make_move_args& args, game_state& gs, std::uint32_t make) noexcept;
 bool make_move(const make_move_args& args, game_state& gs, std::uint32_t make, std::uint32_t& unmake) noexcept;
 
 void unmake_move(bitboard& bb,   std::uint32_t make, std::uint32_t unmake) noexcept;
 void unmake_move(bitboard& bb,   std::uint32_t make, std::uint32_t unmake, std::uint64_t& hash) noexcept;
+void unmake_move(bitboard& bb,   std::uint32_t make, std::uint32_t unmake, std::uint64_t& hash, evaluation::eval& eval) noexcept;
 void unmake_move(game_state& gs, std::uint32_t make, std::uint32_t unmake) noexcept;
 void unmake_move(bitboard& bb,   std::uint64_t make_unmake) noexcept;
 void unmake_move(bitboard& bb,   std::uint64_t make_unmake, std::uint64_t& hash) noexcept;
+void unmake_move(bitboard& bb,   std::uint64_t make_unmake, std::uint64_t& hash, evaluation::eval& eval) noexcept;
 void unmake_move(game_state& gs, std::uint64_t make_unmake) noexcept;
 
 // ####################################
@@ -37,7 +41,7 @@ void unmake_move(game_state& gs, std::uint64_t make_unmake) noexcept;
 namespace details
 {
 
-inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t make, std::uint32_t& unmake, std::uint64_t& hash) noexcept
+inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32_t make, std::uint32_t& unmake, std::uint64_t& hash, evaluation::eval& eval) noexcept
 {
     bool ret { true };
 
@@ -104,20 +108,31 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
     if (!is_null) [[likely]]
     {
         to_move_pieces ^= from_to_bb;
-        hash ^= zobrist::get_code_piece(piece, from_mb);
+        hash           ^= zobrist::get_code_piece(piece, from_mb);
+
+        eval.mg -= (evaluation::piece_mg_evaluation[piece] + evaluation::piece_square_mg_evaluation[piece][from_mb]);
+        eval.eg -= (evaluation::piece_eg_evaluation[piece] + evaluation::piece_square_eg_evaluation[piece][from_mb]);
+
         if (make & move::type::PROMOTION) [[unlikely]]
         {
-            const piece_idx promote_idx { move::make_decode_promotion(make) };
+            const piece_idx promotion_idx { move::make_decode_promotion(make) };
 
-            bb.boards[piece]       ^= from_bb;
-            bb.boards[promote_idx] ^= to_bb;
+            bb.boards[piece]         ^= from_bb;
+            bb.boards[promotion_idx] ^= to_bb;
+            hash                     ^= zobrist::get_code_piece(promotion_idx, to_mb);
 
-            hash ^= zobrist::get_code_piece(promote_idx, to_mb);
+            // Note that pawns don't affect the game-phase.
+            eval.mg += evaluation::piece_mg_evaluation[promotion_idx] + evaluation::piece_square_mg_evaluation[promotion_idx][to_mb];
+            eval.eg += evaluation::piece_eg_evaluation[promotion_idx] + evaluation::piece_square_eg_evaluation[promotion_idx][to_mb];
+            eval.gp += evaluation::piece_gp[promotion_idx];
         }
         else
         {
             bb.boards[piece] ^= from_to_bb;
             hash             ^= zobrist::get_code_piece(piece, to_mb);
+
+            eval.mg += evaluation::piece_mg_evaluation[piece] + evaluation::piece_square_mg_evaluation[piece][to_mb];
+            eval.eg += evaluation::piece_eg_evaluation[piece] + evaluation::piece_square_eg_evaluation[piece][to_mb];
         }
     }
 
@@ -133,23 +148,29 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
             const std::uint64_t capture_mb = std::countr_zero(capture_bb);
             const piece_idx capture_idx { static_cast<piece_idx>(is_black_to_play ? piece_idx::w_pawn : piece_idx::b_pawn) };
 
-            opponent_pieces ^= capture_bb;
+            opponent_pieces        ^= capture_bb;
             bb.boards[capture_idx] ^= capture_bb;
+            hash                   ^= zobrist::get_code_piece(capture_idx, capture_mb);
 
-            hash ^= zobrist::get_code_piece(capture_idx, capture_mb);
+            // Note that pawns don't affect the game-phase.
+            eval.mg -= (evaluation::piece_mg_evaluation[capture_idx] + evaluation::piece_square_mg_evaluation[capture_idx][capture_mb]);
+            eval.eg -= (evaluation::piece_eg_evaluation[capture_idx] + evaluation::piece_square_eg_evaluation[capture_idx][capture_mb]);
         }
         // For regular piece captures, we have to loop through the opponents piece bitboards to find the one containing
         // the piece to remove. We also have to remember to fill in the unmake-move so we can recover the piece when
         // going in reverse.
         else
         {
-            opponent_pieces ^= to_bb;
-
             const auto capture_idx = bb.get_piece_type_colour(to_bb, !is_black_to_play);
-            bb.boards[capture_idx] ^= to_bb;
-
             unmake |= move::unmake_encode_capture(static_cast<piece_idx>(capture_idx));
-            hash   ^= zobrist::get_code_piece(static_cast<piece_idx>(capture_idx), to_mb);
+
+            opponent_pieces        ^= to_bb;
+            bb.boards[capture_idx] ^= to_bb;
+            hash                   ^= zobrist::get_code_piece(static_cast<piece_idx>(capture_idx), to_mb);
+
+            eval.mg -= (evaluation::piece_mg_evaluation[capture_idx] + evaluation::piece_square_mg_evaluation[capture_idx][to_mb]);
+            eval.eg -= (evaluation::piece_eg_evaluation[capture_idx] + evaluation::piece_square_eg_evaluation[capture_idx][to_mb]);
+            eval.gp -= evaluation::piece_gp[capture_idx];
         }
 
         bb.ply_50m = 0;
@@ -178,54 +199,78 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
     {
         if (is_black_to_play)
         {
+            constexpr std::size_t from_mb      { std::countr_zero(FILE_H & RANK_8) };
+            constexpr std::size_t to_mb        { std::countr_zero(FILE_F & RANK_8) };
             constexpr std::uint64_t from_to_bb { (FILE_H & RANK_8) | (FILE_F & RANK_8) };
+
             bb.boards[piece_idx::b_rook] ^= from_to_bb;
             bb.boards[piece_idx::b_any]  ^= from_to_bb;
 
             constexpr std::uint64_t code {
-                zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_H & RANK_8))
-              ^ zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_F & RANK_8))
+                zobrist::get_code_piece(piece_idx::b_rook, from_mb)
+              ^ zobrist::get_code_piece(piece_idx::b_rook, to_mb)
             };
             hash ^= code;
+
+            eval.mg += (evaluation::piece_square_mg_evaluation[piece_idx::b_rook][to_mb] - evaluation::piece_square_mg_evaluation[piece_idx::b_rook][from_mb]);
+            eval.eg += (evaluation::piece_square_eg_evaluation[piece_idx::b_rook][to_mb] - evaluation::piece_square_eg_evaluation[piece_idx::b_rook][from_mb]);
         }
         else
         {
+            constexpr std::size_t from_mb      { std::countr_zero(FILE_H & RANK_1) };
+            constexpr std::size_t to_mb        { std::countr_zero(FILE_F & RANK_1) };
             constexpr std::uint64_t from_to_bb { (FILE_H & RANK_1) | (FILE_F & RANK_1) };
+
             bb.boards[piece_idx::w_rook] ^= from_to_bb;
             bb.boards[piece_idx::w_any]  ^= from_to_bb;
 
             constexpr std::uint64_t code {
-                zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_H & RANK_1))
-              ^ zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_F & RANK_1))
+                zobrist::get_code_piece(piece_idx::w_rook, from_mb)
+              ^ zobrist::get_code_piece(piece_idx::w_rook, to_mb)
             };
             hash ^= code;
+
+            eval.mg += (evaluation::piece_square_mg_evaluation[piece_idx::w_rook][to_mb] - evaluation::piece_square_mg_evaluation[piece_idx::w_rook][from_mb]);
+            eval.eg += (evaluation::piece_square_eg_evaluation[piece_idx::w_rook][to_mb] - evaluation::piece_square_eg_evaluation[piece_idx::w_rook][from_mb]);
         }
     }
     else if (make & move::type::CASTLE_QS) [[unlikely]]
     {
         if (is_black_to_play)
         {
+            constexpr std::size_t from_mb      { std::countr_zero(FILE_A & RANK_8) };
+            constexpr std::size_t to_mb        { std::countr_zero(FILE_D & RANK_8) };
             constexpr std::uint64_t from_to_bb { (FILE_A & RANK_8) | (FILE_D & RANK_8) };
+
             bb.boards[piece_idx::b_rook] ^= from_to_bb;
             bb.boards[piece_idx::b_any]  ^= from_to_bb;
 
             constexpr std::uint64_t code {
-                zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_A & RANK_8))
-              ^ zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_D & RANK_8))
+                zobrist::get_code_piece(piece_idx::b_rook, from_mb)
+              ^ zobrist::get_code_piece(piece_idx::b_rook, to_mb)
             };
             hash ^= code;
+
+            eval.mg += (evaluation::piece_square_mg_evaluation[piece_idx::b_rook][to_mb] - evaluation::piece_square_mg_evaluation[piece_idx::b_rook][from_mb]);
+            eval.eg += (evaluation::piece_square_eg_evaluation[piece_idx::b_rook][to_mb] - evaluation::piece_square_eg_evaluation[piece_idx::b_rook][from_mb]);
         }
         else
         {
+            constexpr std::size_t from_mb      { std::countr_zero(FILE_A & RANK_1) };
+            constexpr std::size_t to_mb        { std::countr_zero(FILE_D & RANK_1) };
             constexpr std::uint64_t from_to_bb { (FILE_A & RANK_1) | (FILE_D & RANK_1) };
+
             bb.boards[piece_idx::w_rook] ^= from_to_bb;
             bb.boards[piece_idx::w_any]  ^= from_to_bb;
 
             constexpr std::uint64_t code {
-                zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_A & RANK_1))
-              ^ zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_D & RANK_1))
+                zobrist::get_code_piece(piece_idx::w_rook, from_mb)
+              ^ zobrist::get_code_piece(piece_idx::w_rook, to_mb)
             };
             hash ^= code;
+
+            eval.mg += (evaluation::piece_square_mg_evaluation[piece_idx::w_rook][to_mb] - evaluation::piece_square_mg_evaluation[piece_idx::w_rook][from_mb]);
+            eval.eg += (evaluation::piece_square_eg_evaluation[piece_idx::w_rook][to_mb] - evaluation::piece_square_eg_evaluation[piece_idx::w_rook][from_mb]);
         }
     }
 
@@ -255,7 +300,7 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
     return ret;
 }
 
-inline void unmake_move_impl(bitboard& bb, std::uint32_t make, std::uint32_t unmake, std::uint64_t& hash) noexcept
+inline void unmake_move_impl(bitboard& bb, std::uint32_t make, std::uint32_t unmake, std::uint64_t& hash, evaluation::eval& eval) noexcept
 {
     const bool is_black_to_play   { bb.is_black_to_play() };
     std::uint64_t& to_move_pieces { is_black_to_play ? bb.boards[piece_idx::w_any] : bb.boards[piece_idx::b_any] };
@@ -297,7 +342,11 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t make, std::uint32_t unm
     if (!is_null) [[likely]]
     {
         to_move_pieces ^= from_to_bb;
-        hash ^= zobrist::get_code_piece(piece, from_mb);
+        hash           ^= zobrist::get_code_piece(piece, from_mb);
+
+        eval.mg += evaluation::piece_mg_evaluation[piece] + evaluation::piece_square_mg_evaluation[piece][from_mb];
+        eval.eg += evaluation::piece_eg_evaluation[piece] + evaluation::piece_square_eg_evaluation[piece][from_mb];
+
         if (make & move::type::PROMOTION) [[unlikely]]
         {
             bb.boards[piece] ^= from_bb;
@@ -305,11 +354,19 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t make, std::uint32_t unm
             const auto promotion_idx = move::make_decode_promotion(make);
             hash                     ^= zobrist::get_code_piece(promotion_idx, to_mb);
             bb.boards[promotion_idx] ^= to_bb;
+
+            // Note that pawns don't affect the game-phase.
+            eval.mg -= (evaluation::piece_mg_evaluation[promotion_idx] + evaluation::piece_square_mg_evaluation[promotion_idx][to_mb]);
+            eval.eg -= (evaluation::piece_eg_evaluation[promotion_idx] + evaluation::piece_square_eg_evaluation[promotion_idx][to_mb]);
+            eval.gp -= evaluation::piece_gp[promotion_idx];
         }
         else
         {
             hash ^= zobrist::get_code_piece(piece, to_mb);
             bb.boards[piece] ^= from_to_bb;
+
+            eval.mg -= (evaluation::piece_mg_evaluation[piece] + evaluation::piece_square_mg_evaluation[piece][to_mb]);
+            eval.eg -= (evaluation::piece_eg_evaluation[piece] + evaluation::piece_square_eg_evaluation[piece][to_mb]);
         }
     }
 
@@ -325,99 +382,136 @@ inline void unmake_move_impl(bitboard& bb, std::uint32_t make, std::uint32_t unm
             const std::uint64_t capture_mb = std::countr_zero(capture_bb);
             const piece_idx capture_idx { static_cast<piece_idx>(is_black_to_play ? piece_idx::b_pawn : piece_idx::w_pawn) };
 
-            hash ^= zobrist::get_code_piece(capture_idx, capture_mb);
-
-            opponent_pieces ^= capture_bb;
+            opponent_pieces        ^= capture_bb;
             bb.boards[capture_idx] ^= capture_bb;
+            hash                   ^= zobrist::get_code_piece(capture_idx, capture_mb);
+
+            // Note that pawns don't affect the game-phase.
+            eval.mg += evaluation::piece_mg_evaluation[capture_idx] + evaluation::piece_square_mg_evaluation[capture_idx][capture_mb];;
+            eval.eg += evaluation::piece_eg_evaluation[capture_idx] + evaluation::piece_square_eg_evaluation[capture_idx][capture_mb];;
         }
         else
         {
             const std::uint64_t capture_mb = std::countr_zero(to_bb);
             const auto capture_idx = move::unmake_decode_capture(unmake);
 
-            hash ^= zobrist::get_code_piece(capture_idx, capture_mb);
-
-            opponent_pieces ^= to_bb;
+            opponent_pieces        ^= to_bb;
             bb.boards[capture_idx] ^= to_bb;
+            hash                   ^= zobrist::get_code_piece(capture_idx, capture_mb);
+
+            eval.mg += evaluation::piece_mg_evaluation[capture_idx] + evaluation::piece_square_mg_evaluation[capture_idx][to_mb];
+            eval.eg += evaluation::piece_eg_evaluation[capture_idx] + evaluation::piece_square_eg_evaluation[capture_idx][to_mb];
+            eval.gp += evaluation::piece_gp[capture_idx];
         }
     }
 
     // Handle moving the rook for castling.
     if (make & move::type::CASTLE_KS) [[unlikely]]
     {
-        if (is_black_to_play)
+        if (!is_black_to_play)
         {
+            constexpr std::size_t from_mb      { std::countr_zero(FILE_H & RANK_8) };
+            constexpr std::size_t to_mb        { std::countr_zero(FILE_F & RANK_8) };
+            constexpr std::uint64_t from_to_bb { (FILE_H & RANK_8) | (FILE_F & RANK_8) };
+
+            bb.boards[piece_idx::b_rook] ^= from_to_bb;
+            bb.boards[piece_idx::b_any]  ^= from_to_bb;
+
             constexpr std::uint64_t code {
-                zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_H & RANK_1))
-              ^ zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_F & RANK_1))
+                zobrist::get_code_piece(piece_idx::b_rook, from_mb)
+              ^ zobrist::get_code_piece(piece_idx::b_rook, to_mb)
             };
             hash ^= code;
 
-            constexpr std::uint64_t from_to_bb { (FILE_H & RANK_1) | (FILE_F & RANK_1) };
-            bb.boards[piece_idx::w_rook] ^= from_to_bb;
-            bb.boards[piece_idx::w_any]  ^= from_to_bb;
+            eval.mg -= (evaluation::piece_square_mg_evaluation[piece_idx::b_rook][to_mb] - evaluation::piece_square_mg_evaluation[piece_idx::b_rook][from_mb]);
+            eval.eg -= (evaluation::piece_square_eg_evaluation[piece_idx::b_rook][to_mb] - evaluation::piece_square_eg_evaluation[piece_idx::b_rook][from_mb]);
         }
         else
         {
+            constexpr std::size_t from_mb      { std::countr_zero(FILE_H & RANK_1) };
+            constexpr std::size_t to_mb        { std::countr_zero(FILE_F & RANK_1) };
+            constexpr std::uint64_t from_to_bb { (FILE_H & RANK_1) | (FILE_F & RANK_1) };
+
+            bb.boards[piece_idx::w_rook] ^= from_to_bb;
+            bb.boards[piece_idx::w_any]  ^= from_to_bb;
+
             constexpr std::uint64_t code {
-                zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_H & RANK_8))
-              ^ zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_F & RANK_8))
+                zobrist::get_code_piece(piece_idx::w_rook, from_mb)
+              ^ zobrist::get_code_piece(piece_idx::w_rook, to_mb)
             };
             hash ^= code;
 
-            constexpr std::uint64_t from_to_bb { (FILE_H & RANK_8) | (FILE_F & RANK_8) };
-            bb.boards[piece_idx::b_rook] ^= from_to_bb;
-            bb.boards[piece_idx::b_any]  ^= from_to_bb;
+            eval.mg -= (evaluation::piece_square_mg_evaluation[piece_idx::w_rook][to_mb] - evaluation::piece_square_mg_evaluation[piece_idx::w_rook][from_mb]);
+            eval.eg -= (evaluation::piece_square_eg_evaluation[piece_idx::w_rook][to_mb] - evaluation::piece_square_eg_evaluation[piece_idx::w_rook][from_mb]);
         }
     }
     else if (make & move::type::CASTLE_QS) [[unlikely]]
     {
-        if (is_black_to_play)
+        if (!is_black_to_play)
         {
+            constexpr std::size_t from_mb      { std::countr_zero(FILE_A & RANK_8) };
+            constexpr std::size_t to_mb        { std::countr_zero(FILE_D & RANK_8) };
+            constexpr std::uint64_t from_to_bb { (FILE_A & RANK_8) | (FILE_D & RANK_8) };
+
+            bb.boards[piece_idx::b_rook] ^= from_to_bb;
+            bb.boards[piece_idx::b_any]  ^= from_to_bb;
+
             constexpr std::uint64_t code {
-                zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_A & RANK_1))
-              ^ zobrist::get_code_piece(piece_idx::w_rook, std::countr_zero(FILE_D & RANK_1))
+                zobrist::get_code_piece(piece_idx::b_rook, from_mb)
+              ^ zobrist::get_code_piece(piece_idx::b_rook, to_mb)
             };
             hash ^= code;
 
-            constexpr std::uint64_t from_to_bb { (FILE_A & RANK_1) | (FILE_D & RANK_1) };
-            bb.boards[piece_idx::w_rook] ^= from_to_bb;
-            bb.boards[piece_idx::w_any]  ^= from_to_bb;
+            eval.mg -= (evaluation::piece_square_mg_evaluation[piece_idx::b_rook][to_mb] - evaluation::piece_square_mg_evaluation[piece_idx::b_rook][from_mb]);
+            eval.eg -= (evaluation::piece_square_eg_evaluation[piece_idx::b_rook][to_mb] - evaluation::piece_square_eg_evaluation[piece_idx::b_rook][from_mb]);
         }
         else
         {
+            constexpr std::size_t from_mb      { std::countr_zero(FILE_A & RANK_1) };
+            constexpr std::size_t to_mb        { std::countr_zero(FILE_D & RANK_1) };
+            constexpr std::uint64_t from_to_bb { (FILE_A & RANK_1) | (FILE_D & RANK_1) };
+
+            bb.boards[piece_idx::w_rook] ^= from_to_bb;
+            bb.boards[piece_idx::w_any]  ^= from_to_bb;
+
             constexpr std::uint64_t code {
-                zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_A & RANK_8))
-              ^ zobrist::get_code_piece(piece_idx::b_rook, std::countr_zero(FILE_D & RANK_8))
+                zobrist::get_code_piece(piece_idx::w_rook, from_mb)
+              ^ zobrist::get_code_piece(piece_idx::w_rook, to_mb)
             };
             hash ^= code;
 
-            constexpr std::uint64_t from_to_bb { (FILE_A & RANK_8) | (FILE_D & RANK_8) };
-            bb.boards[piece_idx::b_rook] ^= from_to_bb;
-            bb.boards[piece_idx::b_any]  ^= from_to_bb;
+            eval.mg -= (evaluation::piece_square_mg_evaluation[piece_idx::w_rook][to_mb] - evaluation::piece_square_mg_evaluation[piece_idx::w_rook][from_mb]);
+            eval.eg -= (evaluation::piece_square_eg_evaluation[piece_idx::w_rook][to_mb] - evaluation::piece_square_eg_evaluation[piece_idx::w_rook][from_mb]);
         }
     }
 }
 
 }
 
-inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move) noexcept
+inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t make) noexcept
 {
     // Dummy unmake (will get hopefully get optimised away).
     std::uint32_t unmake_dummy;
-    return make_move(args, bb, move, unmake_dummy);
+    return make_move(args, bb, make, unmake_dummy);
 }
 
-inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t move, std::uint32_t& unmake) noexcept
+inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t make, std::uint32_t& unmake) noexcept
 {
     // Dummy hash (will hopefully get optimised away).
     std::uint64_t hash_dummy {};
-    return make_move(args, bb, move, unmake, hash_dummy);
+    return make_move(args, bb, make, unmake, hash_dummy);
 }
 
-inline bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t move, std::uint32_t& unmake, std::uint64_t& hash) noexcept
+inline bool make_move(const make_move_args& args, bitboard& bb, std::uint32_t make, std::uint32_t& unmake, std::uint64_t& hash) noexcept
 {
-    const bool ret { details::make_move_impl(args, bb, move, unmake, hash) };
+    // Dummy (will hopefully get optimised away).
+    evaluation::eval eval_dummy;
+    return make_move(args, bb, make, unmake, hash, eval_dummy);
+}
+
+inline bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t make, std::uint32_t& unmake, std::uint64_t& hash, evaluation::eval& eval) noexcept
+{
+    const bool ret { details::make_move_impl(args, bb, make, unmake, hash, eval) };
 
     // Increment the ply-counter.
     bb.ply_counter++;
@@ -425,16 +519,16 @@ inline bool make_move(const make_move_args& args, bitboard& bb,   std::uint32_t 
     return ret;
 }
 
-inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t move) noexcept
+inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t make) noexcept
 {
     // Dummy unmake (will get hopefully get optimised away).
     std::uint32_t unmake_dummy;
-    return make_move(args, gs, move, unmake_dummy);
+    return make_move(args, gs, make, unmake_dummy);
 }
 
-inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t move, std::uint32_t& unmake) noexcept
+inline bool make_move(const make_move_args& args, game_state& gs, std::uint32_t make, std::uint32_t& unmake) noexcept
 {
-    const bool ret { details::make_move_impl(args, gs.bb, move, unmake, gs.hash) };
+    const bool ret { details::make_move_impl(args, gs.bb, make, unmake, gs.hash, gs.eval) };
 
     // Add our move to our game-state history and increment the ply-counter.
     gs.position_history[++gs.bb.ply_counter] = gs.hash;
@@ -451,7 +545,14 @@ inline void unmake_move(bitboard& bb, std::uint32_t make, std::uint32_t unmake) 
 
 inline void unmake_move(bitboard& bb, std::uint32_t make, std::uint32_t unmake, std::uint64_t& hash) noexcept
 {
-    details::unmake_move_impl(bb, make, unmake, hash);
+    // Dummy (will hopefully get optimised away).
+    evaluation::eval eval_dummy;
+    unmake_move(bb, make, unmake, hash, eval_dummy);
+}
+
+inline void unmake_move(bitboard& bb, std::uint32_t make, std::uint32_t unmake, std::uint64_t& hash, evaluation::eval& eval) noexcept
+{
+    details::unmake_move_impl(bb, make, unmake, hash, eval);
 
     // Decrement the ply-counter.
     bb.ply_counter--;
@@ -459,7 +560,7 @@ inline void unmake_move(bitboard& bb, std::uint32_t make, std::uint32_t unmake, 
 
 inline void unmake_move(game_state& gs, std::uint32_t make, std::uint32_t unmake) noexcept
 {
-    details::unmake_move_impl(gs.bb, make, unmake, gs.hash);
+    details::unmake_move_impl(gs.bb, make, unmake, gs.hash, gs.eval);
 
     // Decrement the ply-counter.
     gs.bb.ply_counter--;
@@ -481,12 +582,20 @@ inline void unmake_move(bitboard& bb, std::uint64_t make_unmake, std::uint64_t& 
     unmake_move(bb, make, unmake, hash);
 }
 
+inline void unmake_move(bitboard& bb, std::uint64_t make_unmake, std::uint64_t& hash, evaluation::eval& eval) noexcept
+{
+    const std::uint32_t make   = make_unmake;
+    const std::uint32_t unmake = make_unmake >> 32;
+
+    unmake_move(bb, make, unmake, hash, eval);
+}
+
 inline void unmake_move(game_state& gs, std::uint64_t make_unmake) noexcept
 {
     const std::uint32_t make   = make_unmake;
     const std::uint32_t unmake = make_unmake >> 32;
 
-    details::unmake_move_impl(gs.bb, make, unmake, gs.hash);
+    details::unmake_move_impl(gs.bb, make, unmake, gs.hash, gs.eval);
 
     // Decrement the ply-counter.
     gs.bb.ply_counter--;

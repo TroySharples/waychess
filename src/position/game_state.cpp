@@ -1,5 +1,6 @@
 #include "game_state.hpp"
 
+#include "evaluation/evaluate.hpp"
 #include "generate_moves.hpp"
 #include "make_move.hpp"
 #include "zobrist_hash.hpp"
@@ -11,6 +12,8 @@ void game_state::load(const bitboard& bb)
     hash = zobrist::hash_init(mailbox(bb));
 
     position_history[0] = hash;
+
+    eval.init(bb);
 }
 
 void game_state::reset()

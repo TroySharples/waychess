@@ -5,6 +5,7 @@
 #include "details/km_table.hpp"
 #include "details/transposition_table.hpp"
 #include "details/history_heuristic.hpp"
+#include "evaluation/evaluate.hpp"
 
 // The main game state that is used in the search and evaluation. This includes the position itself (i.e. bitboard) as well
 // as other incrementally updated fields (e.g. hash).
@@ -57,7 +58,8 @@ struct game_state
     // this does is that it ensures only legal PVs are printed.
     std::span<const std::uint32_t> get_pv(std::size_t ply = 0) noexcept;
 
-    // TODO: There are a lot more things we should add to do with the evaluation (e.g. pawn-structure tables).
+    // Incrementally-updated evaluation parameters.
+    evaluation::eval eval;
 
     // Determines whether the current position a draw by either the 50-move rule, or the three-fold-repetition rule - should
     // be called early on in search evaluation.

@@ -1,3 +1,5 @@
+#include "evaluation/evaluate.hpp"
+#include "pieces/pieces.hpp"
 #include "position/generate_moves.hpp"
 #include "position/make_move.hpp"
 #include "position/move.hpp"
@@ -9,13 +11,14 @@
 namespace
 {
 
-void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash, std::size_t depth)
+void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash, const evaluation::eval eval, std::size_t depth)
 {
     if (depth == 0)
         return;
 
-    bitboard bb_copy { bb };
-    std::uint64_t hash_copy { hash };
+    bitboard bb_copy           { bb };
+    std::uint64_t hash_copy    { hash };
+    evaluation::eval eval_copy { eval };
 
     // Our buffer of moves to loop over will also include a null-moves.
     constexpr std::size_t max_moves_in_position_including_null_move { MAX_MOVES_PER_POSITION+1 };
@@ -30,14 +33,16 @@ void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash
         const std::uint32_t make = move_buf[i];
 
         std::uint32_t unmake;
-        make_move({ .check_legality = true }, bb_copy, make, unmake, hash_copy);
+        if (make_move({ .check_legality = true }, bb_copy, make, unmake, hash_copy, eval_copy))
+            test_move_generation_recursive(bb_copy, hash_copy, eval_copy, depth-1);
 
-        test_move_generation_recursive(bb_copy, hash_copy, depth-1);
+        unmake_move(bb_copy, make, unmake, hash_copy, eval_copy);
 
-        unmake_move(bb_copy, make, unmake, hash_copy);
-
-        EXPECT_EQ(bb, bb_copy);
+        ASSERT_TRUE(bb_copy.is_consistent());
+        EXPECT_EQ(bb,   bb_copy);
         EXPECT_EQ(hash, hash_copy);
+        EXPECT_EQ(eval, eval_copy);
+        EXPECT_EQ(eval, evaluation::eval(bb_copy));
     }
 }
 
@@ -45,7 +50,8 @@ void test_move_generation(const char* fen, std::size_t depth)
 {
     bitboard bb { fen };
     std::uint64_t hash = zobrist::hash_init(bb);
-    test_move_generation_recursive(bb, hash, depth);
+    evaluation::eval eval(bb);
+    test_move_generation_recursive(bb, hash, eval, depth);
 }
 
 }
