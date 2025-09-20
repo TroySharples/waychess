@@ -38,7 +38,7 @@ inline int score_move(std::uint32_t move, std::size_t draft, const game_state& g
     // Next we score promotions according to the score of the promoted piece (we may change this in the future so that all non-queen
     // promotions are scored near the bottom).
     if (move & move::type::PROMOTION)
-        return 1000000000 + evaluation::piece_mg_evaluation[move::make_decode_promotion(move)];
+        return 1000000000 + std::abs(evaluation::piece_mg_evaluation[move::make_decode_promotion(move)]);
 
     // Next MVV/LVA score.
     if (move & move::type::CAPTURE)
