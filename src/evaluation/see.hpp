@@ -20,7 +20,7 @@ inline int see_capture(const bitboard& bb, std::uint32_t move, bool is_black)
     // These values will be updated as the algorithm iterates.
     std::uint64_t from_bb  { 1ULL << from_mb };
     piece_idx victim_idx   { bb.get_piece_type_colour(to_bb, !is_black) };
-    piece_idx attacker_idx { bb.get_piece_type_colour(from_bb, is_black) };
+    piece_idx attacker_idx { move::make_decode_piece_idx(move) };
 
     // The occupancy bitboard of all pieces.
     std::uint64_t occ_bb { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };

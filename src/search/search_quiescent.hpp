@@ -32,14 +32,13 @@ inline int mvv_lva_score(const bitboard& bb, std::uint32_t move)
 
 inline void sort_mvv_lva(const bitboard& bb, std::span<std::uint64_t> move_buf) noexcept
 {
-    std::array<std::pair<std::uint64_t, int>, MAX_MOVES_PER_POSITION> scored_moves;
-    for (std::size_t i = 0; i < move_buf.size(); i++)
-        scored_moves[i] = { move_buf[i], mvv_lva_score(bb, move_buf[i]) };
+    // Score each move.
+    const std::span<std::int64_t> signed_move_buf { reinterpret_cast<std::int64_t*>(move_buf.data()), move_buf.size() };
+    for (auto& move : signed_move_buf)
+        move |= (static_cast<std::int64_t>(mvv_lva_score(bb, move)) << 32);
 
-    std::sort(scored_moves.begin(), scored_moves.begin() + move_buf.size(), [](const auto& a, const auto& b) noexcept { return a.second > b.second; });
-
-    for (std::size_t i = 0; i < move_buf.size(); i++)
-        move_buf[i] = scored_moves[i].first;
+    // Sort the moves (high-to-low).
+    std::sort(signed_move_buf.rbegin(), signed_move_buf.rend());
 }
 
 }

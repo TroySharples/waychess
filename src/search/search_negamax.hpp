@@ -56,14 +56,13 @@ inline int score_move(std::uint32_t move, std::size_t draft, const game_state& g
 
 inline void sort_moves(std::span<std::uint64_t> move_buf, std::size_t draft, const game_state& gs, std::uint64_t pv_move, std::uint64_t hash_move) noexcept
 {
-    std::array<std::pair<std::uint64_t, int>, MAX_MOVES_PER_POSITION> scored_moves;
-    for (std::size_t i = 0; i < move_buf.size(); i++)
-        scored_moves[i] = { move_buf[i], score_move(move_buf[i], draft, gs, pv_move, hash_move) };
+    // Score each move.
+    const std::span<std::int64_t> signed_move_buf { reinterpret_cast<std::int64_t*>(move_buf.data()), move_buf.size() };
+    for (auto& move : signed_move_buf)
+        move |= (static_cast<std::int64_t>(score_move(move, draft, gs, pv_move, hash_move)) << 32);
 
-    std::sort(scored_moves.begin(), scored_moves.begin() + move_buf.size(), [](const auto& a, const auto& b) noexcept { return a.second > b.second; });
-
-    for (std::size_t i = 0; i < move_buf.size(); i++)
-        move_buf[i] = scored_moves[i].first;
+    // Sort the moves (high-to-low).
+    std::sort(signed_move_buf.rbegin(), signed_move_buf.rend());
 }
 
 inline void handle_fail_high(game_state& gs, std::size_t draft, std::uint32_t move)
