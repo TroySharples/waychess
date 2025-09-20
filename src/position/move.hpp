@@ -58,7 +58,7 @@ constexpr std::uint32_t zeroise(std::uint32_t move) noexcept { return move &= ~(
 constexpr std::uint32_t make_encode_from_mb(std::size_t mb) noexcept { return 0x3f & mb; } 
 constexpr std::uint32_t make_encode_to_mb(std::size_t mb)   noexcept { return (0x3f & mb) << 6; }
 constexpr std::uint32_t make_encode_piece_idx(piece_idx p)  noexcept { return static_cast<std::uint32_t>(0x0f & p) << 12; }
-constexpr std::uint32_t make_encode_promotion(piece_idx p)  noexcept { return static_cast<std::uint32_t>(0x0f & p) << 26; }
+constexpr std::uint32_t make_encode_promotion(piece_idx p)  noexcept { return static_cast<std::uint32_t>(0x0f & p) << 16; }
 
 constexpr std::uint32_t make_encode(std::size_t from_mb, std::size_t to_mb, piece_idx to_move, piece_idx promotion = static_cast<piece_idx>(0))
 {
@@ -71,7 +71,7 @@ constexpr std::uint32_t make_encode(std::size_t from_mb, std::size_t to_mb, piec
 constexpr std::size_t make_decode_from_mb(std::uint32_t move)   noexcept { return move & 0x3f; }
 constexpr std::size_t make_decode_to_mb(std::uint32_t move)     noexcept { return (move >> 6) & 0x3f; }
 constexpr piece_idx   make_decode_piece_idx(std::uint32_t move) noexcept { return static_cast<piece_idx>((move >> 12) & 0x0f); }
-constexpr piece_idx   make_decode_promotion(std::uint32_t move) noexcept { return static_cast<piece_idx>((move >> 26) & 0x0f); }
+constexpr piece_idx   make_decode_promotion(std::uint32_t move) noexcept { return static_cast<piece_idx>((move >> 16) & 0x0f); }
 
 // ############################################################################################
 // UNMAKE
