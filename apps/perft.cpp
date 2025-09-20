@@ -155,7 +155,7 @@ int main(int argc, char** argv)
 
     // Finish off printing the JSON file.
     const double duration = std::chrono::duration<double>(time_end - time_start).count();
-    std::cout << R"(    "time-ms": )" << static_cast<int>(duration) << ",\n"
+    std::cout << R"(    "time-ms": )" << static_cast<int>(1000.0 * duration) << ",\n"
               << R"(    "nps": )"     << static_cast<int>(static_cast<double>(total_nodes) / duration) << ",\n"
               << R"(    "total-nodes": )" << total_nodes << '\n'
               << R"(})" << '\n';
