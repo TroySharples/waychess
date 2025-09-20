@@ -1,0 +1,15 @@
+config waychess: nmp=true,lmr=true,km=true,hh=false,see=true,awd=35
+config candidate: nmp=true,lmr=true,km=true,hh=false,see=true,scout=true,awd=35
+
+Candidate with negascout and NMP bug-fix.
+--------------------------------------------------
+Results of waychess vs candidate (8+1, NULL, 128MB, 8moves_v3.pgn):
+Elo: -160.56 +/- 98.30, nElo: -200.68 +/- 102.66
+LOS: 0.01 %, DrawRatio: 22.73 %, PairsRatio: 0.13
+Games: 44, Wins: 8, Losses: 27, Draws: 9, Points: 12.5 (28.41 %)
+Ptnml(0-2): [7, 8, 5, 1, 1], WL/DD Ratio: inf
+LLR: -3.09 (-105.1%) (-2.94, 2.94) [0.00, 50.00]
+--------------------------------------------------
+SPRT ([0.00, 50.00]) completed - H0 was accepted
+Finished match
+Total Time: 00:07:58 (hours:minutes:seconds)

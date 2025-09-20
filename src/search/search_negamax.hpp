@@ -160,7 +160,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
             unmake_move(gs, move::NULL_MOVE, unmake);
 
             // Return early if this reduced search causes a beta-cutoff.
-            if (score > beta)
+            if (score >= beta)
             {
                 stats.fh_null++;
                 null_move_pruned = true;
