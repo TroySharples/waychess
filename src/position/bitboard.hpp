@@ -48,6 +48,9 @@ struct bitboard
     // The number of ply since the last pawn-push or capture (used for 50 move drawing rule).
     std::size_t ply_50m;
 
+    // Check the bitboards for consistency
+    bool is_consistent() const noexcept;
+
     // Gets the piece type on a particular square. The colour variant assumes the colour of the
     // piece is known beforehand.
     constexpr piece_idx get_piece_type(std::uint64_t bb) const noexcept;
