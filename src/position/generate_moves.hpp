@@ -66,10 +66,10 @@ inline std::size_t get_pawn_moves(const bitboard& bb, const generate_move_parame
                     {
                         if (params.allow_promotions)
                         {
-                            move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(piece_idx::w_queen);
-                            move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(piece_idx::w_knight);
-                            move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(piece_idx::w_rook);
-                            move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(piece_idx::w_bishop);
+                            move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(set_piece_colour(piece_idx::w_queen,  is_black_to_play));
+                            move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(set_piece_colour(piece_idx::w_knight, is_black_to_play));
+                            move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(set_piece_colour(piece_idx::w_rook,   is_black_to_play));
+                            move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(set_piece_colour(piece_idx::w_bishop, is_black_to_play));
                         }
                     }
                     else
@@ -95,10 +95,10 @@ inline std::size_t get_pawn_moves(const bitboard& bb, const generate_move_parame
                 {
                     if (params.allow_promotions)
                     {
-                        move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(piece_idx::w_queen);
-                        move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(piece_idx::w_knight);
-                        move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(piece_idx::w_rook);
-                        move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(piece_idx::w_bishop);
+                        move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(set_piece_colour(piece_idx::w_queen,  is_black_to_play));
+                        move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(set_piece_colour(piece_idx::w_knight, is_black_to_play));
+                        move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(set_piece_colour(piece_idx::w_rook,   is_black_to_play));
+                        move_buf[ret++] = move | move::type::PROMOTION | move::make_encode_promotion(set_piece_colour(piece_idx::w_bishop, is_black_to_play));
                     }
                 }
                 else

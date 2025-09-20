@@ -154,9 +154,9 @@ int main(int argc, char** argv)
     const auto time_end = std::chrono::steady_clock::now();
 
     // Finish off printing the JSON file.
-    const std::uint64_t duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
-    std::cout << R"(    "time-ms": )" << duration_ms << ",\n"
-              << R"(    "nps": )"     << 1000ULL * total_nodes / duration_ms << ",\n"
+    const double duration = std::chrono::duration<double>(time_end - time_start).count();
+    std::cout << R"(    "time-ms": )" << static_cast<int>(duration) << ",\n"
+              << R"(    "nps": )"     << static_cast<int>(static_cast<double>(total_nodes) / duration) << ",\n"
               << R"(    "total-nodes": )" << total_nodes << '\n'
               << R"(})" << '\n';
 

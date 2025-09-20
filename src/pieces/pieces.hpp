@@ -30,6 +30,9 @@ enum piece_idx : std::uint8_t
     empty    = 016
 };
 
+// Overrides the colour (4th bit) of the piece.
+constexpr piece_idx set_piece_colour(piece_idx p, bool is_black) noexcept { return static_cast<piece_idx>((0x07 & p) | (is_black ? piece_idx::b_pawn : piece_idx::w_pawn )); }
+
 // Prints piece as unicode chess piece symbol.
 std::ostream& operator<<(std::ostream& os, piece_idx v);
 

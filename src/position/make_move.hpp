@@ -301,17 +301,9 @@ inline void unmake_move_impl(bitboard& bb, std::uint64_t unmake, std::uint64_t& 
         {
             bb.boards[piece] ^= from_bb;
 
-            // We have to loop through the bitboards to decide which piece to remove - we unfortunately can't store this in the
-            // move-info in the case of capture-promotions.
-            for (std::size_t promotion_idx = (is_black_to_play ? piece_idx::w_knight : piece_idx::b_knight); promotion_idx <= (is_black_to_play ? piece_idx::w_queen : piece_idx::b_queen); promotion_idx++)
-            {
-                if (std::uint64_t& promotion_bitboard = bb.boards[promotion_idx]; promotion_bitboard & to_bb)
-                {
-                    hash ^= zobrist::get_code_piece(static_cast<piece_idx>(promotion_idx), to_mb);
-                    promotion_bitboard ^= to_bb;
-                    break;
-                }
-            }
+            const auto promotion_idx = move::make_decode_promotion(unmake);
+            hash                     ^= zobrist::get_code_piece(promotion_idx, to_mb);
+            bb.boards[promotion_idx] ^= to_bb;
         }
         else
         {
