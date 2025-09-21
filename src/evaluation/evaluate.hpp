@@ -3,6 +3,7 @@
 #include "evaluation/evaluate_material.hpp"
 #include "evaluation/evaluate_piece_square.hpp"
 #include "evaluation/game_phase.hpp"
+
 #include <limits>
 
 namespace evaluation
@@ -50,10 +51,10 @@ constexpr int evaluate_eg(const bitboard& bb) noexcept
     return ret;
 }
 
-struct eval
+struct piece_square_eval
 {
-    eval() = default;
-    eval(const bitboard& bb) { init(bb); }
+    piece_square_eval() = default;
+    piece_square_eval(const bitboard& bb) { init(bb); }
 
     void init(const bitboard& bb)
     {
@@ -66,7 +67,7 @@ struct eval
 
     int mg, eg, gp;
 
-    bool operator==(const eval& other) const noexcept { return mg == other.mg && eg == other.eg && gp == other.gp; }
+    bool operator==(const piece_square_eval& other) const noexcept { return mg == other.mg && eg == other.eg && gp == other.gp; }
 };
 
 }

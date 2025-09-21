@@ -11,14 +11,14 @@
 namespace
 {
 
-void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash, const evaluation::eval eval, std::size_t depth)
+void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash, const evaluation::piece_square_eval eval, std::size_t depth)
 {
     if (depth == 0)
         return;
 
     bitboard bb_copy           { bb };
     std::uint64_t hash_copy    { hash };
-    evaluation::eval eval_copy { eval };
+    evaluation::piece_square_eval eval_copy { eval };
 
     // Our buffer of moves to loop over will also include a null-moves.
     constexpr std::size_t max_moves_in_position_including_null_move { MAX_MOVES_PER_POSITION+1 };
@@ -42,7 +42,7 @@ void test_move_generation_recursive(const bitboard& bb, const std::uint64_t hash
         EXPECT_EQ(bb,   bb_copy);
         EXPECT_EQ(hash, hash_copy);
         EXPECT_EQ(eval, eval_copy);
-        EXPECT_EQ(eval, evaluation::eval(bb_copy));
+        EXPECT_EQ(eval, evaluation::piece_square_eval(bb_copy));
     }
 }
 
@@ -50,7 +50,7 @@ void test_move_generation(const char* fen, std::size_t depth)
 {
     bitboard bb { fen };
     std::uint64_t hash = zobrist::hash_init(bb);
-    evaluation::eval eval(bb);
+    evaluation::piece_square_eval eval(bb);
     test_move_generation_recursive(bb, hash, eval, depth);
 }
 

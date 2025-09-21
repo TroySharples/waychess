@@ -13,7 +13,7 @@ void game_state::load(const bitboard& bb)
 
     position_history[0] = hash;
 
-    eval.init(bb);
+    piece_square_eval.init(bb);
 }
 
 void game_state::reset()

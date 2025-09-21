@@ -59,7 +59,8 @@ struct game_state
     std::span<const std::uint32_t> get_pv(std::size_t ply = 0) noexcept;
 
     // Incrementally-updated evaluation parameters.
-    evaluation::eval eval;
+    evaluation::piece_square_eval piece_square_eval;
+    int evaluate() noexcept;
 
     // Determines whether the current position a draw by either the 50-move rule, or the three-fold-repetition rule - should
     // be called early on in search evaluation.
@@ -69,6 +70,12 @@ struct game_state
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // IMPLEMENTATION
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+inline int game_state::evaluate() noexcept
+{
+    return piece_square_eval();
+}
 
 inline bool game_state::is_repetition_draw() const noexcept
 {
