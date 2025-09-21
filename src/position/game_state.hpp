@@ -6,6 +6,8 @@
 #include "details/transposition_table.hpp"
 #include "details/history_heuristic.hpp"
 #include "evaluation/evaluate.hpp"
+#include "evaluation/evaluate_pawn_structure.hpp"
+#include "evaluation/game_phase.hpp"
 
 // The main game state that is used in the search and evaluation. This includes the position itself (i.e. bitboard) as well
 // as other incrementally updated fields (e.g. hash).
@@ -60,7 +62,7 @@ struct game_state
 
     // Incrementally-updated evaluation parameters.
     evaluation::piece_square_eval piece_square_eval;
-    int evaluate() noexcept;
+    int evaluate() const noexcept;
 
     // Determines whether the current position a draw by either the 50-move rule, or the three-fold-repetition rule - should
     // be called early on in search evaluation.
@@ -72,9 +74,21 @@ struct game_state
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-inline int game_state::evaluate() noexcept
+inline int game_state::evaluate() const noexcept
 {
-    return piece_square_eval();
+    int ret {};
+
+    // The main bit of the evaluation is the piece-square evaluation that we calculate incrementally.
+    ret += piece_square_eval();
+
+    // Calculate pawns-structure on the go (might add a pawn-structure hash-table later on).
+    ret += evaluation::interpolate_gp(
+        evaluation::evaluate_pawn_structure_mg(bb),
+        evaluation::evaluate_pawn_structure_eg(bb),
+        evaluation::evaluate_gp(bb)
+    );
+
+    return ret;
 }
 
 inline bool game_state::is_repetition_draw() const noexcept
