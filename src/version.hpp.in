@@ -1,5 +1,6 @@
 #pragma once
 
-#define NAME    "@CMAKE_PROJECT_NAME@"
-#define VERSION "@PROJECT_VERSION@"
-#define AUTHOR  "@CMAKE_AUTHOR@"
+#define NAME          "@CMAKE_PROJECT_NAME@"
+#define VERSION       "@PROJECT_VERSION@"
+#define AUTHOR        "@CMAKE_AUTHOR@"
+#define WAYCHESS_INFO "@WAYCHESS_INFO@"

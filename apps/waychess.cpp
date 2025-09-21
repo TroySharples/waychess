@@ -10,6 +10,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <cstring>
 #include <sstream>
 
 namespace
@@ -29,6 +30,12 @@ void handle(game& /*g*/, const uci::command_uci& /*req*/)
     {
         uci::command_id resp;
         resp.id = "author " + std::string(AUTHOR);
+        resp.print(std::cout);
+    }
+    if (std::strcmp(WAYCHESS_INFO, "") != 0)
+    {
+        uci::command_id resp;
+        resp.id = "info " + std::string(WAYCHESS_INFO);
         resp.print(std::cout);
     }
 
