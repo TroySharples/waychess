@@ -3,6 +3,7 @@
 #include "position/bitboard.hpp"
 
 #include <optional>
+#include <vector>
 
 namespace uci
 {

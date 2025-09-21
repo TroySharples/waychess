@@ -12,3 +12,7 @@ add_executable(test-puzzles ${CMAKE_CURRENT_SOURCE_DIR}/test_puzzles.cpp)
 target_compile_definitions(test-puzzles PRIVATE PUZZLE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../puzzles/")
 target_link_libraries(test-puzzles PRIVATE lib-waychess gtest pthread)
 gtest_discover_tests(test-puzzles)
+
+add_executable(test-pawn-structure ${CMAKE_CURRENT_SOURCE_DIR}/test_pawn_structure.cpp)
+target_link_libraries(test-pawn-structure PRIVATE lib-waychess gtest pthread)
+gtest_discover_tests(test-pawn-structure)
