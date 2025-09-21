@@ -65,7 +65,10 @@ std::uint64_t get_black_pawn_all_push_squares_from_mailbox(std::size_t mb, std::
 // STRUCTURE
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-std::uint64_t get_isolated(std::uint64_t bb) noexcept;
+std::uint64_t get_pawn_isolated(std::uint64_t bb) noexcept;
+std::uint64_t get_pawn_doubled(std::uint64_t bb) noexcept;
+std::uint64_t get_white_pawn_blocked(std::uint64_t bb, std::uint64_t occ) noexcept;
+std::uint64_t get_black_pawn_blocked(std::uint64_t bb, std::uint64_t occ) noexcept;
 
 // ####################################
 // IMPLEMENTATION
@@ -201,7 +204,7 @@ inline std::uint64_t get_black_pawn_all_push_squares_from_mailbox(std::size_t mb
     return get_black_pawn_all_push_squares_from_bitboard(get_bitboard_mailbox_piece(mb), npos);
 }
 
-inline std::uint64_t get_isolated(std::uint64_t bb) noexcept
+inline std::uint64_t get_pawn_isolated(std::uint64_t bb) noexcept
 {
     // Figure out which files have pawns on them.
     unsigned file_occ {};
@@ -213,4 +216,25 @@ inline std::uint64_t get_isolated(std::uint64_t bb) noexcept
     const unsigned file_iso { file_occ & ~((file_occ << 1) | (file_occ >> 1)) };
 
     return expand_file_bitmask(file_iso) & bb;
+}
+
+inline std::uint64_t get_pawn_doubled(std::uint64_t bb) noexcept
+{
+    std::uint64_t ret {};
+
+    for (std::size_t i = 0; i < 8; i++)
+        if (const std::uint64_t file { get_bitboard_file(i)}; std::popcount(file & bb) > 1)
+            ret |= file;
+
+    return bb & ret;
+}
+
+inline std::uint64_t get_white_pawn_blocked(std::uint64_t bb, std::uint64_t occ) noexcept
+{
+    return bb & ~(((bb << 8) & ~occ) >> 8);
+}
+
+inline std::uint64_t get_black_pawn_blocked(std::uint64_t bb, std::uint64_t occ) noexcept
+{
+    return bb & ~(((bb >> 8) & ~occ) << 8);
 }
