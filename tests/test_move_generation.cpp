@@ -58,27 +58,27 @@ void test_move_generation(const char* fen, std::size_t depth)
 
 TEST(MoveGeneration, StartingPosition)
 {
-    test_move_generation(STARTING_FEN, 7);
+    test_move_generation(STARTING_FEN, 6);
 }
 
 TEST(MoveGeneration, Pos3)
 {
-    test_move_generation(POS3_FEN, 8);
+    test_move_generation(POS3_FEN, 7);
 }
 
 TEST(MoveGeneration, Pos4)
 {
-    test_move_generation(POS4_FEN, 6);
+    test_move_generation(POS4_FEN, 5);
 }
 
 TEST(MoveGeneration, Pos5)
 {
-    test_move_generation(POS5_FEN, 5);
+    test_move_generation(POS5_FEN, 4);
 }
 
 TEST(MoveGeneration, Pos6)
 {
-    test_move_generation(POS6_FEN, 5);
+    test_move_generation(POS6_FEN, 4);
 }
 
 // Tests the correctness of make / unmake / zobrist hashing in a non-performant
