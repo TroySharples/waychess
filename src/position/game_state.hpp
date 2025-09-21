@@ -6,6 +6,7 @@
 #include "details/transposition_table.hpp"
 #include "details/history_heuristic.hpp"
 #include "evaluation/evaluate.hpp"
+#include "evaluation/evaluate_king_safety.hpp"
 #include "evaluation/evaluate_pawn_structure.hpp"
 #include "evaluation/game_phase.hpp"
 
@@ -81,10 +82,17 @@ inline int game_state::evaluate() const noexcept
     // The main bit of the evaluation is the piece-square evaluation that we calculate incrementally.
     ret += piece_square_eval();
 
-    // Calculate pawns-structure on the go (might add a pawn-structure hash-table later on).
+    // Calculate pawn-structure on the go (might add a pawn-structure hash-table later on).
     ret += evaluation::interpolate_gp(
         evaluation::evaluate_pawn_structure_mg(bb),
         evaluation::evaluate_pawn_structure_eg(bb),
+        evaluation::evaluate_gp(bb)
+    );
+
+    // Calculate king-safety on the go as well - this is also not particularly efficient.
+    ret += evaluation::interpolate_gp(
+        evaluation::evaluate_king_safety_mg(bb),
+        evaluation::evaluate_king_safety_eg(bb),
         evaluation::evaluate_gp(bb)
     );
 

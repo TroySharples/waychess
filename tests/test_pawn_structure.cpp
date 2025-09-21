@@ -1,5 +1,6 @@
 #include "pieces/pieces.hpp"
 #include "position/bitboard.hpp"
+#include "evaluation/evaluate_king_safety.hpp"
 
 #include "test_positions.hpp"
 
@@ -21,6 +22,10 @@ TEST(PawnStructure, StartingPosition)
     const std::uint64_t occ { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
     ASSERT_EQ(get_white_pawn_blocked(bb.boards[piece_idx::w_pawn], occ), 0);
     ASSERT_EQ(get_black_pawn_blocked(bb.boards[piece_idx::b_pawn], occ), 0);
+
+    // Pawn shield.
+    ASSERT_EQ(evaluation::get_white_pawn_shield(bb), (FILE_D | FILE_E | FILE_F) & RANK_2);
+    ASSERT_EQ(evaluation::get_black_pawn_shield(bb), (FILE_D | FILE_E | FILE_F) & RANK_7);
 }
 
 TEST(PawnStructure, Kiwipete)
@@ -39,6 +44,10 @@ TEST(PawnStructure, Kiwipete)
     const std::uint64_t occ { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
     ASSERT_EQ(get_white_pawn_blocked(bb.boards[piece_idx::w_pawn], occ), (FILE_C & RANK_2) | (FILE_E & RANK_4) | (FILE_F & RANK_2) | (FILE_H & RANK_2));
     ASSERT_EQ(get_black_pawn_blocked(bb.boards[piece_idx::b_pawn], occ), (FILE_A & RANK_7) | (FILE_E & RANK_6) | (FILE_F & RANK_7) | (FILE_H & RANK_3));
+
+    // Pawn shield.
+    ASSERT_EQ(evaluation::get_white_pawn_shield(bb), FILE_F & RANK_2);
+    ASSERT_EQ(evaluation::get_black_pawn_shield(bb), (FILE_D & RANK_7) | (FILE_E & RANK_6) | (FILE_F & RANK_7));
 }
 
 TEST(PawnStructure, Pos3)
@@ -57,6 +66,10 @@ TEST(PawnStructure, Pos3)
     const std::uint64_t occ { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
     ASSERT_EQ(get_white_pawn_blocked(bb.boards[piece_idx::w_pawn], occ), 0);
     ASSERT_EQ(get_black_pawn_blocked(bb.boards[piece_idx::b_pawn], occ), 0);
+
+    // No pawn shield.
+    ASSERT_EQ(evaluation::get_white_pawn_shield(bb), 0);
+    ASSERT_EQ(evaluation::get_black_pawn_shield(bb), 0);
 }
 
 TEST(PawnStructure, Pos4)
@@ -75,6 +88,10 @@ TEST(PawnStructure, Pos4)
     const std::uint64_t occ { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
     ASSERT_EQ(get_white_pawn_blocked(bb.boards[piece_idx::w_pawn], occ), (FILE_A & RANK_2) | (FILE_A & RANK_7) | (FILE_B & RANK_5));
     ASSERT_EQ(get_black_pawn_blocked(bb.boards[piece_idx::b_pawn], occ), (FILE_B & RANK_7) | (FILE_F & RANK_7) | (FILE_G & RANK_7) | (FILE_H & RANK_7));
+
+    // Pawn shield.
+    ASSERT_EQ(evaluation::get_white_pawn_shield(bb), (FILE_G | FILE_H) & RANK_2);
+    ASSERT_EQ(evaluation::get_black_pawn_shield(bb), (FILE_D | FILE_F) & RANK_7);
 }
 
 TEST(PawnStructure, Pos5)
@@ -93,6 +110,10 @@ TEST(PawnStructure, Pos5)
     const std::uint64_t occ { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
     ASSERT_EQ(get_white_pawn_blocked(bb.boards[piece_idx::w_pawn], occ), FILE_D & RANK_7);
     ASSERT_EQ(get_black_pawn_blocked(bb.boards[piece_idx::b_pawn], occ), 0);
+
+    // Pawn shield.
+    ASSERT_EQ(evaluation::get_white_pawn_shield(bb), 0);
+    ASSERT_EQ(evaluation::get_black_pawn_shield(bb), (FILE_F | FILE_G) & RANK_7);
 }
 
 TEST(PawnStructure, Pos6)
@@ -111,6 +132,10 @@ TEST(PawnStructure, Pos6)
     const std::uint64_t occ { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
     ASSERT_EQ(get_white_pawn_blocked(bb.boards[piece_idx::w_pawn], occ), (FILE_C & RANK_2) | (FILE_E & RANK_4) | (FILE_F & RANK_2));
     ASSERT_EQ(get_black_pawn_blocked(bb.boards[piece_idx::b_pawn], occ), (FILE_C & RANK_7) | (FILE_E & RANK_5) | (FILE_F & RANK_7) | (FILE_F & RANK_7));
+
+    // Pawn shield.
+    ASSERT_EQ(evaluation::get_white_pawn_shield(bb), (FILE_F | FILE_G | FILE_H) & RANK_2);
+    ASSERT_EQ(evaluation::get_black_pawn_shield(bb), (FILE_F | FILE_G | FILE_H) & RANK_7);
 }
 
 TEST(PawnStructure, Behting)
@@ -129,6 +154,10 @@ TEST(PawnStructure, Behting)
     const std::uint64_t occ { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
     ASSERT_EQ(get_white_pawn_blocked(bb.boards[piece_idx::w_pawn], occ), 0);
     ASSERT_EQ(get_black_pawn_blocked(bb.boards[piece_idx::b_pawn], occ), FILE_H & RANK_6);
+
+    // Pawn shield.
+    ASSERT_EQ(evaluation::get_white_pawn_shield(bb), 0);
+    ASSERT_EQ(evaluation::get_black_pawn_shield(bb), FILE_H & RANK_4);
 }
 
 TEST(PawnStructure, HansSecelle)
@@ -147,6 +176,10 @@ TEST(PawnStructure, HansSecelle)
     const std::uint64_t occ { bb.boards[piece_idx::w_any] | bb.boards[piece_idx::b_any] };
     ASSERT_EQ(get_white_pawn_blocked(bb.boards[piece_idx::w_pawn], occ), 0);
     ASSERT_EQ(get_black_pawn_blocked(bb.boards[piece_idx::b_pawn], occ), 0);
+
+    // No pawn shield.
+    ASSERT_EQ(evaluation::get_white_pawn_shield(bb), 0);
+    ASSERT_EQ(evaluation::get_black_pawn_shield(bb), 0);
 }
 
 // Test correctness of pawn-structure assessment.
