@@ -1,0 +1,16 @@
+config waychess: nmp=true,lmr=true,km=true,hh=false,see=true,scout=true,awd=35
+config candidate: nmp=true,lmr=true,km=true,hh=false,see=true,scout=true,awd=35
+
+Both with negascout and NMP bug-fix and incrementally updated attack tables,
+with basic (revised) pawn-structure weightings, and basic king-safety. Candidate
+without king-mobility in safety heuristic.
+--------------------------------------------------
+Results of candidate vs waychess (8+1, NULL, 128MB, 8moves_v3.pgn):
+Elo: -38.37 +/- 37.78, nElo: -49.51 +/- 48.15
+LOS: 2.19 %, DrawRatio: 36.00 %, PairsRatio: 0.56
+Games: 200, Wins: 58, Losses: 80, Draws: 62, Points: 89.0 (44.50 %)
+Ptnml(0-2): [12, 29, 36, 15, 8], WL/DD Ratio: 3.00
+LLR: -0.42 (-14.2%) (-2.94, 2.94) [0.00, 5.00]
+--------------------------------------------------
+Finished match
+Total Time: 00:39:02 (hours:minutes:seconds)
