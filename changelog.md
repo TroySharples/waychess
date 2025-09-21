@@ -1,5 +1,22 @@
 # Change Log
 
+## [1.6.0] - 2025-09-22
+
+### Added
+
+- Negascout search optimisation.
+- King-safety in terminal evaluation.
+- Pawn structure in terminal evaluation.
+
+### Changed
+
+- Refactored move making / unmaking system to all for more efficient searches, and for the move score to be used in reduction / pruning techniques.
+- Moved to incrementally-updated evaluation for piece-square tables.
+
+### Fixed
+
+- Critical bug in Null Move Reduction (NMR) criteria.
+
 ## [1.5.1] - 2025-09-19
 
 ### Added
