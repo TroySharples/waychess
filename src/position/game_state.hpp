@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bitboard.hpp"
+#include "config.hpp"
 #include "details/pv_table.hpp"
 #include "details/km_table.hpp"
 #include "details/transposition_table.hpp"
@@ -83,18 +84,20 @@ inline int game_state::evaluate() const noexcept
     ret += piece_square_eval();
 
     // Calculate pawn-structure on the go (might add a pawn-structure hash-table later on).
-    ret += evaluation::interpolate_gp(
-        evaluation::evaluate_pawn_structure_mg(bb),
-        evaluation::evaluate_pawn_structure_eg(bb),
-        evaluation::evaluate_gp(bb)
-    );
+    if constexpr (config::eval_ps)
+        ret += evaluation::interpolate_gp(
+            evaluation::evaluate_pawn_structure_mg(bb),
+            evaluation::evaluate_pawn_structure_eg(bb),
+            evaluation::evaluate_gp(bb)
+        );
 
     // Calculate king-safety on the go as well - this is also not particularly efficient.
-    ret += evaluation::interpolate_gp(
-        evaluation::evaluate_king_safety_mg(bb),
-        evaluation::evaluate_king_safety_eg(bb),
-        evaluation::evaluate_gp(bb)
-    );
+    if constexpr (config::eval_ks)
+        ret += evaluation::interpolate_gp(
+            evaluation::evaluate_king_safety_mg(bb),
+            evaluation::evaluate_king_safety_eg(bb),
+            evaluation::evaluate_gp(bb)
+        );
 
     return ret;
 }
