@@ -109,10 +109,22 @@ int main(int argc, char** argv)
               << R"(    "cutnodes": )" << stats.cutnodes << ",\n"
               << R"(    "allnodes": )" << stats.allnodes << ",\n"
               << R"(    "pvnodes": )" << stats.pvnodes << ",\n"
+              << R"(    "moves-all": )" << stats.moves_all << ",\n"
+              << R"(    "moves-null": )" << stats.moves_null << ",\n"
+              << R"(    "moves-illegal": )" << stats.moves_illegal << ",\n"
+              << R"(    "moves-pvs": )" << stats.moves_pvs << ",\n"
+              << R"(    "moves-lmr": )" << stats.moves_lmr << ",\n"
+              << R"(    "moves-null-rate": )" << stats.get_moves_null_rate() << ",\n"
+              << R"(    "moves-illegal-rate": )" << stats.get_moves_illegal_rate() << ",\n"
+              << R"(    "moves-pvs-rate": )" << stats.get_moves_pvs_rate() << ",\n"
+              << R"(    "moves-lmr-rate": )" << stats.get_moves_lmr_rate() << ",\n"
+              << R"(    "moves-cut-rate": )" << stats.get_moves_cut_rate() << ",\n"
+              << R"(    "moves-improve-rate": )" << stats.get_moves_improve_rate() << ",\n"
               << R"(    "fh-hash": )" << stats.fh_hash << ",\n"
               << R"(    "fh-null": )" << stats.fh_null << ",\n"
               << R"(    "fh-first": )" << stats.fh_first << ",\n"
               << R"(    "fh-later": )" << stats.fh_later << ",\n"
+              << R"(    "fh-on-null-rate": )" << std::setprecision(2) << stats.get_fh_on_null_rate() << ",\n"
               << R"(    "fh-on-first-rate": )" << std::setprecision(2) << stats.get_fh_on_first_rate() << ",\n"
               << R"(    "qdepth": )" << stats.qdepth << ",\n"
               << R"(    "tt-probes": )" << stats.tt_probes << ",\n"
@@ -120,7 +132,11 @@ int main(int argc, char** argv)
               << R"(    "tt-hit-rate": )" << std::setprecision(2) << stats.get_tt_hit_rate() << ",\n"
               << R"(    "aw-misses-low": )" << stats.aw_misses_low << ",\n"
               << R"(    "aw-misses-high": )" << stats.aw_misses_high << ",\n"
-              << R"(    "aw-misses-total": )" << stats.get_aw_misses_total() << '\n'
+              << R"(    "aw-misses-total": )" << stats.get_aw_misses_total() << ",\n"
+              << R"(    "pvs-researches": )" << stats.pvs_researches << ",\n"
+              << R"(    "pvs-research-rate": )" << stats.get_pvs_research_rate() << ",\n"
+              << R"(    "lmr-researches": )" << stats.lmr_researches << ",\n"
+              << R"(    "lmr-research-rate": )" << stats.get_lmr_research_rate() << '\n'
               << R"(})" << '\n';
 
     return EXIT_SUCCESS;

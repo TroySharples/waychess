@@ -153,6 +153,9 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         bool null_move_pruned { false };
         if (config::nmp && !in_check && !is_king_and_pawn_colour && depth >= r+1)
         {
+            stats.moves_all++;
+            stats.moves_null++;
+
             // No need to check legality here as we already know this move won't leave us in check.
             std::uint32_t unmake;
             make_move({ .check_legality = false }, gs, move::NULL_MOVE, unmake);
@@ -180,6 +183,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
             for (std::size_t i = 0; i < moves; i++)
             {
+                stats.moves_all++;
+
                 const std::uint64_t make { move_list[i] };
 
                 // Allow us to break out of the search early if needed.
@@ -189,6 +194,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 std::uint32_t unmake;
                 if (!make_move({ .check_legality = true }, gs, make, unmake)) [[unlikely]]
                 {
+                    stats.moves_illegal++;
                     // Simply unmake the move and move on to the next one if it's illegal (note that the move is still applied in make_move
                     // even if it ends up being illegal).
                     unmake_move(gs, make, unmake);
@@ -199,19 +205,29 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 // adaptive LMR-reduction, and tweek the LMR kick-in.
                 const bool do_lmr { config::lmr && i >= 3 && depth > 3 };
                 constexpr std::size_t lmr_reduction { 1 };
-                const std::size_t d = { do_lmr ? depth-lmr_reduction-1 : depth-1 };
+                const std::size_t d { do_lmr ? depth-lmr_reduction-1 : depth-1 };
+                if (do_lmr)
+                    stats.moves_lmr++;
 
                 const bool do_scout { config::scout && i >= 1 };
                 const int b { do_scout ? alpha+1 : beta };
+                if (do_scout)
+                    stats.moves_pvs++;
 
                 // Recurse negamax.
                 int score = -search_negamax_recursive(gs, stats, d, -b, -alpha, -colour, move_buf.subspan(moves));
 
                 // Handle researching at full-depth / widened window if necessary.
                 if (do_scout && alpha < score && score < beta && depth > 0)
+                {
+                    stats.pvs_researches++;
                     score = -search_negamax_recursive(gs, stats, depth-1, -beta, -score, -colour, move_buf.subspan(moves));
+                }
                 else if (do_lmr && score > alpha)
+                {
+                    stats.lmr_researches++;
                     score = -search_negamax_recursive(gs, stats, depth-1, -beta, -alpha, -colour, move_buf.subspan(moves));
+                }
 
                 // Resets the game state to how it was before we made the move.
                 unmake_move(gs, make, unmake);
@@ -225,6 +241,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 // Update our PV table when we've found a new best move at this depth.
                 if (ret > alpha)
                 {
+                    stats.moves_improve++;
+
                     alpha = ret;
                     gs.pv.update_variation(draft, make);
                 }
@@ -232,6 +250,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
                 // Break early if we encounter a beta-cutoff (fantastic news!).
                 if (alpha >= beta)
                 {
+                    stats.moves_cut++;
+
                     // Update statistics on which move caused the cut.
                     i == 0 ? stats.fh_first++ : stats.fh_later++;
                     handle_fail_high(gs, draft, best_move);
