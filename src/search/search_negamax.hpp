@@ -242,10 +242,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
                 // We run the recursive search at a lower depth if this move isn't near the top of our list after sorting. TODO: have smarter
                 // adaptive LMR-reduction, and tweek the LMR kick-in.
-                // const bool do_lmr { config::lmr && i >= 2 && depth > 2 && !(make & (move::info::KILLER | move::info::CHECK)) };
-                // const std::size_t lmr_reduction { static_cast<std::size_t>(0.99 + std::log(depth) * std::log(i) / 3.14) };
-                const bool do_lmr { config::lmr && i >= 3 && depth > 3 };
-                constexpr std::size_t lmr_reduction { 1 };
+                const bool do_lmr { config::lmr && i >= 2 && depth > 2 && !(make & (move::info::KILLER | move::info::CHECK)) };
+                const std::size_t lmr_reduction { static_cast<std::size_t>(0.99 + std::log(depth) * std::log(i) / 3.14) };
                 const std::size_t d { do_lmr ? depth-lmr_reduction-1 : depth-1 };
                 if (do_lmr)
                     stats.moves_lmr++;
