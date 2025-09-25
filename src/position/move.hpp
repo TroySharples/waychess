@@ -31,6 +31,11 @@ namespace move
 //     12 - 15 : piece idx
 //     16 - 19 : move-promotion idx
 //     20 - 27 : move-type bitmask
+//     28 - 31 : move-info bitmask
+//
+// The move-info itself is not part of the definition of the move, but is filled out later by
+// a move-scoring system that includes interesting information about the move. These bits
+// should be masked off when comparing moves.
 // ############################################################################################
 
 // The null move is an (illegal) chess move to just do nothing and pass the turn to the other
@@ -43,15 +48,27 @@ namespace type
 
 namespace details { constexpr std::size_t OFFSET { 20 }; }
 
-constexpr std::uint32_t CAPTURE          { 0b00000001 << details::OFFSET };
-constexpr std::uint32_t CASTLE_KS        { 0b00000010 << details::OFFSET };
-constexpr std::uint32_t CASTLE_QS        { 0b00000100 << details::OFFSET };
-constexpr std::uint32_t PROMOTION        { 0b00001000 << details::OFFSET };
-constexpr std::uint32_t PAWN_PUSH_SINGLE { 0b00010000 << details::OFFSET };
-constexpr std::uint32_t PAWN_PUSH_DOUBLE { 0b00100000 << details::OFFSET };
-constexpr std::uint32_t EN_PASSENT       { 0b01000000 << details::OFFSET };
+constexpr std::uint32_t CAPTURE          { 0b00000001U << details::OFFSET };
+constexpr std::uint32_t CASTLE_KS        { 0b00000010U << details::OFFSET };
+constexpr std::uint32_t CASTLE_QS        { 0b00000100U << details::OFFSET };
+constexpr std::uint32_t PROMOTION        { 0b00001000U << details::OFFSET };
+constexpr std::uint32_t PAWN_PUSH_SINGLE { 0b00010000U << details::OFFSET };
+constexpr std::uint32_t PAWN_PUSH_DOUBLE { 0b00100000U << details::OFFSET };
+constexpr std::uint32_t EN_PASSENT       { 0b01000000U << details::OFFSET };
 
 constexpr std::uint32_t zeroise(std::uint32_t move) noexcept { return move &= ~(0xff << details::OFFSET); }
+
+}
+
+namespace info
+{
+
+namespace details { constexpr std::size_t OFFSET { 28 }; }
+
+constexpr std::uint32_t CHECK  { 0b0001U << details::OFFSET };
+constexpr std::uint32_t KILLER { 0b0010U << details::OFFSET };
+constexpr std::uint32_t PV     { 0b0100U << details::OFFSET };
+constexpr std::uint32_t HASH   { 0b1000U << details::OFFSET };
 
 }
 

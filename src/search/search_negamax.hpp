@@ -49,10 +49,12 @@ inline void score_move(std::uint64_t& move, std::size_t draft, const game_state&
     int score;
     if (move::move_is_equal(move, pv_move))
     {
+        move |= move::info::PV;
         score = 2000000000;
     }
     else if (move::move_is_equal(move, hash_move))
     {
+        move |= move::info::HASH;
         score = 1500000000;
     }
     else if (move & move::type::PROMOTION)
@@ -61,13 +63,13 @@ inline void score_move(std::uint64_t& move, std::size_t draft, const game_state&
     }
     else if (move & move::type::CAPTURE)
     {
-    // Score captures according to MVV/LVA score. Captures are divided into winning and loosing buckets according to their SEE, with winning
-    // captures being defined as having a positive SEE with some delta-flexibility.
-    score = 900000000 + mvv_lva_score(gs.bb, move);
+        // Score captures according to MVV/LVA score. Captures are divided into winning and loosing buckets according to their SEE, with winning
+        // captures being defined as having a positive SEE with some delta-flexibility.
+        score = 900000000 + mvv_lva_score(gs.bb, move);
     }
     else if (config::km && gs.km.is_killer_move(draft, move))
     {
-        // move |= move::info::KILLER;
+        move |= move::info::KILLER;
         score = 800000000;
     }
     else if (config::hh)
@@ -77,6 +79,14 @@ inline void score_move(std::uint64_t& move, std::size_t draft, const game_state&
     else
     {
         score = 0;
+    }
+
+    // Tag the move if it leaves the other side in check - we might do this more efficiently soon.
+    {
+        bitboard bb_copy = gs.bb;
+        make_move({ .check_legality=false }, bb_copy, move);
+        if (is_in_check(gs.bb))
+            move |= move::info::CHECK;
     }
 
     // Set the score.
@@ -90,10 +100,6 @@ inline void sort_moves(std::span<std::uint64_t> move_buf, std::size_t draft, con
 
     // Sort the moves (high-to-low).
     const std::span<std::int64_t> signed_move_buf { reinterpret_cast<std::int64_t*>(move_buf.data()), move_buf.size() };
-    for (auto& move : signed_move_buf)
-        move |= (static_cast<std::int64_t>(score_move(move, draft, gs, pv_move, hash_move)) << 32);
-
-    // Sort the moves (high-to-low).
     std::sort(signed_move_buf.rbegin(), signed_move_buf.rend());
 }
 
