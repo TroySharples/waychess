@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pieces/pieces.hpp"
 #include "search/statistics.hpp"
 
 #include "evaluation/evaluate.hpp"
@@ -29,6 +30,10 @@ inline int mvv_lva_score(const bitboard& bb, std::uint32_t move)
     // Multiplying the victim score ensures it's the dominant term.
     return (10*victim_val) - attacker_val;
 }
+
+constexpr int mvv_lva_score_min   { 10*::evaluation::piece_mg_evaluation[piece_idx::w_pawn]  - ::evaluation::piece_mg_evaluation[piece_idx::w_queen] };
+constexpr int mvv_lva_score_max   { 10*::evaluation::piece_mg_evaluation[piece_idx::w_queen] - ::evaluation::piece_mg_evaluation[piece_idx::w_pawn]  };
+constexpr int mvv_lva_score_range { mvv_lva_score_max - mvv_lva_score_min };
 
 inline void sort_mvv_lva(const bitboard& bb, std::span<std::uint64_t> move_buf) noexcept
 {

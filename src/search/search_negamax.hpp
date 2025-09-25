@@ -29,52 +29,50 @@ constexpr std::uint8_t META_EXACT       { 0 };
 constexpr std::uint8_t META_LOWER_BOUND { 1 };
 constexpr std::uint8_t META_UPPER_BOUND { 2 };
 
-inline int score_move(std::uint32_t move, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
-{
-    // We score PV moves the highest.
-    if (move == pv_move)
-        return 2000000000;
-
-    // Next comes hash-moves.
-    if (move == hash_move)
-        return 1500000000;
-
-    // Next we score promotions according to the score of the promoted piece (we may change this in the future so that all non-queen
-    // promotions are scored near the bottom).
-    if (move & move::type::PROMOTION)
-        return 1000000000 + std::abs(evaluation::piece_mg_evaluation[move::make_decode_promotion(move)]);
-
 inline void score_move(std::uint64_t& move, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
 {
+    constexpr int score_pv              { std::numeric_limits<int>::max()/2 };
+    constexpr int score_hash            { score_pv-1 };
+    constexpr int score_promote_queen   { score_hash-1 };
+    constexpr int score_capture_winning { score_promote_queen-1-details::mvv_lva_score_max };
+    constexpr int score_killer          { score_capture_winning-1+details::mvv_lva_score_min };
+    constexpr int score_capture_loosing { score_killer-1-details::mvv_lva_score_max };
+    constexpr int score_promote_other   { score_capture_loosing-1+details::mvv_lva_score_min };
+    constexpr int score_history         { 0 };
+
     int score;
     if (move::move_is_equal(move, pv_move))
     {
         move |= move::info::PV;
-        score = 2000000000;
+        score = score_pv;
     }
     else if (move::move_is_equal(move, hash_move))
     {
         move |= move::info::HASH;
-        score = 1500000000;
+        score = score_hash;
     }
     else if (move & move::type::PROMOTION)
     {
-        score = 1000000000 + std::abs(evaluation::piece_mg_evaluation[move::make_decode_promotion(move)]);
+        score = ((move::make_decode_promotion(move) & 0x07) == piece_idx::w_queen) ? score_promote_queen : score_promote_other;
     }
     else if (move & move::type::CAPTURE)
     {
         // Score captures according to MVV/LVA score. Captures are divided into winning and loosing buckets according to their SEE, with winning
         // captures being defined as having a positive SEE with some delta-flexibility.
-        score = 900000000 + mvv_lva_score(gs.bb, move);
+        constexpr int winning_capture_see_delta { -100 };
+        const bool winning_capture = (evaluation::see_capture(gs.bb, move)) > winning_capture_see_delta;
+
+        const int mvv_lva { mvv_lva_score(gs.bb, move) };
+        score = (winning_capture ? score_capture_winning : score_capture_loosing) + mvv_lva;
     }
     else if (config::km && gs.km.is_killer_move(draft, move))
     {
         move |= move::info::KILLER;
-        score = 800000000;
+        score = score_killer;
     }
     else if (config::hh)
     {
-        score = gs.hh.get_bonus(move);
+        score = score_history + gs.hh.get_bonus(move);
     }
     else
     {
@@ -120,6 +118,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
     // Some constants that will be broadly useful throughout the search.
     const auto alpha_orig = alpha ;
     const size_t draft { gs.bb.ply_counter-gs.root_ply };
+    // const bool is_pv { beta - alpha > 1};
 
     // Update stats.
     stats.abnodes++;
@@ -190,6 +189,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         const std::size_t r { depth > 6 ? 4ULL : 3ULL };
         bool null_move_pruned { false };
         if (config::nmp && !in_check && !is_king_and_pawn_colour && depth >= r+1)
+        // if (config::nmp && !in_check && !is_king_and_pawn_colour && depth >= r)
         {
             stats.moves_all++;
             stats.moves_null++;
@@ -198,6 +198,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
             std::uint32_t unmake;
             make_move({ .check_legality = false }, gs, move::NULL_MOVE, unmake);
             const int score { -search_negamax_recursive(gs, stats, depth-r-1, -beta, -beta+1, -colour, move_buf) };
+            // const int score { -search_negamax_recursive(gs, stats, depth-r, -beta, -beta+1, -colour, move_buf) };
             unmake_move(gs, move::NULL_MOVE, unmake);
 
             // Return early if this reduced search causes a beta-cutoff.
@@ -241,6 +242,8 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
                 // We run the recursive search at a lower depth if this move isn't near the top of our list after sorting. TODO: have smarter
                 // adaptive LMR-reduction, and tweek the LMR kick-in.
+                // const bool do_lmr { config::lmr && i >= 2 && depth > 2 && !(make & (move::info::KILLER | move::info::CHECK)) };
+                // const std::size_t lmr_reduction { static_cast<std::size_t>(0.99 + std::log(depth) * std::log(i) / 3.14) };
                 const bool do_lmr { config::lmr && i >= 3 && depth > 3 };
                 constexpr std::size_t lmr_reduction { 1 };
                 const std::size_t d { do_lmr ? depth-lmr_reduction-1 : depth-1 };
