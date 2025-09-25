@@ -1,0 +1,14 @@
+config waychess: eval_ks=true,eval_ps=true,nmp=true,lmr=true,km=true,hh=false,see=true,scout=true,awd=35
+config candidate: eval_ks=true,eval_ps=true,nmp=true,lmr=true,km=true,hh=false,see=true,scout=true,awd=35
+
+Candidate with aggressive LMR with conditions against checks or killers.
+--------------------------------------------------
+Results of candidate vs waychess (8+1, NULL, 128MB, 8moves_v3.pgn):
+Elo: 41.89 +/- 40.21, nElo: 50.89 +/- 48.15
+LOS: 98.08 %, DrawRatio: 41.00 %, PairsRatio: 1.95
+Games: 200, Wins: 85, Losses: 61, Draws: 54, Points: 112.0 (56.00 %)
+Ptnml(0-2): [11, 9, 41, 23, 16], WL/DD Ratio: 2.73
+LLR: 0.39 (13.1%) (-2.94, 2.94) [0.00, 5.00]
+--------------------------------------------------
+Finished match
+Total Time: 00:39:48 (hours:minutes:seconds)
