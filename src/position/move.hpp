@@ -55,6 +55,8 @@ constexpr std::uint32_t zeroise(std::uint32_t move) noexcept { return move &= ~(
 
 }
 
+constexpr bool move_is_equal(std::uint32_t a, std::uint32_t b) noexcept { return (0x0fffffff & a) == (0x0fffffff & b); }
+
 constexpr std::uint32_t make_encode_from_mb(std::size_t mb) noexcept { return 0x3f & mb; } 
 constexpr std::uint32_t make_encode_to_mb(std::size_t mb)   noexcept { return (0x3f & mb) << 6; }
 constexpr std::uint32_t make_encode_piece_idx(piece_idx p)  noexcept { return static_cast<std::uint32_t>(0x0f & p) << 12; }

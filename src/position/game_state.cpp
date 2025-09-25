@@ -3,6 +3,7 @@
 #include "evaluation/evaluate.hpp"
 #include "generate_moves.hpp"
 #include "make_move.hpp"
+#include "position/move.hpp"
 #include "zobrist_hash.hpp"
 #include "mailbox.hpp"
 
@@ -50,7 +51,7 @@ std::span<const std::uint32_t> game_state::get_pv(std::size_t ply) noexcept
         const std::span<const std::uint32_t> move_list { move_buf.data(), moves };
 
         // Exit immediately if this move isn't even pseudo-legal.
-        if (std::find(move_list.begin(), move_list.end(), make) == move_list.end())
+        if (std::find_if(move_list.begin(), move_list.end(), [make] (const std::uint32_t& v) { return move::move_is_equal(v, make); }) == move_list.end())
             break;
 
         // Make sure the move is fully-legal after playing it and checking legality.

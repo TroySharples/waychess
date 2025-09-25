@@ -3,6 +3,8 @@
 
 #include "evaluation/evaluate.hpp"
 #include "evaluation/evaluate_material.hpp"
+#include "evaluation/see.hpp"
+#include "pieces/pieces.hpp"
 #include "position/game_state.hpp"
 #include "position/move.hpp"
 #include "search/statistics.hpp"
@@ -13,6 +15,8 @@
 
 #include "config.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <limits>
 
 namespace search
@@ -40,23 +44,51 @@ inline int score_move(std::uint32_t move, std::size_t draft, const game_state& g
     if (move & move::type::PROMOTION)
         return 1000000000 + std::abs(evaluation::piece_mg_evaluation[move::make_decode_promotion(move)]);
 
-    // Next MVV/LVA score.
-    if (move & move::type::CAPTURE)
-        return 900000000 + mvv_lva_score(gs.bb, move);
+inline void score_move(std::uint64_t& move, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
+{
+    int score;
+    if (move::move_is_equal(move, pv_move))
+    {
+        score = 2000000000;
+    }
+    else if (move::move_is_equal(move, hash_move))
+    {
+        score = 1500000000;
+    }
+    else if (move & move::type::PROMOTION)
+    {
+        score = 1000000000 + std::abs(evaluation::piece_mg_evaluation[move::make_decode_promotion(move)]);
+    }
+    else if (move & move::type::CAPTURE)
+    {
+    // Score captures according to MVV/LVA score. Captures are divided into winning and loosing buckets according to their SEE, with winning
+    // captures being defined as having a positive SEE with some delta-flexibility.
+    score = 900000000 + mvv_lva_score(gs.bb, move);
+    }
+    else if (config::km && gs.km.is_killer_move(draft, move))
+    {
+        // move |= move::info::KILLER;
+        score = 800000000;
+    }
+    else if (config::hh)
+    {
+        score = gs.hh.get_bonus(move);
+    }
+    else
+    {
+        score = 0;
+    }
 
-    // Next is killer moves from this ply.
-    if (config::km && gs.km.is_killer_move(draft, move))
-        return 800000000;
-
-    // Else just look the value using the history heuristic.
-    if (config::hh) return gs.hh.get_bonus(move);
-
-    return 0;
+    // Set the score.
+    move |= (static_cast<std::int64_t>(score) << 32);
 }
 
 inline void sort_moves(std::span<std::uint64_t> move_buf, std::size_t draft, const game_state& gs, std::uint64_t pv_move, std::uint64_t hash_move) noexcept
 {
-    // Score each move.
+    // Score each move and fill-out the move-info.
+    std::for_each(move_buf.begin(), move_buf.end(), [&gs, draft, pv_move, hash_move] (std::uint64_t& move) { score_move(move, draft, gs, pv_move, hash_move); });
+
+    // Sort the moves (high-to-low).
     const std::span<std::int64_t> signed_move_buf { reinterpret_cast<std::int64_t*>(move_buf.data()), move_buf.size() };
     for (auto& move : signed_move_buf)
         move |= (static_cast<std::int64_t>(score_move(move, draft, gs, pv_move, hash_move)) << 32);

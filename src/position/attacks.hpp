@@ -91,10 +91,12 @@ inline bool is_attacked_black(const bitboard& bb, auto... mb) noexcept
 
 inline bool is_in_check(const bitboard& bb, bool is_black_to_play)
 {
-    if (is_black_to_play)
-        return is_attacked_white(bb, std::countr_zero(bb.boards[piece_idx::b_king]));
-    else
-        return is_attacked_black(bb, std::countr_zero(bb.boards[piece_idx::w_king]));
+    return is_black_to_play ? is_attacked_white(bb, std::countr_zero(bb.boards[piece_idx::b_king])) : is_attacked_black(bb, std::countr_zero(bb.boards[piece_idx::w_king]));
+}
+
+inline bool is_in_check(const bitboard& bb)
+{
+    return is_in_check(bb, bb.is_black_to_play());
 }
 
 

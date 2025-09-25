@@ -91,4 +91,9 @@ inline int see_capture(const bitboard& bb, std::uint32_t move, bool is_black)
     return gain[0];
 }
 
+inline int see_capture(const bitboard& bb, std::uint32_t move)
+{
+    return see_capture(bb, move, bb.is_black_to_play());
+}
+
 }
