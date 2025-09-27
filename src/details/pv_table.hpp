@@ -13,7 +13,7 @@ namespace details
 
 struct pv_table
 {
-    static constexpr std::size_t MAX_DEPTH { 64 };
+    static constexpr std::size_t MAX_DEPTH { 128 };
 
     // Sets our current best move, and propagates childs variation into this ply. This should be set after finding a new best
     // move by searching.
