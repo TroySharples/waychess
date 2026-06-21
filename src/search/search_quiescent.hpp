@@ -35,20 +35,37 @@ constexpr int mvv_lva_score_min   { 10*::evaluation::piece_mg_evaluation[piece_i
 constexpr int mvv_lva_score_max   { 10*::evaluation::piece_mg_evaluation[piece_idx::w_queen] - ::evaluation::piece_mg_evaluation[piece_idx::w_pawn]  };
 constexpr int mvv_lva_score_range { mvv_lva_score_max - mvv_lva_score_min };
 
-inline void sort_mvv_lva(const bitboard& bb, std::span<std::uint64_t> move_buf) noexcept
+inline void score_movequiescent(std::uint64_t& move, const game_state& gs) noexcept
 {
-    // Score each move.
-    const std::span<std::int64_t> signed_move_buf { reinterpret_cast<std::int64_t*>(move_buf.data()), move_buf.size() };
-    for (auto& move : signed_move_buf)
-        move |= (static_cast<std::int64_t>(mvv_lva_score(bb, move)) << 32);
+    constexpr int score_promotion { std::numeric_limits<int>::max()/2 };
+
+    int score;
+    if (move & move::type::PROMOTION) [[unlikely]]
+    {
+        score = score_promotion;
+    }
+    else
+    {
+        score = mvv_lva_score(gs.bb, move);
+    }
+
+    // Set the score.
+    move |= (static_cast<std::int64_t>(score) << 32);
+}
+
+inline void sort_moves_quiescent(std::span<std::uint64_t> move_buf, const game_state& gs) noexcept
+{
+    // Score each move and fill-out the move-info.
+    std::for_each(move_buf.begin(), move_buf.end(), [&gs] (std::uint64_t& move) { score_movequiescent(move, gs); });
 
     // Sort the moves (high-to-low).
+    const std::span<std::int64_t> signed_move_buf { reinterpret_cast<std::int64_t*>(move_buf.data()), move_buf.size() };
     std::sort(signed_move_buf.rbegin(), signed_move_buf.rend());
 }
 
 }
 
-inline int search_quiescence( game_state& gs, statistics& stats, std::size_t draft, int a, int b, int colour, std::span<std::uint64_t> move_buf) noexcept
+inline int search_quiescence(game_state& gs, statistics& stats, std::size_t draft, int a, int b, int colour, std::span<std::uint64_t> move_buf) noexcept
 {
     stats.qnodes++;
     stats.qdepth = std::max(stats.qdepth, draft);
@@ -66,25 +83,29 @@ inline int search_quiescence( game_state& gs, statistics& stats, std::size_t dra
     const std::size_t moves { generate_pseudo_legal_loud_moves(gs.bb, move_buf) };
     const std::span<std::uint64_t> move_list{ move_buf.subspan(0, moves) };
 
-    // Sort quiescent moves based on MVV/LVA.
-    details::sort_mvv_lva(gs.bb, move_list);
+    // Sort quiescent moves.
+    details::sort_moves_quiescent(move_list, gs);
 
     for (const auto make : move_list)
     {
         if (gs.stop_search) [[unlikely]]
             return stand_pat;
 
-        // Skip bad captures.
-        if (config::see && evaluation::see_capture(gs.bb, make, colour == -1) < 0)
-            continue;
-
-        // Delta-prunning. TODO: turn off in late end-game.
+        // Possibly skip some non-promotion loud moves (i.e. non-promotion-captures) moves.
+        if (!(make & move::type::PROMOTION))
         {
-            constexpr int delta { 200 };
-            const auto victim = gs.bb.get_piece_type_colour(1ULL << move::make_decode_to_mb(make), !gs.bb.is_black_to_play());
-            const int victim_val { std::abs(::evaluation::piece_mg_evaluation[victim]) };
-            if (victim_val + delta + stand_pat < a) [[unlikely]]
+            // Skip bad captures.
+            if (config::see && evaluation::see_capture(gs.bb, make, colour == -1) < 0)
                 continue;
+
+            // Delta-prunning. TODO: turn off in late end-game.
+            {
+                constexpr int delta { 200 };
+                const auto victim = gs.bb.get_piece_type_colour(1ULL << move::make_decode_to_mb(make), !gs.bb.is_black_to_play());
+                const int victim_val { std::abs(::evaluation::piece_mg_evaluation[victim]) };
+                if (victim_val + delta + stand_pat < a) [[unlikely]]
+                    continue;
+            }
         }
 
         std::uint32_t unmake;
