@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.16)
 project(WayChess VERSION 1.6.0)
 set(CMAKE_AUTHOR "Troy Sharples")
 
+set(CMAKE_CXX_STANDARD 20)
+
 set(LOG_LEVEL 4)
 add_compile_definitions(LOG_LEVEL=${LOG_LEVEL})
 
