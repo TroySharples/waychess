@@ -21,6 +21,7 @@ void game_state::reset()
 {
     bb = {};
     hash = {};
+    age++;
 
     position_history.fill(0);
     pv.reset();

@@ -47,9 +47,8 @@ inline recommendation recommend_move_impl(game_state& gs, statistics& stats, std
     std::array<std::uint64_t, static_cast<std::size_t>(::details::pv_table::MAX_DEPTH*MAX_MOVES_PER_POSITION)> move_buf;
     std::span<std::uint64_t> move_span(move_buf);
 
-    // Set our root node, update our transposition table age, and propagate our root PV to our upper ply.
+    // Set our root node and propagate our root PV to our upper ply.
     gs.root_ply = gs.bb.ply_counter;
-    gs.age++;
     gs.pv.init_from_root();
 
     // Initialise our local statistics for this ID run.
