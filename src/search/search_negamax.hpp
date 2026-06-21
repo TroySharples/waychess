@@ -83,7 +83,7 @@ inline void score_move(std::uint64_t& move, std::size_t draft, const game_state&
     {
         bitboard bb_copy = gs.bb;
         make_move({ .check_legality=false }, bb_copy, move);
-        if (is_in_check(gs.bb))
+        if (is_in_check(bb_copy))
             move |= move::info::CHECK;
     }
 
