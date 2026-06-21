@@ -65,7 +65,8 @@
             "options": [
                 "mate500",
                 "endgame500",
-                "middlegame500"
+                "middlegame500",
+                "material500"
             ],
             "default": "copy"
         },
