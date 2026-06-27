@@ -3,7 +3,6 @@
 #include "pieces/pieces.hpp"
 #include "search/statistics.hpp"
 
-#include "evaluation/evaluate.hpp"
 #include "evaluation/see.hpp"
 #include "position/bitboard.hpp"
 #include "position/move.hpp"
@@ -35,11 +34,11 @@ constexpr int mvv_lva_score_min   { 10*::evaluation::piece_mg_evaluation[piece_i
 constexpr int mvv_lva_score_max   { 10*::evaluation::piece_mg_evaluation[piece_idx::w_queen] - ::evaluation::piece_mg_evaluation[piece_idx::w_pawn]  };
 constexpr int mvv_lva_score_range { mvv_lva_score_max - mvv_lva_score_min };
 
-inline void score_movequiescent(std::uint64_t& move, const game_state& gs) noexcept
+inline void score_movequiescent(std::int64_t& move, const game_state& gs) noexcept
 {
-    constexpr int score_promotion { std::numeric_limits<int>::max()/2 };
+    constexpr int32_t score_promotion { std::numeric_limits<int>::max()/2 };
 
-    int score;
+    int64_t score;
     if (move & move::type::PROMOTION) [[unlikely]]
     {
         score = score_promotion;
@@ -50,22 +49,21 @@ inline void score_movequiescent(std::uint64_t& move, const game_state& gs) noexc
     }
 
     // Set the score.
-    move |= (static_cast<std::int64_t>(score) << 32);
+    move |= static_cast<std::int64_t>(score << 32);
 }
 
-inline void sort_moves_quiescent(std::span<std::uint64_t> move_buf, const game_state& gs) noexcept
+inline void sort_moves_quiescent(std::span<std::int64_t> move_buf, const game_state& gs) noexcept
 {
     // Score each move and fill-out the move-info.
-    std::for_each(move_buf.begin(), move_buf.end(), [&gs] (std::uint64_t& move) { score_movequiescent(move, gs); });
+    std::for_each(move_buf.begin(), move_buf.end(), [&gs] (std::int64_t& move) { score_movequiescent(move, gs); });
 
     // Sort the moves (high-to-low).
-    const std::span<std::int64_t> signed_move_buf { reinterpret_cast<std::int64_t*>(move_buf.data()), move_buf.size() };
-    std::sort(signed_move_buf.rbegin(), signed_move_buf.rend());
+    std::sort(move_buf.rbegin(), move_buf.rend());
 }
 
 }
 
-inline int search_quiescence(game_state& gs, statistics& stats, std::size_t draft, int a, int b, int colour, std::span<std::uint64_t> move_buf) noexcept
+inline int search_quiescence(game_state& gs, statistics& stats, std::size_t draft, int a, int b, int colour, std::span<std::int64_t> move_buf) noexcept
 {
     stats.qnodes++;
     stats.qdepth = std::max(stats.qdepth, draft);
@@ -81,7 +79,7 @@ inline int search_quiescence(game_state& gs, statistics& stats, std::size_t draf
 
     // Generate "noisy" moves (for now just captures).
     const std::size_t moves { generate_pseudo_legal_loud_moves(gs.bb, move_buf) };
-    const std::span<std::uint64_t> move_list{ move_buf.subspan(0, moves) };
+    const auto move_list = move_buf.subspan(0, moves);
 
     // Sort quiescent moves.
     details::sort_moves_quiescent(move_list, gs);

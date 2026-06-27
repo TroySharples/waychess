@@ -2,7 +2,6 @@
 
 
 #include "evaluation/evaluate.hpp"
-#include "evaluation/evaluate_material.hpp"
 #include "evaluation/see.hpp"
 #include "pieces/pieces.hpp"
 #include "position/game_state.hpp"
@@ -29,18 +28,18 @@ constexpr std::uint8_t META_EXACT       { 0 };
 constexpr std::uint8_t META_LOWER_BOUND { 1 };
 constexpr std::uint8_t META_UPPER_BOUND { 2 };
 
-inline void score_move(std::uint64_t& move, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
+inline void score_move(std::int64_t& move, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
 {
-    constexpr int score_pv              { std::numeric_limits<int>::max()/2 };
-    constexpr int score_hash            { score_pv-1 };
-    constexpr int score_promote_queen   { score_hash-1 };
-    constexpr int score_capture_winning { score_promote_queen-1-details::mvv_lva_score_max };
-    constexpr int score_killer          { score_capture_winning-1+details::mvv_lva_score_min };
-    constexpr int score_capture_loosing { score_killer-1-details::mvv_lva_score_max };
-    constexpr int score_promote_other   { score_capture_loosing-1+details::mvv_lva_score_min };
-    constexpr int score_history         { 0 };
+    constexpr int32_t score_pv              { std::numeric_limits<int32_t>::max()/2 };
+    constexpr int32_t score_hash            { score_pv-1 };
+    constexpr int32_t score_promote_queen   { score_hash-1 };
+    constexpr int32_t score_capture_winning { score_promote_queen-1-details::mvv_lva_score_max };
+    constexpr int32_t score_killer          { score_capture_winning-1+details::mvv_lva_score_min };
+    constexpr int32_t score_capture_loosing { score_killer-1-details::mvv_lva_score_max };
+    constexpr int32_t score_promote_other   { score_capture_loosing-1+details::mvv_lva_score_min };
+    constexpr int32_t score_history         { 0 };
 
-    int score;
+    int64_t score;
     if (move::move_is_equal(move, pv_move))
     {
         move |= move::info::PV;
@@ -59,10 +58,10 @@ inline void score_move(std::uint64_t& move, std::size_t draft, const game_state&
     {
         // Score captures according to MVV/LVA score. Captures are divided into winning and loosing buckets according to their SEE, with winning
         // captures being defined as having a positive SEE with some delta-flexibility.
-        constexpr int winning_capture_see_delta { -100 };
+        constexpr int32_t winning_capture_see_delta { -100 };
         const bool winning_capture = (evaluation::see_capture(gs.bb, move)) > winning_capture_see_delta;
 
-        const int mvv_lva { mvv_lva_score(gs.bb, move) };
+        const int32_t mvv_lva { mvv_lva_score(gs.bb, move) };
         score = (winning_capture ? score_capture_winning : score_capture_loosing) + mvv_lva;
     }
     else if (config::km && gs.km.is_killer_move(draft, move))
@@ -88,17 +87,16 @@ inline void score_move(std::uint64_t& move, std::size_t draft, const game_state&
     }
 
     // Set the score.
-    move |= (static_cast<std::int64_t>(score) << 32);
+    move |= static_cast<std::int64_t>(score << 32);
 }
 
-inline void sort_moves(std::span<std::uint64_t> move_buf, std::size_t draft, const game_state& gs, std::uint64_t pv_move, std::uint64_t hash_move) noexcept
+inline void sort_moves(std::span<std::int64_t> move_buf, std::size_t draft, const game_state& gs, std::uint32_t pv_move, std::uint32_t hash_move) noexcept
 {
     // Score each move and fill-out the move-info.
-    std::for_each(move_buf.begin(), move_buf.end(), [&gs, draft, pv_move, hash_move] (std::uint64_t& move) { score_move(move, draft, gs, pv_move, hash_move); });
+    std::for_each(move_buf.begin(), move_buf.end(), [&gs, draft, pv_move, hash_move] (std::int64_t& move) { score_move(move, draft, gs, pv_move, hash_move); });
 
     // Sort the moves (high-to-low).
-    const std::span<std::int64_t> signed_move_buf { reinterpret_cast<std::int64_t*>(move_buf.data()), move_buf.size() };
-    std::sort(signed_move_buf.rbegin(), signed_move_buf.rend());
+    std::sort(move_buf.rbegin(), move_buf.rend());
 }
 
 inline void handle_fail_high(game_state& gs, std::size_t draft, std::uint32_t move)
@@ -111,7 +109,7 @@ inline void handle_fail_high(game_state& gs, std::size_t draft, std::uint32_t mo
     }
 }
 
-inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size_t depth, int alpha, int beta, int colour, std::span<std::uint64_t> move_buf) noexcept
+inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size_t depth, int alpha, int beta, int colour, std::span<std::int64_t> move_buf) noexcept
 {
     int ret { -std::numeric_limits<int>::max() };
 
@@ -215,7 +213,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         {
             // Otherwise, we need to continue the search by generating all nodes from here.
             const std::size_t moves { generate_pseudo_legal_moves(gs.bb, move_buf) };
-            const std::span<std::uint64_t> move_list { move_buf.subspan(0, moves) };
+            const auto move_list = move_buf.subspan(0, moves);
 
             // Sort the moves favourably to increase the chance of early beta-cutoffs.
             sort_moves(move_list, draft, gs, pv_move, hash_move);
@@ -224,7 +222,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
             {
                 stats.moves_all++;
 
-                const std::uint64_t make { move_list[i] };
+                const auto make = move_list[i];
 
                 // Allow us to break out of the search early if needed.
                 if (gs.stop_search) [[unlikely]]
@@ -344,7 +342,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
 
 }
 
-inline int search_negamax(game_state& gs, statistics& stats, std::size_t depth, int colour, std::span<std::uint64_t> move_buf, int d = config::awd) noexcept
+inline int search_negamax(game_state& gs, statistics& stats, std::size_t depth, int colour, std::span<std::int64_t> move_buf, int d = config::awd) noexcept
 {
     int a { -std::numeric_limits<int>::max() };
     int b {  std::numeric_limits<int>::max() };

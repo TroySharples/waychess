@@ -41,9 +41,7 @@ inline void pv_table::update_variation(std::size_t ply, std::uint32_t move) noex
 inline void pv_table::init_from_root() noexcept
 {
     for (std::size_t i = 1; i < table.size(); i++)
-    {
         std::copy_n(table[0].begin() + i, MAX_DEPTH-i, table[i].begin());
-    }
 }
 
 inline void pv_table::reset() noexcept
