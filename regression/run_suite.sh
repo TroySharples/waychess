@@ -37,7 +37,7 @@ done
 RUN_EVALUATE_PATH="${SCRIPT_DIR}"/evaluate.sh
 
 # High-depth across various hash-sizes.
-for depth in 12 13; do
+for depth in 16 17 18; do
     for hash_mb in 50 500 4000; do
         run "${RUN_EVALUATE_PATH}" "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1" "${depth}" "${hash_mb}" "${SUITE_LABEL}"
     done
@@ -51,8 +51,8 @@ RUN_PUZZLER_PATH="${SCRIPT_DIR}"/puzzler.sh
 PUZZLE_DIR="${SCRIPT_DIR}"/../puzzles
 
 # Medium-depth solve across all puzzle files and a variety of hash-sizes.
-for file in mate500 endgame500 middlegame500; do
-    for depth in 9 10; do
+for file in mate500 endgame500 middlegame500 material500; do
+    for depth in 9 10 11; do
         for hash_mb in 50 500 4000; do
             run "${RUN_PUZZLER_PATH}" "${PUZZLE_DIR}/${file}.csv" "${depth}" "${hash_mb}" "${SUITE_LABEL}"
         done
