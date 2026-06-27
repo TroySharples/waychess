@@ -55,6 +55,11 @@ TEST(Puzzle, Middlegame500)
     test_puzzles(std::filesystem::path(PUZZLE_DIR) / "middlegame500.csv", 7, 0.85);
 }
 
+TEST(Puzzle, Material500)
+{
+    test_puzzles(std::filesystem::path(PUZZLE_DIR) / "material500.csv", 7, 0.85);
+}
+
 // Tests the rough performance of the search and evaluation by evaluate puzzle-solving
 // performance across a variety of position types.
 int main(int argc, char **argv)
