@@ -170,7 +170,7 @@ inline int search_negamax_recursive(game_state& gs, statistics& stats, std::size
         }
     }
 
-    // Loop up our PV and hash moves from previous searches.
+    // Look up our PV and hash moves from previous searches.
     const std::uint32_t pv_move        { gs.pv.table[draft][0] };
     const std::uint32_t hash_move      { hash_hit ? entry.value.best_move : 0 };
     const bool in_check                { is_in_check(gs.bb, colour == -1) };
