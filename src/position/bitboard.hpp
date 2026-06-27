@@ -52,9 +52,10 @@ struct bitboard
     bool is_consistent() const noexcept;
 
     // Gets the piece type on a particular square. The colour variant assumes the colour of the
-    // piece is known beforehand.
-    constexpr piece_idx get_piece_type(std::uint64_t bb) const noexcept;
-    constexpr piece_idx get_piece_type_colour(std::uint64_t bb, bool is_black) const noexcept;
+    // piece is known beforehand. The no-empty bool makes optimisations given that we know there
+    // must be a piece on the bitboard (guaranteed by other logic).
+    constexpr piece_idx get_piece_type(std::uint64_t bb, bool no_empty = false) const noexcept;
+    constexpr piece_idx get_piece_type_colour(std::uint64_t bb, bool is_black, bool no_empty = false) const noexcept;
 
     constexpr std::pair<piece_idx, std::uint64_t> get_least_valuable_piece(std::uint64_t bb, bool is_black) const noexcept;
 
@@ -83,19 +84,20 @@ struct bitboard
     bool operator!=(const bitboard& other) const noexcept { return !this->operator==(other); }
 };
 
-constexpr piece_idx bitboard::get_piece_type(std::uint64_t bb) const noexcept
+constexpr piece_idx bitboard::get_piece_type(std::uint64_t bb, bool no_empty) const noexcept
 {
-    return get_piece_type_colour(bb, boards[piece_idx::b_any] & bb);
+    return get_piece_type_colour(bb, boards[piece_idx::b_any] & bb, no_empty);
 }
 
-constexpr piece_idx bitboard::get_piece_type_colour(std::uint64_t bb, bool is_black) const noexcept
+constexpr piece_idx bitboard::get_piece_type_colour(std::uint64_t bb, bool is_black, bool no_empty) const noexcept
 {
-    for (std::size_t idx = (is_black ? piece_idx::b_pawn : piece_idx::w_pawn); idx <= (is_black ? piece_idx::b_queen : piece_idx::w_queen); idx++)
+    std::size_t idx = (is_black ? piece_idx::b_pawn : piece_idx::w_pawn);
+    const std::size_t end_idx = (is_black ? piece_idx::b_rook : piece_idx::w_rook) + (no_empty ? 0 : 1);
+    for (; idx <= end_idx; idx++)
         if (boards[idx] & bb)
             return static_cast<piece_idx>(idx);
-    return piece_idx::empty;
+    return no_empty ? static_cast<piece_idx>(idx) : piece_idx::empty;
 }
-
 
 constexpr std::pair<piece_idx, std::uint64_t> bitboard::get_least_valuable_piece(std::uint64_t bb, bool is_black) const noexcept
 {

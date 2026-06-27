@@ -161,7 +161,7 @@ inline bool make_move_impl(const make_move_args& args, bitboard& bb, std::uint32
         // going in reverse.
         else
         {
-            const auto capture_idx = bb.get_piece_type_colour(to_bb, !is_black_to_play);
+            const auto capture_idx = bb.get_piece_type_colour(to_bb, !is_black_to_play, true);
             unmake |= move::unmake_encode_capture(static_cast<piece_idx>(capture_idx));
 
             opponent_pieces        ^= to_bb;
