@@ -21,7 +21,7 @@ bool solver::solve(const puzzle& p, std::size_t depth)
                 return true;
 
             // If there is no mate, and it is us to move, we just make sure we play the right move.
-            if (move != rec.move)
+            if (!move::move_is_equal(move, rec.move))
                 return false;
         }
 
