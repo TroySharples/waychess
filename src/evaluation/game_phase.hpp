@@ -64,4 +64,14 @@ constexpr int interpolate_gp(int mg, int eg, int gp) noexcept
     return (mg*gp + eg*(24-gp))/24;
 }
 
+constexpr bool is_endgame(const bitboard& bb) noexcept
+{
+    return evaluate_gp(bb) < 8;
+}
+
+constexpr bool is_late_endgame(const bitboard& bb) noexcept
+{
+    return evaluate_gp(bb) < 6;
+}
+
 }

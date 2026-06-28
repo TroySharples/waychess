@@ -100,7 +100,8 @@ inline int search_quiescence(game_state& gs, statistics& stats, std::size_t draf
             if (config::see && evaluation::see_capture(gs.bb, make, colour == -1) < 0)
                 continue;
 
-            // Delta-prunning. TODO: turn off in late end-game.
+            // Delta-prunning.
+            if (!(make & move::type::EN_PASSENT) || !evaluation::is_late_endgame(gs.bb)) [[likely]]
             {
                 constexpr int delta { 200 };
                 const auto victim = gs.bb.get_piece_type_colour(1ULL << move::make_decode_to_mb(make), !gs.bb.is_black_to_play());
