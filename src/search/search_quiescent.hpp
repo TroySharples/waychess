@@ -47,13 +47,9 @@ inline void score_movequiescent(std::int64_t& move, const game_state& gs) noexce
 
     int64_t score;
     if (move & move::type::PROMOTION) [[unlikely]]
-    {
         score = score_promotion;
-    }
     else
-    {
         score = mvv_lva_score(gs.bb, move);
-    }
 
     // Set the score.
     move |= static_cast<std::int64_t>(score << 32);
@@ -79,10 +75,11 @@ inline int search_quiescence(game_state& gs, statistics& stats, std::size_t draf
     const int stand_pat = colour*gs.evaluate();
 
     // Fail-hard beta cutoff.
-    if (stand_pat >= b)
-        return stand_pat;
+    int best_value { stand_pat };
+    if (best_value >= b)
+        return best_value;
 
-    a = std::max(a, stand_pat);
+    a = std::max(a, best_value);
 
     // Generate "noisy" moves (for now just captures).
     const std::size_t moves { generate_pseudo_legal_loud_moves(gs.bb, move_buf) };
@@ -94,7 +91,7 @@ inline int search_quiescence(game_state& gs, statistics& stats, std::size_t draf
     for (const auto make : move_list)
     {
         if (gs.stop_search) [[unlikely]]
-            return stand_pat;
+            return best_value;
 
         // Possibly skip some non-promotion loud moves (i.e. non-promotion-captures) moves.
         if (!(make & move::type::PROMOTION))
@@ -125,10 +122,12 @@ inline int search_quiescence(game_state& gs, statistics& stats, std::size_t draf
 
         a = std::max(a, score);
         if (a >= b)
-            break;
+            return score;
+
+        best_value = std::max(best_value, score);
     }
 
-    return a;
+    return best_value;
 }
 
 }
