@@ -20,6 +20,13 @@ namespace details
 
 inline int mvv_lva_score(const bitboard& bb, std::uint32_t move)
 {
+    // Multiplying the victim score ensures it's the dominant term.
+    constexpr int victim_attacker_ratio { 10 };
+
+    // Handle the special case of en-passent capture.
+    if (move & move::type::EN_PASSENT) [[unlikely]]
+        return victim_attacker_ratio-1;
+
     const auto attacker = move::make_decode_piece_idx(move);
     const auto victim   = bb.get_piece_type_colour(1ULL << move::make_decode_to_mb(move), !bb.is_black_to_play());
 
@@ -27,7 +34,7 @@ inline int mvv_lva_score(const bitboard& bb, std::uint32_t move)
     const int attacker_val { std::abs(::evaluation::piece_mg_evaluation[attacker]) };
 
     // Multiplying the victim score ensures it's the dominant term.
-    return (10*victim_val) - attacker_val;
+    return victim_attacker_ratio*victim_val - attacker_val;
 }
 
 constexpr int mvv_lva_score_min   { 10*::evaluation::piece_mg_evaluation[piece_idx::w_pawn]  - ::evaluation::piece_mg_evaluation[piece_idx::w_queen] };
