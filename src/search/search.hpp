@@ -79,6 +79,7 @@ inline recommendation recommend_move_impl(game_state& gs, statistics& stats, std
 inline recommendation recommend_move_id_impl(game_state& gs, statistics& stats, std::size_t depth)
 {
     gs.stop_search = false;
+    gs.prepare_new_search();
 
     // Handle the special case of 0-depth search (raw terminal evaluation).
     if (depth == 0)

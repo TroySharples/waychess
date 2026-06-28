@@ -23,6 +23,12 @@ struct game_state
     // Clear all state - note that this doesn't affect the size of the transposition table.
     void reset();
 
+    // Prepares the game-state for a new search (should be run before the ID call). This clears the various bits of
+    // serach-state, such as the transposition and principal-variation tables. This probably shouldn't be strictly
+    // necessary between moves, but not doing this means we play illegal moves for some reason (perhaps through
+    // hash-table collisions?).
+    void prepare_new_search();
+
     // The bitboard itself. We use a bitboard for obvious reasons.
     bitboard bb;
 

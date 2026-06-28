@@ -21,6 +21,12 @@ void game_state::reset()
 {
     bb = {};
     hash = {};
+
+    prepare_new_search();
+}
+
+void game_state::prepare_new_search()
+{
     age++;
 
     position_history.fill(0);
